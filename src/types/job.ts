@@ -18,6 +18,16 @@ export type ApplicationStatus =
   | "REVIEWED"
   | "SHORTLISTED"
   | "REJECTED";
+export type JobCategory =
+  | "ENGINEERING"
+  | "DESIGN"
+  | "MARKETING"
+  | "SALES"
+  | "CUSTOMER_SUPPORT"
+  | "FINANCE"
+  | "OPERATIONS"
+  | "HR"
+  | "OTHER";
 
 // ---------------------------------------------------------------------------
 // Public-facing cards (search results, category pages)
@@ -142,6 +152,18 @@ export const APPLICATION_STATUS_LABELS: Record<ApplicationStatus, string> = {
   REVIEWED: "Reviewed",
   SHORTLISTED: "Shortlisted",
   REJECTED: "Rejected",
+};
+
+export const CATEGORY_LABELS: Record<JobCategory, string> = {
+  ENGINEERING: "Engineering",
+  DESIGN: "Design",
+  MARKETING: "Marketing",
+  SALES: "Sales",
+  CUSTOMER_SUPPORT: "Customer Support",
+  FINANCE: "Finance",
+  OPERATIONS: "Operations",
+  HR: "HR",
+  OTHER: "Other",
 };
 
 export function workTypeLabel(value: WorkType): string {

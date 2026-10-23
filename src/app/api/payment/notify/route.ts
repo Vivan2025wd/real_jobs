@@ -66,18 +66,25 @@ export async function POST(req: NextRequest) {
 
   // Idempotency: don't downgrade a COMPLETED payment.
   if (payment.status === "COMPLETED") {
+    if (payment.job_id) {
+      const { data: jobState } = await supabase
+        .from("jobs")
+        .select("status")
+        .eq("id", payment.job_id)
+        .maybeSingle();
+
+      if (jobState?.status === "DRAFT") {
+        await supabase
+          .from("jobs")
+          .update({ status: "ACTIVE" } as never)
+          .eq("id", payment.job_id)
+          .eq("status", "DRAFT");
+      }
+    }
     return NextResponse.json({ ok: true, note: "already completed" });
   }
 
   const success = payload.status_code === SUCCESS_CODE;
-
-  await supabase
-    .from("payments")
-    .update({
-      status: success ? "COMPLETED" : "FAILED",
-      gateway_reference: payload.payment_id || null,
-    } as never)
-    .eq("id", payment.id);
 
   if (success && payment.job_id) {
     await supabase
@@ -86,6 +93,14 @@ export async function POST(req: NextRequest) {
       .eq("id", payment.job_id)
       .eq("status", "DRAFT");
   }
+
+  await supabase
+    .from("payments")
+    .update({
+      status: success ? "COMPLETED" : "FAILED",
+      gateway_reference: payload.payment_id || null,
+    } as never)
+    .eq("id", payment.id);
 
   return NextResponse.json({ ok: true });
 }

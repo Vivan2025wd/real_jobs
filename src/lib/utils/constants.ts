@@ -56,40 +56,9 @@ export const SITE_URL =
 // ---------------------------------------------------------------------------
 // Display labels
 // ---------------------------------------------------------------------------
-export const WORK_TYPE_LABELS = {
-  REMOTE: "Remote",
-  ONSITE: "On-site",
-  HYBRID: "Hybrid",
-} as const;
-
-export const JOB_STATUS_LABELS = {
-  DRAFT: "Draft",
-  ACTIVE: "Active",
-  FILLED: "Filled",
-  EXPIRED: "Expired",
-  ARCHIVED: "Archived",
-} as const;
-
-export const APPLICATION_STATUS_LABELS = {
-  PENDING: "Pending",
-  REVIEWED: "Reviewed",
-  SHORTLISTED: "Shortlisted",
-  REJECTED: "Rejected",
-} as const;
-
-export const CATEGORY_LABELS = {
-  ENGINEERING: "Engineering",
-  DESIGN: "Design",
-  MARKETING: "Marketing",
-  SALES: "Sales",
-  CUSTOMER_SUPPORT: "Customer Support",
-  FINANCE: "Finance",
-  OPERATIONS: "Operations",
-  HR: "HR",
-  OTHER: "Other",
-} as const;
-
-export type WorkType = keyof typeof WORK_TYPE_LABELS;
-export type JobStatus = keyof typeof JOB_STATUS_LABELS;
-export type ApplicationStatus = keyof typeof APPLICATION_STATUS_LABELS;
-export type JobCategory = keyof typeof CATEGORY_LABELS;
+export {
+  WORK_TYPE_LABELS,
+  JOB_STATUS_LABELS,
+  APPLICATION_STATUS_LABELS,
+  CATEGORY_LABELS,
+} from "@/types/job";

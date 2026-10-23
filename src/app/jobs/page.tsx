@@ -2,8 +2,8 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
-import { JobCard } from "@/components/jobs/JobCard";
 import { JobFilters } from "@/components/jobs/JobFilters";
+import { JobList } from "@/components/jobs/JobList";
 import { Button } from "@/components/ui/Button";
 import type { PublicJobCard } from "@/types/job";
 
@@ -140,9 +140,7 @@ export default async function JobsPage({
               </div>
             ) : (
               <>
-                {jobs.map((job) => (
-                  <JobCard key={job.id} job={job} />
-                ))}
+                <JobList jobs={jobs} />
 
                 {totalPages > 1 && (
                   <div className="flex items-center justify-between pt-4">

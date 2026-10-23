@@ -102,12 +102,4 @@ export function isPaymentStatus(value: unknown): value is PaymentStatus {
   return value === "PENDING" || value === "COMPLETED" || value === "FAILED";
 }
 
-/**
- * The fee charged to publish a job listing, formatted as PayHere expects
- * (2 decimal places, string). Kept here so the API route and any tests
- * reference the same value.
- */
-export const JOB_POSTING_FEE_LKR = "2500.00";
-
-/** Currency code used for all transactions. */
-export const PAYMENT_CURRENCY = "LKR";
+export { JOB_POSTING_FEE_LKR, PAYMENT_CURRENCY } from "@/lib/utils/constants";

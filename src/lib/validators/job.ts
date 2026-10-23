@@ -42,14 +42,4 @@ export const CATEGORY_SLUGS: Record<string, JobCategory> = {
   other: "OTHER",
 };
 
-export const CATEGORY_LABELS: Record<JobCategory, string> = {
-  ENGINEERING: "Engineering",
-  DESIGN: "Design",
-  MARKETING: "Marketing",
-  SALES: "Sales",
-  CUSTOMER_SUPPORT: "Customer Support",
-  FINANCE: "Finance",
-  OPERATIONS: "Operations",
-  HR: "HR",
-  OTHER: "Other",
-};
+export { CATEGORY_LABELS } from "@/types/job";

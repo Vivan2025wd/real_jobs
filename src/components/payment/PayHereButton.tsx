@@ -49,8 +49,7 @@ export function PayHereButton({ jobId }: { jobId: string }) {
       const w = window as PayHereWindow;
       if (!w.payhere) throw new Error("PayHere SDK failed to load");
 
-      w.payhere.onCompleted = (orderId: string) => {
-        console.log("PayHere completed:", orderId);
+      w.payhere.onCompleted = () => {
         window.location.href = `/dashboard/employer/jobs/${jobId}?payment=success`;
       };
       w.payhere.onDismissed = () => {

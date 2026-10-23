@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { ApplicationCard } from "@/components/applications/ApplicationCard";
 import { Button } from "@/components/ui/Button";
+import type { ApplicationWithJob } from "@/types/job";
 
 export default async function SeekerApplicationsPage() {
   const supabase = await createClient();
@@ -13,12 +14,6 @@ export default async function SeekerApplicationsPage() {
     .eq("seeker_id", user!.id)
     .order("applied_at", { ascending: false });
 
-  type ApplicationWithJob = {
-    id: string;
-    status: string;
-    applied_at: string;
-    jobs: { title: string; companies: { company_name: string } };
-  };
   const applicationRows = applications as ApplicationWithJob[] | null;
 
   return (

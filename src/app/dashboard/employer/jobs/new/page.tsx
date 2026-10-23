@@ -68,7 +68,7 @@ export default async function NewJobPage({
     <div className="mx-auto max-w-2xl">
       <h1 className="text-2xl font-bold text-gray-900">Post a new job</h1>
       <p className="mt-1 text-gray-500">
-        Save as draft first — publish when ready (payment integration coming soon).
+        Save as draft first — publish by paying the LKR 2,500 listing fee when ready.
       </p>
 
       <div className="mt-8 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
