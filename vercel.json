@@ -1,0 +1,26 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "regions": ["bom1"],
+  "crons": [
+    {
+      "path": "/api/cron/verify-jobs",
+      "schedule": "0 9 * * 1"
+    },
+    {
+      "path": "/api/cron/expire-jobs",
+      "schedule": "0 */6 * * *"
+    }
+  ],
+  "functions": {
+    "src/app/api/cron/verify-jobs/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/cron/expire-jobs/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/payment/notify/route.ts": {
+      "maxDuration": 30
+    }
+  }
+}
