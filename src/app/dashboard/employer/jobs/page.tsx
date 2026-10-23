@@ -6,46 +6,21 @@ import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/Badge";
 import { formatSalary, timeAgo } from "@/lib/utils/format";
+import type { JobListRow } from "@/types/job";
 
 // ---------------------------------------------------------------------------
-// Explicit row types — the generated Supabase types return `never` for
-// multi-column `.select()` inference and for `.update()` payloads.
-// `.returns<T>()` restores the shape for reads; `as never` unblocks writes.
-// Regenerate types with:
-//   npx supabase gen types typescript --project-id qujvdtpqlsurbeyputfj ^
-//     | Out-File src/types/database.types.ts -Encoding utf8
-// …then remove the `as never` casts.
+// `JobListRow` (from @/types/job) mirrors exactly the columns selected below.
+// Keeping the row type close to the select string ensures `.map()` access to
+// any un-selected column is caught at compile time.
+//
+// The `.returns<T>()` override is still required because the generated
+// Supabase types collapse multi-column selects to `never`. See the row-type
+// note in src/types/job.ts for the full explanation.
 // ---------------------------------------------------------------------------
-type JobRow = {
-  id: string;
-  title: string;
-  status: "DRAFT" | "ACTIVE" | "FILLED" | "EXPIRED" | "ARCHIVED";
-  work_type: "REMOTE" | "ONSITE" | "HYBRID";
-  location: string;
-  salary_min: number | null;
-  salary_max: number | null;
-  created_at: string;
-};
 
 type CompanyId = { id: string };
 
 // ----- Server Actions -----
-async function publishJob(formData: FormData) {
-  "use server";
-  const jobId = String(formData.get("jobId") ?? "");
-  if (!jobId) return;
-
-  const supabase = await createClient();
-  // TODO Phase 3: replace with PayHere checkout. For now, publish immediately.
-  await supabase
-    .from("jobs")
-    .update({ status: "ACTIVE" } as never)
-    .eq("id", jobId);
-
-  revalidatePath("/dashboard/employer/jobs");
-  revalidatePath("/dashboard/employer");
-}
-
 async function markFilled(formData: FormData) {
   "use server";
   const jobId = String(formData.get("jobId") ?? "");
@@ -96,7 +71,7 @@ export default async function EmployerJobsPage() {
     )
     .eq("company_id", companyId)
     .order("created_at", { ascending: false })
-    .returns<JobRow[]>();
+    .returns<JobListRow[]>();
 
   return (
     <div className="space-y-6">
@@ -152,10 +127,9 @@ export default async function EmployerJobsPage() {
                     <StatusBadge status={job.status} />
 
                     {job.status === "DRAFT" && (
-                      <form action={publishJob}>
-                        <input type="hidden" name="jobId" value={job.id} />
+                      <Link href={`/dashboard/employer/jobs/${job.id}?pay=1`}>
                         <Button size="sm">Publish</Button>
-                      </form>
+                      </Link>
                     )}
 
                     {job.status === "ACTIVE" && (

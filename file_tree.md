@@ -67,9 +67,6 @@ next-gen-job-marketplace/
 │   │   │           └── page.tsx       # Pre-rendered category landing (SSG)
 │   │   │
 │   │   ├── api/
-│   │   │   ├── auth/
-│   │   │   │   └── [...supabase]/
-│   │   │   │       └── route.ts       # Supabase auth helpers (optional)
 │   │   │   ├── s3/
 │   │   │   │   └── presigned-url/
 │   │   │   │       └── route.ts       # Generate pre-signed URL for uploads
@@ -141,6 +138,7 @@ next-gen-job-marketplace/
 │   │   ├── database.types.ts          # Supabase generated types
 │   │   ├── job.ts
 │   │   ├── user.ts
+│   │   ├── assets.d.ts
 │   │   └── payment.ts
 │   │
 │   ├── hooks/                         # Custom React hooks

@@ -6,15 +6,20 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "db:types": "tsx scripts/generate-db-types.ts",
+    "db:push":  "supabase db push && tsx scripts/generate-db-types.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1156.0",
+    "@aws-sdk/s3-request-presigner": "^3.1156.0",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.118.0",
     "clsx": "^2.1.1",
     "next": "14.2.15",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "resend": "^6.34.1",
     "server-only": "^0.0.1",
     "tailwind-merge": "^3.7.0",
     "zod": "^4.6.7"
@@ -29,6 +34,7 @@
     "postcss": "^8.4.47",
     "supabase": "^2.121.0",
     "tailwindcss": "^3.4.13",
+    "tsx": "^4.23.15",
     "typescript": "^5.6.2"
   }
 }

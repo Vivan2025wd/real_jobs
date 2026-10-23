@@ -1,10 +1,25 @@
 import { z } from "zod";
 
+export const JOB_CATEGORIES = [
+  "ENGINEERING",
+  "DESIGN",
+  "MARKETING",
+  "SALES",
+  "CUSTOMER_SUPPORT",
+  "FINANCE",
+  "OPERATIONS",
+  "HR",
+  "OTHER",
+] as const;
+
+export type JobCategory = (typeof JOB_CATEGORIES)[number];
+
 export const jobSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters").max(120),
   description: z.string().min(30, "Describe the role in at least 30 characters"),
   location: z.string().min(2, "Location is required"),
   work_type: z.enum(["REMOTE", "ONSITE", "HYBRID"]),
+  category: z.enum(JOB_CATEGORIES).nullable().optional(),
   salary_min: z.coerce.number().int().nonnegative().nullable().optional(),
   salary_max: z.coerce.number().int().nonnegative().nullable().optional(),
 }).refine(
@@ -13,3 +28,28 @@ export const jobSchema = z.object({
 );
 
 export type JobInput = z.infer<typeof jobSchema>;
+
+// Maps URL slugs (/jobs/category/engineering) to stored enum values.
+export const CATEGORY_SLUGS: Record<string, JobCategory> = {
+  engineering: "ENGINEERING",
+  design: "DESIGN",
+  marketing: "MARKETING",
+  sales: "SALES",
+  "customer-support": "CUSTOMER_SUPPORT",
+  finance: "FINANCE",
+  operations: "OPERATIONS",
+  hr: "HR",
+  other: "OTHER",
+};
+
+export const CATEGORY_LABELS: Record<JobCategory, string> = {
+  ENGINEERING: "Engineering",
+  DESIGN: "Design",
+  MARKETING: "Marketing",
+  SALES: "Sales",
+  CUSTOMER_SUPPORT: "Customer Support",
+  FINANCE: "Finance",
+  OPERATIONS: "Operations",
+  HR: "HR",
+  OTHER: "Other",
+};

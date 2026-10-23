@@ -1,98 +1,74 @@
 // src/middleware.ts
 import { NextResponse, type NextRequest } from "next/server";
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { updateSession } from "@/lib/supabase/middleware";
 
 /**
- * Middleware responsibilities:
- *   1. Refresh the Supabase session cookie on every request
- *   2. Block unauthenticated users from /dashboard/*
- *   3. Redirect authenticated users away from /login and /register
- *   4. Enforce role-based dashboards (EMPLOYER vs JOB_SEEKER)
+ * Route rules:
+ *   1. /dashboard/* requires a session
+ *   2. Logged-in users skip /login and /register
+ *   3. Employer cannot reach seeker pages, seeker cannot reach employer pages
  *
- * IMPORTANT: always call `supabase.auth.getUser()` here. It validates the
- * JWT against the auth server. Do NOT use `getSession()` — it only reads
- * the cookie and can be spoofed.
+ * Session refresh happens inside updateSession(). Every early-return path
+ * must copy the refreshed cookies onto the redirect, otherwise the user is
+ * logged out on the next request.
  */
 export async function middleware(request: NextRequest) {
-  // Start with a pass-through response. It will be replaced whenever
-  // Supabase needs to write refreshed cookies back to the browser.
-  let supabaseResponse = NextResponse.next({ request });
+  let user: Awaited<ReturnType<typeof updateSession>>["user"] = null;
+  let response: NextResponse;
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet: { name: string; value: string; options?: CookieOptions }[]) {
-          // Mirror the updated cookies onto the incoming request so the
-          // current handler sees them …
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          );
-          // … and onto the outgoing response so the browser gets them.
-          supabaseResponse = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
-
-  // Refresh the session. MUST run before any early returns.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  try {
+    const result = await updateSession(request);
+    user = result.user;
+    response = result.response;
+  } catch (err) {
+    // If the auth server is unreachable, do NOT crash every request.
+    // Fall through with a pass-through response and no user, so public
+    // pages still render. Protected routes will redirect to /login below.
+    console.error("[middleware] updateSession failed:", err);
+    response = NextResponse.next({ request });
+  }
 
   const { pathname } = request.nextUrl;
-
-  const isAuthRoute =
-    pathname === "/login" || pathname === "/register";
-
+  const isAuthRoute = pathname === "/login" || pathname === "/register";
   const isDashboardRoute = pathname.startsWith("/dashboard");
 
-  // ---- Rule 1: dashboard requires a session ----
+  // Rule 1: dashboard requires a session
   if (isDashboardRoute && !user) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("next", pathname);
-    return redirectWithCookies(url, supabaseResponse);
+    return redirectWithCookies(url, response);
   }
 
-  // ---- Rule 2: logged-in users skip the auth pages ----
+  // Rule 2: signed-in users skip auth pages
   if (isAuthRoute && user) {
     const role = (user.user_metadata?.role ?? "").toUpperCase();
     const url = request.nextUrl.clone();
     url.pathname =
       role === "EMPLOYER" ? "/dashboard/employer" : "/dashboard/seeker";
-    return redirectWithCookies(url, supabaseResponse);
+    return redirectWithCookies(url, response);
   }
 
-  // ---- Rule 3: role-based dashboard routing ----
+  // Rule 3: role-based dashboard routing
   if (user && isDashboardRoute) {
     const role = (user.user_metadata?.role ?? "").toUpperCase();
     const isEmployerArea = pathname.startsWith("/dashboard/employer");
     const isSeekerArea = pathname.startsWith("/dashboard/seeker");
 
-    // Employer trying to reach a seeker page → bounce to employer dashboard
     if (role === "EMPLOYER" && isSeekerArea) {
       const url = request.nextUrl.clone();
       url.pathname = "/dashboard/employer";
-      return redirectWithCookies(url, supabaseResponse);
+      return redirectWithCookies(url, response);
     }
 
-    // Seeker trying to reach an employer page → bounce to seeker dashboard
     if (role === "JOB_SEEKER" && isEmployerArea) {
       const url = request.nextUrl.clone();
       url.pathname = "/dashboard/seeker";
-      return redirectWithCookies(url, supabaseResponse);
+      return redirectWithCookies(url, response);
     }
   }
 
-  return supabaseResponse;
+  return response;
 }
 
 /**
@@ -101,9 +77,9 @@ export async function middleware(request: NextRequest) {
  * triggers a redirect would be lost — causing an infinite login loop.
  */
 function redirectWithCookies(url: URL, from: NextResponse) {
-  const response = NextResponse.redirect(url);
-  from.cookies.getAll().forEach((cookie) => response.cookies.set(cookie));
-  return response;
+  const redirectRes = NextResponse.redirect(url);
+  from.cookies.getAll().forEach((cookie) => redirectRes.cookies.set(cookie));
+  return redirectRes;
 }
 
 export const config = {

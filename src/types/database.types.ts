@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -121,6 +121,7 @@ export type Database = {
       }
       jobs: {
         Row: {
+          category: string | null
           company_id: string
           created_at: string
           description: string
@@ -131,9 +132,12 @@ export type Database = {
           salary_min: number | null
           status: string
           title: string
+          verification_sent_at: string | null
+          verification_token: string | null
           work_type: string
         }
         Insert: {
+          category?: string | null
           company_id: string
           created_at?: string
           description: string
@@ -144,9 +148,12 @@ export type Database = {
           salary_min?: number | null
           status?: string
           title: string
+          verification_sent_at?: string | null
+          verification_token?: string | null
           work_type: string
         }
         Update: {
+          category?: string | null
           company_id?: string
           created_at?: string
           description?: string
@@ -157,6 +164,8 @@ export type Database = {
           salary_min?: number | null
           status?: string
           title?: string
+          verification_sent_at?: string | null
+          verification_token?: string | null
           work_type?: string
         }
         Relationships: [
@@ -225,18 +234,24 @@ export type Database = {
           created_at: string
           email: string
           id: string
+          resume_uploaded_at: string | null
+          resume_url: string | null
           role: string
         }
         Insert: {
           created_at?: string
           email: string
           id: string
+          resume_uploaded_at?: string | null
+          resume_url?: string | null
           role: string
         }
         Update: {
           created_at?: string
           email?: string
           id?: string
+          resume_uploaded_at?: string | null
+          resume_url?: string | null
           role?: string
         }
         Relationships: []

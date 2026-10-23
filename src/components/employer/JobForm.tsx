@@ -8,6 +8,7 @@ type DefaultValues = {
   description?: string;
   location?: string;
   work_type?: "REMOTE" | "ONSITE" | "HYBRID";
+  category?: string | null;
   salary_min?: number | null;
   salary_max?: number | null;
 };
@@ -41,9 +42,15 @@ export function JobForm({
       )}
 
       <div>
-        <label htmlFor="title" className="block text-sm font-medium text-gray-700">Job title</label>
+        <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+          Job title
+        </label>
         <input
-          id="title" name="title" required minLength={3} maxLength={120}
+          id="title"
+          name="title"
+          required
+          minLength={3}
+          maxLength={120}
           defaultValue={defaults.title}
           className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           placeholder="Senior Frontend Engineer"
@@ -51,9 +58,15 @@ export function JobForm({
       </div>
 
       <div>
-        <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
+        <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+          Description
+        </label>
         <textarea
-          id="description" name="description" required minLength={30} rows={8}
+          id="description"
+          name="description"
+          required
+          minLength={30}
+          rows={8}
           defaultValue={defaults.description}
           className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           placeholder="Describe the role, responsibilities, and requirements…"
@@ -62,18 +75,26 @@ export function JobForm({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label htmlFor="location" className="block text-sm font-medium text-gray-700">Location</label>
+          <label htmlFor="location" className="block text-sm font-medium text-gray-700">
+            Location
+          </label>
           <input
-            id="location" name="location" required
+            id="location"
+            name="location"
+            required
             defaultValue={defaults.location}
             className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             placeholder="Colombo, Sri Lanka"
           />
         </div>
         <div>
-          <label htmlFor="work_type" className="block text-sm font-medium text-gray-700">Work type</label>
+          <label htmlFor="work_type" className="block text-sm font-medium text-gray-700">
+            Work type
+          </label>
           <select
-            id="work_type" name="work_type" required
+            id="work_type"
+            name="work_type"
+            required
             defaultValue={defaults.work_type ?? "ONSITE"}
             className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           >
@@ -84,20 +105,56 @@ export function JobForm({
         </div>
       </div>
 
+      <div>
+        <label htmlFor="category" className="block text-sm font-medium text-gray-700">
+          Category
+        </label>
+        <select
+          id="category"
+          name="category"
+          defaultValue={defaults.category ?? ""}
+          className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        >
+          <option value="">Uncategorised</option>
+          <option value="ENGINEERING">Engineering</option>
+          <option value="DESIGN">Design</option>
+          <option value="MARKETING">Marketing</option>
+          <option value="SALES">Sales</option>
+          <option value="CUSTOMER_SUPPORT">Customer Support</option>
+          <option value="FINANCE">Finance</option>
+          <option value="OPERATIONS">Operations</option>
+          <option value="HR">HR</option>
+          <option value="OTHER">Other</option>
+        </select>
+        <p className="mt-1 text-xs text-gray-500">
+          Powers the /jobs/category/&lt;slug&gt; landing pages and search filters.
+        </p>
+      </div>
+
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label htmlFor="salary_min" className="block text-sm font-medium text-gray-700">Salary min (LKR)</label>
+          <label htmlFor="salary_min" className="block text-sm font-medium text-gray-700">
+            Salary min (LKR)
+          </label>
           <input
-            id="salary_min" name="salary_min" type="number" min={0}
+            id="salary_min"
+            name="salary_min"
+            type="number"
+            min={0}
             defaultValue={defaults.salary_min ?? ""}
             className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             placeholder="100000"
           />
         </div>
         <div>
-          <label htmlFor="salary_max" className="block text-sm font-medium text-gray-700">Salary max (LKR)</label>
+          <label htmlFor="salary_max" className="block text-sm font-medium text-gray-700">
+            Salary max (LKR)
+          </label>
           <input
-            id="salary_max" name="salary_max" type="number" min={0}
+            id="salary_max"
+            name="salary_max"
+            type="number"
+            min={0}
             defaultValue={defaults.salary_max ?? ""}
             className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             placeholder="200000"
