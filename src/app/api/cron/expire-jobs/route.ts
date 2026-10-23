@@ -1,13 +1,15 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { timingSafeEqual } from "node:crypto";
 import { expireStaleJobs } from "@/lib/cron/job-lifecycle";
 
 export const maxDuration = 60;
 
 function unauthorized(req: NextRequest): boolean {
-  const auth = req.headers.get("authorization");
-  const expected = `Bearer ${process.env.CRON_SECRET}`;
-  const querySecret = new URL(req.url).searchParams.get("secret");
-  return auth !== expected && querySecret !== process.env.CRON_SECRET;
+  const header = req.headers.get("authorization") ?? "";
+  const expected = `Bearer ${process.env.CRON_SECRET ?? ""}`;
+  const a = Buffer.from(header);
+  const b = Buffer.from(expected);
+  return a.length !== b.length || !timingSafeEqual(a, b);
 }
 
 export async function GET(req: NextRequest) {

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/Badge";
 import { PayHereButton } from "@/components/payment/PayHereButton";
 import { VerificationToggle } from "@/components/employer/VerificationToggle";
+import { ViewResumeButton } from "@/components/employer/ViewResumeButton";
 import { formatSalary, formatDate, timeAgo } from "@/lib/utils/format";
 import type { ApplicationWithSeeker, JobRow } from "@/types/job";
 
@@ -181,7 +182,7 @@ export default async function EmployerJobDetailPage({
               {typedApplications.map((a) => (
                 <li
                   key={a.id}
-                  className="flex items-center justify-between px-6 py-4"
+                  className="flex items-center justify-between gap-4 px-6 py-4"
                 >
                   <div>
                     <p className="font-medium text-gray-900">
@@ -191,7 +192,10 @@ export default async function EmployerJobDetailPage({
                       Applied {timeAgo(a.applied_at)}
                     </p>
                   </div>
-                  <StatusBadge status={a.status} />
+                  <div className="flex items-center gap-3">
+                    <StatusBadge status={a.status} />
+                    <ViewResumeButton resumeKey={a.resume_url} />
+                  </div>
                 </li>
               ))}
             </ul>

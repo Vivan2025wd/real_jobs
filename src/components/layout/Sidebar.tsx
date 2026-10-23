@@ -54,11 +54,9 @@ export function Sidebar({ role, email }: { role: Role; email: string }) {
       <div className="border-t border-gray-200 p-4 text-xs text-gray-500">
         <p className="truncate">Signed in as</p>
         <p className="truncate font-medium text-gray-900">{email}</p>
-        <form action="/auth/signout" method="post" className="mt-2">
-          <Link href="/logout" className="text-blue-600 hover:underline">
-            Sign out
-          </Link>
-        </form>
+        <Link href="/logout" className="mt-2 inline-block text-blue-600 hover:underline">
+          Sign out
+        </Link>
       </div>
     </aside>
   );

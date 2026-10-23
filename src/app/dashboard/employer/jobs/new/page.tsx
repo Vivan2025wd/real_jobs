@@ -12,6 +12,7 @@ async function createJob(formData: FormData) {
     description: formData.get("description"),
     location: formData.get("location"),
     work_type: formData.get("work_type"),
+    category: formData.get("category") || null,
     salary_min: formData.get("salary_min") || null,
     salary_max: formData.get("salary_max") || null,
   });
@@ -42,6 +43,7 @@ async function createJob(formData: FormData) {
       description: parsed.data.description,
       location: parsed.data.location,
       work_type: parsed.data.work_type,
+      category: parsed.data.category ?? null,
       salary_min: parsed.data.salary_min ?? null,
       salary_max: parsed.data.salary_max ?? null,
       status: "DRAFT",

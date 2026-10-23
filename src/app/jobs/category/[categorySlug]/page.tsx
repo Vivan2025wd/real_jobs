@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { createClient } from "@/lib/supabase/server";
+import { createClient as createAnonClient } from "@supabase/supabase-js";
 import { JobCard } from "@/components/jobs/JobCard";
 import { Button } from "@/components/ui/Button";
 import {
@@ -10,6 +10,11 @@ import {
   type JobCategory,
 } from "@/lib/validators/job";
 import type { PublicJobCard } from "@/types/job";
+
+const supabase = createAnonClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 export const revalidate = 600; // ISR: 10 minutes
 
@@ -41,7 +46,6 @@ export default async function CategoryPage({
   if (!category) notFound();
 
   const label = CATEGORY_LABELS[category];
-  const supabase = await createClient();
 
   const { data: jobs } = await supabase
     .from("jobs")

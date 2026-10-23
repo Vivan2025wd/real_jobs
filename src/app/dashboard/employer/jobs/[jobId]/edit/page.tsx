@@ -12,6 +12,7 @@ type JobEditRow = {
   description: string;
   location: string;
   work_type: "REMOTE" | "ONSITE" | "HYBRID";
+  category: "ENGINEERING" | "DESIGN" | "MARKETING" | "SALES" | "CUSTOMER_SUPPORT" | "FINANCE" | "OPERATIONS" | "HR" | "OTHER" | null;
   salary_min: number | null;
   salary_max: number | null;
   status: string;
@@ -30,6 +31,7 @@ async function updateJob(jobId: string, formData: FormData) {
     description: formData.get("description"),
     location: formData.get("location"),
     work_type: formData.get("work_type"),
+    category: formData.get("category") || null,
     salary_min: formData.get("salary_min") || null,
     salary_max: formData.get("salary_max") || null,
   });
@@ -51,6 +53,7 @@ async function updateJob(jobId: string, formData: FormData) {
       description: parsed.data.description,
       location: parsed.data.location,
       work_type: parsed.data.work_type,
+      category: parsed.data.category ?? null,
       salary_min: parsed.data.salary_min ?? null,
       salary_max: parsed.data.salary_max ?? null,
     })
@@ -121,6 +124,7 @@ export default async function EditJobPage({
             description: job.description,
             location: job.location,
             work_type: job.work_type,
+            category: job.category,
             salary_min: job.salary_min,
             salary_max: job.salary_max,
           }}

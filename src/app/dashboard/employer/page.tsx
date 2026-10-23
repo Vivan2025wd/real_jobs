@@ -33,7 +33,7 @@ export default async function EmployerOverview() {
       supabase.from("jobs").select("id", { count: "exact", head: true }).eq("company_id", company.id),
       supabase.from("jobs").select("id", { count: "exact", head: true }).eq("company_id", company.id).eq("status", "ACTIVE"),
       supabase.from("jobs").select("id", { count: "exact", head: true }).eq("company_id", company.id).eq("status", "DRAFT"),
-      supabase.from("applications").select("id, job_id!inner(company_id)", { count: "exact", head: true }).eq("job_id.company_id", company.id),
+      supabase.from("applications").select("id, jobs!inner(company_id)", { count: "exact", head: true }).eq("jobs.company_id", company.id),
     ]);
 
   const { data: recentApplicationsData } = await supabase
