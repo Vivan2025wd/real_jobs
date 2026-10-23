@@ -44,6 +44,16 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  if (purpose === "RESUME") {
+    const role = (user.user_metadata?.role as string | undefined)?.toUpperCase();
+    if (role === "EMPLOYER") {
+      return NextResponse.json(
+        { error: "Only job seekers can upload resumes" },
+        { status: 403 }
+      );
+    }
+  }
+
   // Ownership checks
   if (purpose === "COMPANY_LOGO") {
     const { data: company } = await supabase

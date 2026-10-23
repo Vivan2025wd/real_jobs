@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { CompanyLogoUploader } from "@/components/employer/CompanyLogoUploader";
 
 type CompanyRow = {
   company_name: string;
@@ -81,6 +82,18 @@ export default async function CompanySettingsPage({
             {searchParams.error}
           </div>
         )}
+
+        <div className="mb-5 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Company logo
+            </label>
+            <p className="mt-1 mb-2 text-xs text-gray-500">
+              PNG, JPEG, or WebP. Max 2 MB.
+            </p>
+            <CompanyLogoUploader initialUrl={company?.logo_url ?? null} />
+          </div>
+        </div>
 
         <form action={saveCompany} className="space-y-5">
           <div>

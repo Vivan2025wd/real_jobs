@@ -5,11 +5,11 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { SubmitButton } from "@/components/ui/SubmitButton";
 
-type SearchParams = Promise<{
+type SearchParams = {
   error?: string;
   message?: string;
   next?: string;
-}>;
+};
 
 async function signInWithPassword(formData: FormData) {
   "use server";
@@ -77,7 +77,7 @@ export default async function LoginPage({
 }: {
   searchParams: SearchParams;
 }) {
-  const { error, message, next } = await searchParams;
+  const { error, message, next } = searchParams;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 px-4 py-12">

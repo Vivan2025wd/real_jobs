@@ -5,11 +5,11 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { SubmitButton } from "@/components/ui/SubmitButton";
 
-type SearchParams = Promise<{
+type SearchParams = {
   error?: string;
   message?: string;
   role?: string;
-}>;
+};
 
 async function register(formData: FormData) {
   "use server";
@@ -72,7 +72,7 @@ export default async function RegisterPage({
 }: {
   searchParams: SearchParams;
 }) {
-  const { error, message, role: preselectedRole } = await searchParams;
+  const { error, message, role: preselectedRole } = searchParams;
   const initialRole =
     preselectedRole === "EMPLOYER" ? "EMPLOYER" : "JOB_SEEKER";
 
