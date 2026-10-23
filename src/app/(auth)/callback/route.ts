@@ -81,12 +81,9 @@ export async function GET(request: NextRequest) {
         ? "EMPLOYER"
         : "JOB_SEEKER";
 
-    // Safe to retry — upsert so we don't fail if a race creates the row.
-    await supabase.from("users").upsert({
-      id: user.id,
-      email: user.email!,
-      role,
-    } as never);
+    // public.users is populated by the handle_new_user() trigger in
+    // 20250103000000_auth_trigger.sql. Do not insert here — RLS has
+    // no INSERT policy for users and the trigger handles it atomically.
   }
 
   // ---- 3. Redirect to dashboard (or `next` if safe) ----

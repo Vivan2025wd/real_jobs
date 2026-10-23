@@ -12,8 +12,11 @@ type JobToVerify = {
   title: string;
   last_verified_at: string | null;
   created_at: string;
-  companies: { employer_id: string; company_name: string };
-  users: { email: string };
+  companies: {
+    employer_id: string;
+    company_name: string;
+    users: { email: string };
+  };
 };
 
 /**
@@ -31,7 +34,7 @@ export async function dispatchVerificationEmails(): Promise<{
   const { data: jobs, error } = await supabase
     .from("jobs")
     .select(
-      "id, title, last_verified_at, created_at, companies!inner(employer_id, company_name), users!inner(email)"
+      "id, title, last_verified_at, created_at, companies!inner(employer_id, company_name, users!inner(email))"
     )
     .eq("status", "ACTIVE")
     .is("verification_token", null)
@@ -47,7 +50,7 @@ export async function dispatchVerificationEmails(): Promise<{
   for (const job of jobs) {
     const token = randomUUID();
     const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL}/verify-job/${token}`;
-    const employerEmail = job.users.email;
+    const employerEmail = job.companies.users.email;
 
     try {
       await sendEmail({

@@ -52,11 +52,9 @@ async function register(formData: FormData) {
 
   // If email confirmation is DISABLED, signUp returns a session immediately.
   if (data.session && data.user) {
-    await (supabase as any).from("users").upsert({
-      id: data.user.id,
-      email: data.user.email!,
-      role,
-    });
+    // public.users is populated by the handle_new_user() trigger in
+    // 20250103000000_auth_trigger.sql. Do not insert here — RLS has
+    // no INSERT policy for users and the trigger handles it atomically.
 
     revalidatePath("/", "layout");
     redirect(role === "EMPLOYER" ? "/dashboard/employer" : "/dashboard/seeker");
