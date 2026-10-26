@@ -14,14 +14,29 @@ export async function createClient() {
     {
       cookies: {
         getAll: () => cookieStore.getAll(),
-        setAll: (cookiesToSet: { name: string; value: string; options: CookieOptions }[]) => {
+        setAll: (
+          cookiesToSet: {
+            name: string;
+            value: string;
+            options: CookieOptions;
+          }[]
+        ) => {
           try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
-          } catch {
-            // Called from a Server Component — safe to ignore, middleware
-            // refreshes the session on the next request.
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set({
+                name,
+                value,
+                ...options,
+                path: "/",
+                sameSite: "lax",
+                secure: process.env.NODE_ENV === "production",
+                maxAge: options?.maxAge ?? 60 * 60 * 24 * 400,
+              });
+            });
+          } catch (err) {
+            // Server Components cannot write cookies; middleware refreshes
+            // the session on the next request.
+            console.error("[supabase/server] setAll failed:", err);
           }
         },
       },

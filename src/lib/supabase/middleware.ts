@@ -26,6 +26,7 @@ export async function updateSession(
   request: NextRequest
 ): Promise<SessionRefreshResult> {
   let response = NextResponse.next({ request });
+  const isSecure = request.nextUrl.protocol === "https:";
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -43,9 +44,17 @@ export async function updateSession(
           );
           // … and rebuild the response so the browser receives them.
           response = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
-          );
+          cookiesToSet.forEach(({ name, value, options }) => {
+            response.cookies.set({
+              name,
+              value,
+              ...options,
+              path: "/",
+              sameSite: "lax",
+              secure: isSecure,
+              maxAge: options?.maxAge ?? 60 * 60 * 24 * 400,
+            });
+          });
         },
       },
     }
@@ -53,9 +62,13 @@ export async function updateSession(
 
   // This call validates the JWT against the auth server and triggers the
   // cookie refresh that `setAll` just handled.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user: User | null = null;
+  try {
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  } catch (err) {
+    console.error("[updateSession] getUser failed:", err);
+  }
 
   return { supabase, user, response };
 }

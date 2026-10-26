@@ -21,11 +21,17 @@ export async function middleware(request: NextRequest) {
     user = result.user;
     response = result.response;
   } catch (err) {
-    // If the auth server is unreachable, do NOT crash every request.
-    // Fall through with a pass-through response and no user, so public
-    // pages still render. Protected routes will redirect to /login below.
     console.error("[middleware] updateSession failed:", err);
     response = NextResponse.next({ request });
+    request.cookies.getAll().forEach((cookie) => {
+      response.cookies.set({
+        name: cookie.name,
+        value: cookie.value,
+        path: "/",
+        sameSite: "lax",
+        secure: request.nextUrl.protocol === "https:",
+      });
+    });
   }
 
   const { pathname } = request.nextUrl;
