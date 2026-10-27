@@ -1,6 +1,6 @@
 # HireLoop 🔄
 
-> **The zero-stale job marketplace.** Automated 14-day verification loops that keep postings genuinely active.
+> **The zero-stale job marketplace for small businesses.** Every listing runs for 7 days, then the employer renews it or closes it, so postings stay genuinely active.
 
 [![Next.js](https://img.shields.io/badge/Next.js-14.2-black?style=flat&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue?style=flat&logo=typescript)](https://www.typescriptlang.org/)
@@ -16,13 +16,13 @@
 
 Job boards suffer from one systemic flaw: **stale, ghost listings**. Employers fill roles and abandon their posts, leaving job seekers shouting into the void and recruiters inundated with irrelevant resumes.
 
-HireLoop addresses this with an **automated verification loop**:
+HireLoop addresses this with a **7-day listing lifecycle**:
 
-1. Every 14 days, employers receive an automated email asking: *"Still hiring for this role?"*
-2. With a single click (no password or login required), the employer confirms the post is open or marks it filled.
-3. If they don't respond within **48 hours**, the listing is automatically expired and removed from public search.
+1. A paid listing (LKR 2,500) stays live for **7 days**.
+2. Two days before it ends, the employer gets a message by email or WhatsApp: *"Found your person? Close it, or renew for another week."*
+3. One click closes the listing as filled or starts a renewal. If they do nothing, the listing expires automatically on day 7.
 
-The result is a board where every listing has been confirmed by a real person within the last two weeks.
+The result is a board where every public listing is at most a week old, unless the employer actively renewed it.
 
 ---
 
@@ -30,7 +30,7 @@ The result is a board where every listing has been confirmed by a real person wi
 
 - [Screenshots](#screenshots)
 - [Core Features](#core-features)
-- [The Verification Loop](#the-verification-loop)
+- [The Listing Lifecycle](#the-listing-lifecycle)
 - [Tech Stack](#tech-stack)
 - [Architecture](#architecture)
 - [Database Schema & RLS](#database-schema--rls)
@@ -64,61 +64,60 @@ The app is live at **[realjobs-khaki.vercel.app](https://realjobs-khaki.vercel.a
 ### For Employers
 - **Company Profile Management**: company identity, logo, and verified badge.
 - **Structured Job Authoring**: role descriptions, compensation ranges in LKR, work type (Remote, Hybrid, Onsite), and standardized categories.
-- **Integrated Payments**: LKR 2,500 listing fee via PayHere popup checkout.
+- **Integrated Payments**: LKR 2,500 per 7-day listing via PayHere popup checkout.
 - **Applicant Tracking**: review applications per listing with applied dates, statuses, and resume downloads.
-- **Zero-Friction Re-verification**: one-click confirmation links emailed on a 14-day cycle.
+- **One-Click Renew or Close**: a reminder by email or WhatsApp before the listing ends, with single-click links to close it or renew it.
 
 ### For Job Seekers
-- **Fresh Postings**: only listings verified within the last 14 days appear publicly.
+- **Fresh Postings**: only listings inside their active 7-day window appear publicly.
 - **One-Click Application**: upload a resume once and apply to any open position without re-uploading.
 - **Privacy & Performance**: resumes upload directly from the browser to a private AWS S3 bucket.
 - **Application Dashboard**: track status (Pending, Reviewed, Shortlisted, Rejected).
 
 ### Platform & Automation
-- **Vercel Cron Orchestration**: weekly dispatch of verification emails and daily expiration sweeps.
+- **Vercel Cron Orchestration**: daily crons send expiry reminders and expire ended listings.
 - **Incremental Static Regeneration (ISR)**: public job detail pages are cached and revalidated every 5 minutes.
 - **Role-Based Routing**: middleware-enforced isolation between seeker and employer areas.
 
 ---
 
-## The Verification Loop
+## The Listing Lifecycle
 
-The core of HireLoop is an automated state machine driven by two cron jobs:
+The core of HireLoop is a short paid window followed by a renew-or-close check-in, driven by two daily cron jobs:
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Cron as Vercel Cron
+    participant Emp as Employer
+    participant App as HireLoop App
     participant DB as Supabase PostgreSQL
-    participant Resend as Resend Email
-    participant Emp as Employer Inbox
-    participant App as HireLoop App (/verify-job)
+    participant Cron as Vercel Cron (daily)
+    participant Msg as Resend / WhatsApp
 
-    Note over Cron,DB: Triggered weekly (Monday 09:00 UTC)
-    Cron->>DB: Query ACTIVE jobs where last_verified_at is older than 14 days
-    DB-->>Cron: Returns eligible jobs
-    loop For each eligible job
-        Cron->>DB: Generate UUID token & set verification_sent_at
-        Cron->>Resend: Dispatch "Still hiring?" email with tokenized link
-        Resend->>Emp: Deliver email to employer
+    Emp->>App: Pays LKR 2,500 (PayHere)
+    App->>DB: status = ACTIVE, expires_at = now() + 7 days
+
+    Note over Cron,DB: Daily, 09:00 UTC
+    Cron->>DB: Find ACTIVE jobs expiring within 48h with no reminder sent
+    loop Each job
+        Cron->>DB: Generate token, set reminder_sent_at
+        Cron->>Msg: Send "Found your person?" message (email or WhatsApp)
+        Msg->>Emp: Deliver message with Close / Renew links
     end
 
-    alt Employer confirms the role is open
-        Emp->>App: Clicks "Yes, still hiring" (GET /verify-job/[token])
-        App->>DB: Set last_verified_at = now(), clear token
-        App-->>Emp: Displays "Listing confirmed active"
-    else Employer confirms the role is filled
-        Emp->>App: Clicks "No, position filled"
-        App->>DB: Set status = 'FILLED', clear token
-        App-->>Emp: Displays "Listing archived"
-    else No response after 48h
-        Note over Cron,DB: Triggered daily (09:00 UTC)
-        Cron->>DB: Query ACTIVE jobs where verification_sent_at is older than 48h
-        Cron->>DB: Set status = 'EXPIRED', clear token
+    alt Employer found someone
+        Emp->>App: Opens link, confirms "Close this listing"
+        App->>DB: status = FILLED, clear token
+    else Employer wants more applicants
+        Emp->>App: Opens link, chooses "Renew" and pays via PayHere
+        App->>DB: Payment webhook extends expires_at by 7 days
+    else No response
+        Cron->>DB: ACTIVE jobs where expires_at has passed
+        Cron->>DB: status = EXPIRED, clear token
     end
 ```
 
-> **Note:** the expiry sweep runs once a day, so an unanswered listing is expired between 48 and 72 hours after the email is sent.
+> **Note:** public queries also filter on `expires_at > now()`, so a listing disappears from search exactly at day 7 even though the expiry sweep only runs once a day.
 
 ---
 
@@ -132,7 +131,7 @@ sequenceDiagram
 | **Auth** | Supabase Auth | Cookie-based sessions with PKCE exchange, magic link OTP, and role metadata. |
 | **Object Storage** | AWS S3 | Private bucket for resumes; public bucket for company logos. |
 | **Payments** | PayHere | Sri Lankan payment gateway with server-hashed checkout and `md5sig` webhook verification. |
-| **Email** | Resend | Transactional email delivery. |
+| **Messaging** | Resend (email), WhatsApp Cloud API (planned) | Transactional email now; WhatsApp as a second channel for owners who rarely check email. |
 | **Styling** | Tailwind CSS | Utility-first CSS with minimal production bundles. |
 | **Hosting & Crons** | Vercel | Edge network with integrated Vercel Cron for scheduled tasks. |
 
@@ -183,7 +182,7 @@ HireLoop uses five relational tables in PostgreSQL:
 
 - `public.users`: mirrors `auth.users` with `role` (`EMPLOYER` or `JOB_SEEKER`) and `resume_url`.
 - `public.companies`: employer company profiles (`employer_id` references `users.id`).
-- `public.jobs`: listings with work type, salary range, verification status, and tokens.
+- `public.jobs`: listings with work type, salary range, status, `expires_at`, reminder timestamp, and tokens.
 - `public.applications`: links `job_id` and `seeker_id`, with a unique constraint preventing duplicate submissions.
 - `public.payments`: payment audit ledger tracking PayHere `order_id`, amount, and gateway references.
 
@@ -298,6 +297,14 @@ RESEND_API_KEY=re_...
 EMAIL_FROM=HireLoop <onboarding@resend.dev>
 
 # ==============================================================================
+# WhatsApp Business Cloud API (optional, planned)
+# ==============================================================================
+# Business-initiated messages need an approved message template.
+WHATSAPP_TOKEN=
+WHATSAPP_PHONE_NUMBER_ID=
+WHATSAPP_TEMPLATE_NAME=listing_expiring
+
+# ==============================================================================
 # Cron security
 # ==============================================================================
 # Generate with: openssl rand -base64 32
@@ -388,8 +395,8 @@ The IAM user needs object access on both buckets, plus `ListBucket`:
 1. Connect your repository to Vercel.
 2. Under Project Settings → Environment Variables, add every variable from `.env.local.example`.
 3. Vercel reads `vercel.json` and configures the two cron schedules:
-   - `/api/cron/verify-jobs`: weekly (Mondays 09:00 UTC)
-   - `/api/cron/expire-jobs`: daily (09:00 UTC)
+   - `/api/cron/verify-jobs`: daily (09:00 UTC), sends expiry reminders for listings ending within 48 hours
+   - `/api/cron/expire-jobs`: daily (09:00 UTC), expires listings past `expires_at`
 
 ### Post-Deploy Checklist
 
@@ -449,8 +456,8 @@ The IAM user needs object access on both buckets, plus `ListBucket`:
 
 ## Design Decisions
 
-### 1. Verification Loop vs. Fixed Expiration Dates
-Most job boards use arbitrary 30- or 60-day expirations. That fits poorly: hot roles can fill within a week, leaving a zombie post for weeks, while niche leadership roles may stay open for 90 days. HireLoop anchors expiration to the *recency of human confirmation* instead. A responsive employer can keep a role live for months; if they fill the role or ignore the email, it disappears within days.
+### 1. Short Paid Windows + Renew-or-Close
+Most job boards use arbitrary 30- or 60-day expirations, which leaves zombie posts long after a role is filled. Small businesses usually hire fast, so HireLoop sells a 7-day window. Before it ends, the employer is asked one question: found your person, or need more applicants? Closing is free and instant, and renewing is one payment. The freshness guarantee therefore doubles as the renewal prompt, and a filled role never lingers.
 
 ### 2. Three-Client Supabase Architecture
 Supabase auth in the Next.js App Router needs strict client boundaries:
@@ -525,9 +532,13 @@ No known outstanding bugs at the time of writing. `tsc --noEmit` and `next build
 - [x] Presigned S3 download links for employer resume viewing
 - [x] Employer company logo upload via public S3 bucket
 - [x] Correct sign-out flow across Navbar and Sidebar
-- [x] Verification loop end to end (email → token → response → auto-expire)
+- [x] Initial 14-day verification loop end to end (being replaced by the 7-day lifecycle)
 - [ ] Applicant cover notes and portfolio links
-- [ ] WhatsApp notification for employer 14-day re-verification
+- [ ] 7-day listing cap with renew-or-close reminders by email
+- [ ] WhatsApp reminders as a second channel
+- [ ] "Found your person?" prompt after 10 applicants
+- [ ] Tips for listings with no applicants
+- [ ] Free repost guarantee when a listing gets zero applicants
 - [ ] Slack/Discord webhook for candidate application alerts
 - [ ] Public REST API for job aggregators
 - [ ] Native mobile app (React Native)
