@@ -1,19 +1,25 @@
 "use client";
 
 import { useState } from "react";
+import {
+  CreditCard,
+  Lock,
+  AlertCircle,
+  RefreshCw,
+} from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
+// ---------------------------------------------------------------------------
 // The PayHere checkout object is a mix of string fields (params from the
 // server) and one boolean (`sandbox`). Using Record<string, string> for the
 // whole thing would force `sandbox` to be a string — instead, define the
 // exact accepted shape as a union-index record.
+// ---------------------------------------------------------------------------
 type PayHereParams = Record<string, string>;
 
 type PayHereWindow = Window & {
   payhere?: {
-    startPayment: (
-      payment: PayHereParams & { sandbox: boolean }
-    ) => void;
+    startPayment: (payment: PayHereParams & { sandbox: boolean }) => void;
     onCompleted?: (orderId: string) => void;
     onDismissed?: () => void;
     onError?: (error: string) => void;
@@ -60,9 +66,6 @@ export function PayHereButton({ jobId }: { jobId: string }) {
         setPending(false);
       };
 
-      // `sandbox` is a boolean; everything else comes from `params` as strings.
-      // The cast is required because the SDK's accepted shape is broader than
-      // what TypeScript can express via a single index signature.
       w.payhere.startPayment({
         ...params,
         sandbox,
@@ -74,11 +77,47 @@ export function PayHereButton({ jobId }: { jobId: string }) {
   }
 
   return (
-    <div className="space-y-2">
-      <Button onClick={startPayment} disabled={pending}>
+    <div className="space-y-2.5">
+      <Button
+        onClick={startPayment}
+        disabled={pending}
+        size="lg"
+        icon={
+          pending ? (
+            <RefreshCw className="h-4 w-4 animate-spin" />
+          ) : (
+            <CreditCard className="h-4 w-4" />
+          )
+        }
+      >
         {pending ? "Opening PayHere…" : "Pay LKR 2,500 & publish"}
       </Button>
-      {error && <p className="text-xs text-red-600">{error}</p>}
+
+      {/* Trust line — a lock icon is the universal "safe" signal */}
+      <p className="flex items-center justify-center gap-1.5 text-[11px] text-gray-500 sm:justify-start">
+        <Lock className="h-2.5 w-2.5 text-gray-400" />
+        Secured by PayHere
+      </p>
+
+      {/* Error state */}
+      {error && (
+        <div className="flex items-start gap-2.5 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2.5">
+          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-600">
+            <AlertCircle className="h-3.5 w-3.5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold text-rose-900">
+              Payment didn&apos;t start
+            </p>
+            <p className="mt-0.5 break-words text-[11px] leading-relaxed text-rose-700">
+              {error}
+            </p>
+            <p className="mt-1 text-[11px] text-rose-500">
+              Click the button to retry.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

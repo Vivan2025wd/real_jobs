@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { Building2, FileText, Image as ImageIcon, Save } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { CompanyLogoUploader } from "@/components/employer/CompanyLogoUploader";
+import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 
 type CompanyRow = {
   company_name: string;
@@ -70,73 +72,100 @@ export default async function CompanySettingsPage({
   const company = data as CompanyRow | null;
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <h1 className="text-2xl font-bold text-gray-900">Company profile</h1>
-      <p className="mt-1 text-gray-500">
-        This information appears next to your job posts.
-      </p>
-
-      <div className="mt-8 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        {searchParams.error && (
-          <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-            {searchParams.error}
-          </div>
-        )}
-
-        <div className="mb-5 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Company logo
-            </label>
-            <p className="mt-1 mb-2 text-xs text-gray-500">
-              PNG, JPEG, or WebP. Max 2 MB.
-            </p>
-            <CompanyLogoUploader initialUrl={company?.logo_url ?? null} />
-          </div>
+    <div className="mx-auto max-w-3xl space-y-6">
+      {/* Page header */}
+      <div>
+        <div className="flex items-center gap-2 text-sm font-medium text-indigo-600">
+          <Building2 className="h-4 w-4" />
+          Employer settings
         </div>
-
-        <form action={saveCompany} className="space-y-5">
-          <div>
-            <label
-              htmlFor="company_name"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Company name
-            </label>
-            <input
-              id="company_name"
-              name="company_name"
-              required
-              defaultValue={company?.company_name ?? ""}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              placeholder="Acme (Pvt) Ltd"
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="description"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Description
-            </label>
-            <textarea
-              id="description"
-              name="description"
-              rows={5}
-              defaultValue={company?.description ?? ""}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              placeholder="What does your company do?"
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="inline-flex h-10 items-center rounded-md bg-blue-600 px-4 text-sm font-medium text-white hover:bg-blue-700"
-          >
-            Save profile
-          </button>
-        </form>
+        <h1 className="mt-1 text-2xl font-bold tracking-tight text-gray-900">
+          Company profile
+        </h1>
+        <p className="mt-1 text-sm text-gray-500">
+          This information appears next to every job you post and on your
+          public company page.
+        </p>
       </div>
+
+      {searchParams.error && (
+        <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          {searchParams.error}
+        </div>
+      )}
+
+      {/* Logo card */}
+      <Card>
+        <CardHeader
+          title="Company logo"
+          description="Shown next to your job listings. PNG, JPEG, or WebP. Max 2 MB."
+          icon={<ImageIcon className="h-5 w-5" />}
+        />
+        <CardBody>
+          <CompanyLogoUploader initialUrl={company?.logo_url ?? null} />
+        </CardBody>
+      </Card>
+
+      {/* Basic info card */}
+      <form action={saveCompany}>
+        <Card>
+          <CardHeader
+            title="Basic information"
+            description="Help candidates understand who you are."
+            icon={<FileText className="h-5 w-5" />}
+          />
+          <CardBody className="space-y-5">
+            <div>
+              <label
+                htmlFor="company_name"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Company name <span className="text-rose-500">*</span>
+              </label>
+              <input
+                id="company_name"
+                name="company_name"
+                required
+                defaultValue={company?.company_name ?? ""}
+                className="mt-1.5 block w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-sm shadow-sm transition placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                placeholder="Acme (Pvt) Ltd"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="description"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Description
+              </label>
+              <textarea
+                id="description"
+                name="description"
+                rows={6}
+                defaultValue={company?.description ?? ""}
+                className="mt-1.5 block w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-sm leading-relaxed shadow-sm transition placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                placeholder="What does your company do? What's the mission? What makes it a great place to work?"
+              />
+              <p className="mt-1.5 text-xs text-gray-500">
+                Shown on the About section of every job you post. Markdown is
+                not supported.
+              </p>
+            </div>
+          </CardBody>
+
+          {/* Footer actions */}
+          <div className="flex items-center justify-end gap-3 border-t border-gray-100 bg-gray-50/50 px-6 py-4 rounded-b-xl">
+            <button
+              type="submit"
+              className="inline-flex h-10 items-center gap-2 rounded-lg bg-indigo-600 px-5 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700 hover:shadow-md active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+            >
+              <Save className="h-4 w-4" />
+              Save changes
+            </button>
+          </div>
+        </Card>
+      </form>
     </div>
   );
 }

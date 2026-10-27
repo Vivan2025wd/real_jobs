@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { createClient as createAnonClient } from "@supabase/supabase-js";
+import { ArrowLeft } from "lucide-react";
 import { JobDetail } from "@/components/jobs/JobDetail";
 import type { PublicJobDetail } from "@/types/job";
 
@@ -118,30 +119,32 @@ export default async function JobDetailPage({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <header className="border-b border-gray-200 bg-white">
+      {/* ─── Sticky glass header ─── */}
+      <header className="sticky top-0 z-40 border-b border-gray-200/60 glass">
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
-          <Link href="/" className="flex items-center gap-2 font-bold">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white">
+          <Link href="/" className="flex items-center gap-2.5 font-bold">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-sm text-white shadow-sm">
               H
             </span>
-            HireLoop
+            <span className="tracking-tight text-gray-900">HireLoop</span>
           </Link>
           <Link
             href="/jobs"
-            className="text-sm font-medium text-gray-600 hover:text-gray-900"
+            className="group inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"
           >
-            ← All jobs
+            <ArrowLeft className="h-4 w-4 transition group-hover:-translate-x-0.5" />
+            All jobs
           </Link>
         </div>
       </header>
 
-      <div className="mx-auto max-w-5xl px-4 py-8">
+      <div className="mx-auto max-w-5xl px-4 py-8 sm:py-12">
         <JobDetail job={job} />
       </div>
     </div>

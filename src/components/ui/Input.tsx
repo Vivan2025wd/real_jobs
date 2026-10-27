@@ -1,13 +1,14 @@
-import { forwardRef, type InputHTMLAttributes } from "react";
+import { forwardRef, type InputHTMLAttributes, type ReactNode } from "react";
 
 type Props = InputHTMLAttributes<HTMLInputElement> & {
   label?: string;
   error?: string;
   hint?: string;
+  icon?: ReactNode;
 };
 
 export const Input = forwardRef<HTMLInputElement, Props>(
-  ({ label, error, hint, className = "", id, ...props }, ref) => {
+  ({ label, error, hint, icon, className = "", id, ...props }, ref) => {
     const inputId = id ?? props.name;
     return (
       <div>
@@ -19,26 +20,30 @@ export const Input = forwardRef<HTMLInputElement, Props>(
             {label}
           </label>
         )}
-        <input
-          ref={ref}
-          id={inputId}
-          className={`mt-1 block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 ${
-            error
-              ? "border-red-300 focus:border-red-500 focus:ring-red-500"
-              : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-          } ${className}`}
-          aria-invalid={!!error}
-          aria-describedby={error ? `${inputId}-error` : undefined}
-          {...props}
-        />
+        <div className="relative mt-1.5">
+          {icon && (
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+              {icon}
+            </div>
+          )}
+          <input
+            ref={ref}
+            id={inputId}
+            className={`block w-full rounded-lg border bg-white px-3.5 py-2.5 text-sm shadow-sm transition placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-0 ${
+              icon ? "pl-10" : ""
+            } ${
+              error
+                ? "border-rose-300 focus:border-rose-500 focus:ring-rose-200"
+                : "border-gray-300 focus:border-indigo-500 focus:ring-indigo-200"
+            } ${className}`}
+            aria-invalid={!!error}
+            {...props}
+          />
+        </div>
         {hint && !error && (
-          <p className="mt-1 text-xs text-gray-500">{hint}</p>
+          <p className="mt-1.5 text-xs text-gray-500">{hint}</p>
         )}
-        {error && (
-          <p id={`${inputId}-error`} className="mt-1 text-xs text-red-600">
-            {error}
-          </p>
-        )}
+        {error && <p className="mt-1.5 text-xs text-rose-600">{error}</p>}
       </div>
     );
   }

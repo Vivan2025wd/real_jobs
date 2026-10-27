@@ -10,10 +10,7 @@ type Props = SelectHTMLAttributes<HTMLSelectElement> & {
 };
 
 export const Select = forwardRef<HTMLSelectElement, Props>(
-  (
-    { label, error, options, placeholder, className = "", id, ...props },
-    ref
-  ) => {
+  ({ label, error, options, placeholder, className = "", id, ...props }, ref) => {
     const selectId = id ?? props.name;
     return (
       <div>
@@ -28,10 +25,10 @@ export const Select = forwardRef<HTMLSelectElement, Props>(
         <select
           ref={ref}
           id={selectId}
-          className={`mt-1 block w-full rounded-md border bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 ${
+          className={`mt-1.5 block w-full rounded-lg border bg-white px-3.5 py-2.5 text-sm shadow-sm transition focus:outline-none focus:ring-2 focus:ring-offset-0 ${
             error
-              ? "border-red-300 focus:border-red-500 focus:ring-red-500"
-              : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+              ? "border-rose-300 focus:border-rose-500 focus:ring-rose-200"
+              : "border-gray-300 focus:border-indigo-500 focus:ring-indigo-200"
           } ${className}`}
           aria-invalid={!!error}
           {...props}
@@ -43,7 +40,7 @@ export const Select = forwardRef<HTMLSelectElement, Props>(
             </option>
           ))}
         </select>
-        {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+        {error && <p className="mt-1.5 text-xs text-rose-600">{error}</p>}
       </div>
     );
   }

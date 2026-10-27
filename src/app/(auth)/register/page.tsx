@@ -1,211 +1,91 @@
-// src/app/(auth)/register/page.tsx
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
-import { SubmitButton } from "@/components/ui/SubmitButton";
+import type { ReactNode } from "react";
+import { CheckCircle2 } from "lucide-react";
 
-type SearchParams = {
-  error?: string;
-  message?: string;
-  role?: string;
-};
-
-async function register(formData: FormData) {
-  "use server";
-
-  const email = String(formData.get("email") ?? "").trim();
-  const password = String(formData.get("password") ?? "");
-  const confirmPassword = String(formData.get("confirmPassword") ?? "");
-  const roleRaw = String(formData.get("role") ?? "JOB_SEEKER").toUpperCase();
-  const role: "EMPLOYER" | "JOB_SEEKER" =
-    roleRaw === "EMPLOYER" ? "EMPLOYER" : "JOB_SEEKER";
-
-  if (!email || !password) {
-    redirect("/register?error=" + encodeURIComponent("All fields are required."));
-  }
-
-  if (password.length < 8) {
-    redirect(
-      "/register?error=" +
-        encodeURIComponent("Password must be at least 8 characters.")
-    );
-  }
-
-  if (password !== confirmPassword) {
-    redirect("/register?error=" + encodeURIComponent("Passwords do not match."));
-  }
-
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: { role },
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/callback`,
-    },
-  });
-
-  if (error) {
-    redirect("/register?error=" + encodeURIComponent(error.message));
-  }
-
-  // If email confirmation is DISABLED, signUp returns a session immediately.
-  if (data.session && data.user) {
-    // public.users is populated by the handle_new_user() trigger in
-    // 20250103000000_auth_trigger.sql. Do not insert here — RLS has
-    // no INSERT policy for users and the trigger handles it atomically.
-
-    revalidatePath("/", "layout");
-    redirect(role === "EMPLOYER" ? "/dashboard/employer" : "/dashboard/seeker");
-  }
-
-  // Email confirmation is ENABLED — user must click the link in their inbox.
-  redirect(
-    "/register?message=" +
-      encodeURIComponent("Check your inbox to confirm your account.")
-  );
-}
-
-export default async function RegisterPage({
-  searchParams,
-}: {
-  searchParams: SearchParams;
-}) {
-  const { error, message, role: preselectedRole } = searchParams;
-  const initialRole =
-    preselectedRole === "EMPLOYER" ? "EMPLOYER" : "JOB_SEEKER";
-
+export function AuthShell({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 px-4 py-12">
-      <div className="w-full max-w-md">
-        <Link
-          href="/"
-          className="mb-8 flex items-center justify-center gap-2 font-bold"
-        >
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white">
-            H
-          </span>
-          HireLoop
-        </Link>
+    <div className="grid min-h-screen lg:grid-cols-2">
+      {/* Left: brand panel — hidden on mobile */}
+      <div className="relative hidden overflow-hidden bg-gray-900 lg:flex lg:flex-col lg:justify-between lg:p-12">
+        {/* Gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700" />
+        <div className="absolute inset-0 bg-grid opacity-20" />
+        <div className="absolute -right-40 -top-40 h-96 w-96 rounded-full bg-white/10 blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-white/10 blur-3xl" />
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
-          <h1 className="text-2xl font-semibold text-gray-900">
-            Create your account
-          </h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Join as an employer or a job seeker.
+        {/* Logo */}
+        <div className="relative">
+          <Link href="/" className="inline-flex items-center gap-2.5 text-white">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20 text-base font-bold backdrop-blur">
+              H
+            </span>
+            <span className="text-lg font-bold tracking-tight">HireLoop</span>
+          </Link>
+        </div>
+
+        {/* Value prop */}
+        <div className="relative max-w-md space-y-8">
+          <h2 className="text-balance text-4xl font-bold leading-tight tracking-tight text-white">
+            The job board that stays{" "}
+            <span className="text-emerald-300">actually open</span>.
+          </h2>
+          <p className="text-lg leading-relaxed text-indigo-100/90">
+            Every listing re-verified weekly. No ghost postings. No stale
+            applications.
           </p>
+          <ul className="space-y-3 text-white">
+            {[
+              "Automatic 14-day verification",
+              "One-click applications with resume on file",
+              "Real-time application status tracking",
+            ].map((item) => (
+              <li key={item} className="flex items-start gap-3">
+                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" />
+                <span className="text-indigo-50">{item}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
 
-          {error && (
-            <div className="mt-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-              {error}
-            </div>
-          )}
-          {message && (
-            <div className="mt-4 rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
-              {message}
-            </div>
-          )}
-
-          <form action={register} className="mt-6 space-y-4">
-            <fieldset>
-              <legend className="block text-sm font-medium text-gray-700">
-                I am a…
-              </legend>
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                {[
-                  { value: "JOB_SEEKER", label: "Job seeker" },
-                  { value: "EMPLOYER", label: "Employer" },
-                ].map((opt) => (
-                  <label
-                    key={opt.value}
-                    className="flex cursor-pointer items-center gap-2 rounded-md border border-gray-300 px-3 py-2 text-sm has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50"
-                  >
-                    <input
-                      type="radio"
-                      name="role"
-                      value={opt.value}
-                      defaultChecked={initialRole === opt.value}
-                      className="text-blue-600 focus:ring-blue-500"
-                    />
-                    {opt.label}
-                  </label>
-                ))}
+        {/* Testimonial */}
+        <div className="relative">
+          <div className="rounded-2xl border border-white/10 bg-white/10 p-5 backdrop-blur">
+            <p className="text-sm italic text-white/90">
+              &ldquo;Finally, a job board where every listing is real. I applied
+              to 5 roles and heard back from 4.&rdquo;
+            </p>
+            <div className="mt-3 flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-sm font-semibold text-white">
+                KS
               </div>
-            </fieldset>
-
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Email
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                placeholder="you@example.com"
-              />
+              <div>
+                <p className="text-sm font-semibold text-white">Kasun Silva</p>
+                <p className="text-xs text-white/70">Software Engineer</p>
+              </div>
             </div>
+          </div>
+        </div>
+      </div>
 
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="new-password"
-                minLength={8}
-                required
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-              <p className="mt-1 text-xs text-gray-500">
-                At least 8 characters.
-              </p>
-            </div>
-
-            <div>
-              <label
-                htmlFor="confirmPassword"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Confirm password
-              </label>
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                autoComplete="new-password"
-                minLength={8}
-                required
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
-
-            <SubmitButton pendingText="Creating account…">
-              Create account
-            </SubmitButton>
-          </form>
-
-          <p className="mt-8 text-center text-sm text-gray-500">
-            Already have an account?{" "}
+      {/* Right: form panel */}
+      <div className="flex flex-col bg-white">
+        <div className="flex flex-1 items-center justify-center px-4 py-12 sm:px-8">
+          <div className="w-full max-w-md">
+            {/* Mobile logo */}
             <Link
-              href="/login"
-              className="font-medium text-blue-600 hover:text-blue-700"
+              href="/"
+              className="mb-8 flex items-center justify-center gap-2.5 lg:hidden"
             >
-              Sign in
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 font-bold text-white shadow-sm">
+                H
+              </span>
+              <span className="text-lg font-bold tracking-tight text-gray-900">
+                HireLoop
+              </span>
             </Link>
-          </p>
+
+            {children}
+          </div>
         </div>
       </div>
     </div>

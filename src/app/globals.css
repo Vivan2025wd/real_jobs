@@ -2,36 +2,83 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: 0 0% 100%;
-  --foreground: 222 47% 11%;
-  --muted: 210 40% 96%;
-  --muted-foreground: 215 16% 47%;
-  --border: 214 32% 91%;
-  --primary: 221 83% 53%;
-  --primary-foreground: 0 0% 100%;
-  --danger: 0 84% 60%;
-  --success: 142 71% 45%;
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --border: 214 32% 91%;
+    --ring: 239 84% 67%;
+  }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    letter-spacing: -0.02em;
+  }
+
+  ::selection {
+    background: rgb(199 210 254);
+    color: rgb(30 27 75);
+  }
 }
 
-* {
-  border-color: hsl(var(--border));
-}
+@layer components {
+  /* Gradient mesh for hero sections */
+  .bg-mesh {
+    background-image:
+      radial-gradient(at 20% 0%, rgb(199 210 254 / 0.4) 0px, transparent 50%),
+      radial-gradient(at 80% 0%, rgb(221 214 254 / 0.3) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, rgb(186 230 253 / 0.2) 0px, transparent 50%);
+  }
 
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
+  /* Glass panel — used for sticky navs */
+  .glass {
+    background: rgb(255 255 255 / 0.72);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
 
-body {
-  background: hsl(var(--background));
-  color: hsl(var(--foreground));
-  font-feature-settings: "rlig" 1, "calt" 1;
+  /* Subtle dotted grid pattern */
+  .bg-grid {
+    background-image: radial-gradient(
+      circle at 1px 1px,
+      rgb(148 163 184 / 0.15) 1px,
+      transparent 0
+    );
+    background-size: 24px 24px;
+  }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  .animation-delay-100 {
+    animation-delay: 100ms;
+  }
+  .animation-delay-200 {
+    animation-delay: 200ms;
+  }
+  .animation-delay-300 {
+    animation-delay: 300ms;
   }
 }

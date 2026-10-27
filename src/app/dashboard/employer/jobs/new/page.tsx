@@ -1,5 +1,13 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import {
+  ArrowLeft,
+  Briefcase,
+  Sparkles,
+  AlertCircle,
+  Info,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { JobForm } from "@/components/employer/JobForm";
 import { jobSchema } from "@/lib/validators/job";
@@ -65,15 +73,88 @@ export default async function NewJobPage({
   searchParams: { error?: string };
 }) {
   return (
-    <div className="mx-auto max-w-2xl">
-      <h1 className="text-2xl font-bold text-gray-900">Post a new job</h1>
-      <p className="mt-1 text-gray-500">
-        Save as draft first — publish by paying the LKR 2,500 listing fee when ready.
-      </p>
+    <div className="mx-auto max-w-3xl space-y-6">
+      {/* ─── Back link ─── */}
+      <Link
+        href="/dashboard/employer/jobs"
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 transition hover:text-gray-900"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Back to jobs
+      </Link>
 
-      <div className="mt-8 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <JobForm action={createJob} submitLabel="Save as draft" error={searchParams.error} />
+      {/* ─── Header ─── */}
+      <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-card">
+        <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-indigo-100/40 blur-3xl" />
+        <div className="relative flex items-start gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-sm">
+            <Briefcase className="h-6 w-6" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+              Post a new job
+            </h1>
+            <p className="mt-1 text-sm text-gray-500">
+              Save as a draft first — publish by paying the LKR 2,500 listing
+              fee when ready.
+            </p>
+          </div>
+        </div>
       </div>
+
+      {/* ─── Error banner ─── */}
+      {searchParams.error && (
+        <div className="flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3.5 shadow-sm">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-600">
+            <AlertCircle className="h-4 w-4" />
+          </div>
+          <div>
+            <p className="font-semibold text-rose-900">
+              Couldn&apos;t save draft
+            </p>
+            <p className="mt-0.5 text-sm text-rose-800">{searchParams.error}</p>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Info callout ─── */}
+      <div className="flex items-start gap-3 rounded-xl border border-indigo-100 bg-indigo-50/60 px-4 py-3">
+        <Info className="mt-0.5 h-4 w-4 shrink-0 text-indigo-600" />
+        <p className="text-sm text-indigo-900">
+          Drafts are private — only you can see them. You&apos;ll be prompted to
+          pay before the listing goes live on the public board.
+        </p>
+      </div>
+
+      {/* ─── Form card ─── */}
+      <div className="rounded-2xl border border-gray-200 bg-white shadow-card">
+        <div className="flex items-center gap-3 border-b border-gray-100 px-6 py-4">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+            <Sparkles className="h-4 w-4" />
+          </div>
+          <div>
+            <h2 className="font-semibold tracking-tight text-gray-900">
+              Job details
+            </h2>
+            <p className="text-xs text-gray-500">
+              All fields except salary are required.
+            </p>
+          </div>
+        </div>
+        <div className="p-6">
+          <JobForm
+            action={createJob}
+            submitLabel="Save as draft"
+            error={undefined}
+          />
+        </div>
+      </div>
+
+      {/* ─── Footer hint ─── */}
+      <p className="text-center text-xs text-gray-400">
+        Need to change something later? You can edit drafts anytime before
+        publishing.
+      </p>
     </div>
   );
 }

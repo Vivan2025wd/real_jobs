@@ -1,71 +1,187 @@
-// src/components/layout/Navbar.tsx
+"use client";
+
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { usePathname } from "next/navigation";
+import { LayoutDashboard, LogOut, Sparkles, Menu } from "lucide-react";
+import { useUser } from "@/hooks/useUser";
 import { Button } from "@/components/ui/Button";
+import { useState } from "react";
 
-export async function Navbar() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+// ---------------------------------------------------------------------------
+// Nav item list — filtered by auth state.
+// `active` uses exact match for `/` and prefix match for everything else so
+// `/jobs/category/design` keeps `/jobs` highlighted.
+// ---------------------------------------------------------------------------
+const PUBLIC_NAV = [
+  { href: "/jobs", label: "Browse jobs" },
+] as const;
 
-  const role =
-    (user?.user_metadata?.role as string)?.toUpperCase() === "EMPLOYER"
-      ? "EMPLOYER"
-      : user
-        ? "JOB_SEEKER"
-        : null;
+export function Navbar() {
+  const pathname = usePathname();
+  const { user, role, loading, isSignedIn, isEmployer } = useUser();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  const dashboardHref =
-    role === "EMPLOYER" ? "/dashboard/employer" : "/dashboard/seeker";
+  const dashboardHref = isEmployer
+    ? "/dashboard/employer"
+    : "/dashboard/seeker";
+
+  function isActive(href: string) {
+    if (href === "/") return pathname === "/";
+    return pathname === href || pathname.startsWith(href + "/");
+  }
 
   return (
-    <header className="border-b border-gray-200 bg-white">
+    <header className="sticky top-0 z-40 border-b border-gray-200/60 glass">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-        <Link href="/" className="flex items-center gap-2 font-bold">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white">
+        {/* ─── Brand ─── */}
+        <Link
+          href="/"
+          className="flex items-center gap-2.5 font-bold transition hover:opacity-90"
+        >
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-sm text-white shadow-sm">
             H
           </span>
-          HireLoop
+          <span className="tracking-tight text-gray-900">HireLoop</span>
         </Link>
 
-        <nav className="flex items-center gap-1 sm:gap-3">
-          <Link
-            href="/jobs"
-            className="rounded-md px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-          >
-            Browse jobs
-          </Link>
+        {/* ─── Desktop nav ─── */}
+        <nav className="hidden items-center gap-1 sm:flex">
+          {PUBLIC_NAV.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
+                isActive(item.href)
+                  ? "bg-indigo-50 text-indigo-700"
+                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+              }`}
+            >
+              {item.label}
+            </Link>
+          ))}
 
-          {user ? (
+          {/* ─── Auth-dependent right side ─── */}
+          {loading ? (
+            <>
+              <div className="h-9 w-24 animate-pulse rounded-lg bg-gray-100" />
+              <div className="h-9 w-20 animate-pulse rounded-lg bg-gray-100" />
+            </>
+          ) : isSignedIn && user ? (
             <>
               <Link
                 href={dashboardHref}
-                className="rounded-md px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition ${
+                  pathname.startsWith("/dashboard")
+                    ? "bg-indigo-50 text-indigo-700"
+                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                }`}
               >
+                <LayoutDashboard className="h-4 w-4" />
                 Dashboard
               </Link>
-              <form action="/logout" method="post">
-                <Button type="submit" variant="ghost" size="sm">
-                  Sign out
-                </Button>
-              </form>
+
+              <Link
+                href="/logout"
+                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-rose-50 hover:text-rose-700"
+              >
+                <LogOut className="h-4 w-4" />
+                Sign out
+              </Link>
             </>
           ) : (
             <>
               <Link
                 href="/login"
-                className="rounded-md px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                className="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"
               >
                 Sign in
               </Link>
               <Link href="/register">
-                <Button size="sm">Get started</Button>
+                <Button
+                  size="sm"
+                  icon={<Sparkles className="h-3.5 w-3.5" />}
+                >
+                  Get started
+                </Button>
               </Link>
             </>
           )}
         </nav>
+
+        {/* ─── Mobile hamburger ─── */}
+        <button
+          type="button"
+          onClick={() => setMobileOpen((v) => !v)}
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-600 transition hover:bg-gray-100 sm:hidden"
+          aria-label="Toggle navigation"
+          aria-expanded={mobileOpen}
+        >
+          <Menu className="h-5 w-5" />
+        </button>
       </div>
+
+      {/* ─── Mobile dropdown ─── */}
+      {mobileOpen && (
+        <div className="border-t border-gray-200 bg-white px-4 py-3 sm:hidden">
+          <nav className="flex flex-col gap-1">
+            {PUBLIC_NAV.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setMobileOpen(false)}
+                className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
+                  isActive(item.href)
+                    ? "bg-indigo-50 text-indigo-700"
+                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
+
+            {loading ? (
+              <div className="h-9 animate-pulse rounded-lg bg-gray-100" />
+            ) : isSignedIn && user ? (
+              <>
+                <Link
+                  href={dashboardHref}
+                  onClick={() => setMobileOpen(false)}
+                  className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"
+                >
+                  <LayoutDashboard className="h-4 w-4" />
+                  Dashboard
+                </Link>
+                <Link
+                  href="/logout"
+                  onClick={() => setMobileOpen(false)}
+                  className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-rose-50 hover:text-rose-700"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Sign out
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  onClick={() => setMobileOpen(false)}
+                  className="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"
+                >
+                  Sign in
+                </Link>
+                <Link
+                  href="/register"
+                  onClick={() => setMobileOpen(false)}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-indigo-700"
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Get started
+                </Link>
+              </>
+            )}
+          </nav>
+        </div>
+      )}
     </header>
   );
 }

@@ -1,32 +1,60 @@
 // src/components/ui/SubmitButton.tsx
 "use client";
+
 import type { ReactNode } from "react";
 import { useFormStatus } from "react-dom";
+import { RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 
 type Props = {
   children: ReactNode;
   pendingText?: string;
-  variant?: "primary" | "secondary";
+  variant?: "primary" | "secondary" | "ghost" | "danger" | "outline";
+  size?: "sm" | "md" | "lg";
+  icon?: ReactNode;
+  iconRight?: ReactNode;
+  fullWidth?: boolean;
+  className?: string;
 };
 
+/**
+ * SubmitButton — a `<Button type="submit">` that reads the parent form's
+ * pending state via `useFormStatus`.
+ *
+ * Uses `<Button>` under the hood so it inherits the full design system:
+ * indigo palette, focus-visible rings, active-scale micro-interaction,
+ * disabled opacity, icon support. Nothing is styled locally.
+ *
+ * While pending:
+ *   • The provided `icon` swaps to a spinning `RefreshCw`
+ *   • The label swaps to `pendingText` (or "Working…")
+ *   • The button is disabled
+ */
 export function SubmitButton({
   children,
   pendingText,
   variant = "primary",
+  size = "md",
+  icon,
+  iconRight,
+  fullWidth = true,
+  className = "",
 }: Props) {
   const { pending } = useFormStatus();
 
-  const base =
-    "w-full rounded-md px-4 py-2 text-sm font-medium shadow-sm transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-60";
-
-  const styles =
-    variant === "primary"
-      ? "bg-blue-600 text-white hover:bg-blue-700"
-      : "border border-gray-300 bg-white text-gray-900 hover:bg-gray-50";
-
   return (
-    <button type="submit" disabled={pending} className={`${base} ${styles}`}>
-      {pending ? pendingText ?? "Working…" : children}
-    </button>
+    <Button
+      type="submit"
+      variant={variant}
+      size={size}
+      disabled={pending}
+      icon={
+        pending ? <RefreshCw className="h-4 w-4 animate-spin" /> : icon
+      }
+      iconRight={pending ? undefined : iconRight}
+      className={`${fullWidth ? "w-full" : ""} ${className}`.trim()}
+    >
+      {pending ? (pendingText ?? "Working…") : children}
+    </Button>
   );
 }

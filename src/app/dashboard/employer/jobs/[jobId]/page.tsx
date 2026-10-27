@@ -1,10 +1,23 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import {
+  MapPin,
+  Banknote,
+  Clock,
+  Calendar,
+  Edit3,
+  CreditCard,
+  CheckCircle2,
+  AlertCircle,
+  FileText,
+  Users,
+  Inbox,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { StatusBadge } from "@/components/ui/Badge";
+import { StatusBadge, Badge } from "@/components/ui/Badge";
 import { PayHereButton } from "@/components/payment/PayHereButton";
 import { VerificationToggle } from "@/components/employer/VerificationToggle";
 import { ViewResumeButton } from "@/components/employer/ViewResumeButton";
@@ -25,6 +38,12 @@ type JobWithCompany = JobRow & {
     employer_id: string;
     company_name: string;
   };
+};
+
+const WORK_TYPE_LABEL: Record<string, string> = {
+  REMOTE: "Remote",
+  ONSITE: "On-site",
+  HYBRID: "Hybrid",
 };
 
 // ---------------------------------------------------------------------------
@@ -99,46 +118,93 @@ export default async function EmployerJobDetailPage({
 
   return (
     <div className="space-y-6">
+      {/* ─── Payment banners ─── */}
       {searchParams.payment === "success" && (
-        <div className="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
-          <p className="font-medium">Payment received ✓</p>
-          <p className="mt-0.5">
-            We&apos;re confirming with PayHere now. If the status below still
-            shows <strong>Draft</strong>, refresh in a few seconds — the webhook
-            activates the job automatically.
-          </p>
+        <div className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3.5 shadow-sm">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+            <CheckCircle2 className="h-4 w-4" />
+          </div>
+          <div>
+            <p className="font-semibold text-emerald-900">Payment received</p>
+            <p className="mt-0.5 text-sm text-emerald-800">
+              We&apos;re confirming with PayHere now. If the status below still
+              shows <strong>Draft</strong>, refresh in a few seconds — the
+              webhook activates the job automatically.
+            </p>
+          </div>
         </div>
       )}
       {searchParams.payment === "cancelled" && (
-        <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          Payment cancelled. You can try again below whenever you&apos;re ready.
+        <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3.5 shadow-sm">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+            <AlertCircle className="h-4 w-4" />
+          </div>
+          <div>
+            <p className="font-semibold text-amber-900">Payment cancelled</p>
+            <p className="mt-0.5 text-sm text-amber-800">
+              You can try again below whenever you&apos;re ready.
+            </p>
+          </div>
         </div>
       )}
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-gray-900">
-              {typedJob.title}
-            </h1>
-            <StatusBadge status={typedJob.status} />
+      {/* ─── Header card ─── */}
+      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-card">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+                {typedJob.title}
+              </h1>
+              <StatusBadge status={typedJob.status} />
+            </div>
+
+            <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-gray-600">
+              <span className="inline-flex items-center gap-1.5">
+                <MapPin className="h-4 w-4 text-gray-400" />
+                {typedJob.location}
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <Banknote className="h-4 w-4 text-gray-400" />
+                {formatSalary(typedJob.salary_min, typedJob.salary_max)}
+              </span>
+              <Badge tone="blue">
+                {WORK_TYPE_LABEL[typedJob.work_type] ?? typedJob.work_type}
+              </Badge>
+              {typedJob.category && (
+                <Badge tone="gray">
+                  {typedJob.category.charAt(0) +
+                    typedJob.category.slice(1).toLowerCase().replace("_", " ")}
+                </Badge>
+              )}
+            </div>
+
+            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-400">
+              <span className="inline-flex items-center gap-1">
+                <Calendar className="h-3.5 w-3.5" />
+                Posted {formatDate(typedJob.created_at)}
+              </span>
+              {typedJob.last_verified_at && (
+                <span className="inline-flex items-center gap-1">
+                  <Clock className="h-3.5 w-3.5" />
+                  Last verified {timeAgo(typedJob.last_verified_at)}
+                </span>
+              )}
+            </div>
           </div>
-          <p className="mt-1 text-sm text-gray-500">
-            {typedJob.work_type} · {typedJob.location} ·{" "}
-            {formatSalary(typedJob.salary_min, typedJob.salary_max)}
-          </p>
-          <p className="text-xs text-gray-400">
-            Posted {formatDate(typedJob.created_at)}
-            {typedJob.last_verified_at && (
-              <> · Last verified {timeAgo(typedJob.last_verified_at)}</>
-            )}
-          </p>
+
+          <Link
+            href={`/dashboard/employer/jobs/${typedJob.id}/edit`}
+            className="shrink-0"
+          >
+            <Button variant="secondary" icon={<Edit3 className="h-4 w-4" />}>
+              Edit
+            </Button>
+          </Link>
         </div>
-        <Link href={`/dashboard/employer/jobs/${typedJob.id}/edit`}>
-          <Button variant="secondary">Edit</Button>
-        </Link>
       </div>
 
+      {/* ─── Verification toggle (ACTIVE only) ─── */}
       {typedJob.status === "ACTIVE" && (
         <VerificationToggle
           jobId={typedJob.id}
@@ -148,53 +214,94 @@ export default async function EmployerJobDetailPage({
         />
       )}
 
+      {/* ─── DRAFT payment banner ─── */}
       {typedJob.status === "DRAFT" && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-6">
-          <h3 className="font-semibold text-amber-900">Not published yet</h3>
-          <p className="mt-1 text-sm text-amber-800">
-            Pay the LKR 2,500 listing fee to activate this job. PayHere handles
-            the transaction — no card details touch our servers.
-          </p>
-          <div className="mt-4">
-            <PayHereButton jobId={typedJob.id} />
+        <div className="relative overflow-hidden rounded-2xl border border-indigo-200 bg-gradient-to-br from-indigo-50 via-white to-violet-50 p-6 shadow-card">
+          <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-indigo-200/30 blur-2xl" />
+          <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-sm">
+                <CreditCard className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold tracking-tight text-gray-900">
+                  Ready to publish?
+                </h3>
+                <p className="mt-1 text-sm text-gray-600">
+                  Pay the LKR 2,500 listing fee to activate this job. PayHere
+                  handles the transaction — no card details touch our servers.
+                </p>
+              </div>
+            </div>
+            <div className="shrink-0">
+              <PayHereButton jobId={typedJob.id} />
+            </div>
           </div>
         </div>
       )}
 
+      {/* ─── Description ─── */}
       <Card>
-        <CardHeader title="Description" />
+        <CardHeader
+          title="Description"
+          icon={<FileText className="h-4 w-4" />}
+        />
         <CardBody>
-          <p className="whitespace-pre-line text-sm text-gray-700">
+          <p className="whitespace-pre-line text-sm leading-relaxed text-gray-700">
             {typedJob.description}
           </p>
         </CardBody>
       </Card>
 
+      {/* ─── Applications ─── */}
       <Card>
-        <CardHeader title={`Applications (${typedApplications.length})`} />
+        <CardHeader
+          title={`Applications (${typedApplications.length})`}
+          icon={<Users className="h-4 w-4" />}
+          description={
+            typedApplications.length > 0
+              ? "Review candidates and download their resumes."
+              : undefined
+          }
+        />
         <CardBody className="p-0">
           {!typedApplications.length ? (
-            <p className="px-6 py-8 text-center text-sm text-gray-500">
-              No applications yet.
-            </p>
+            <div className="flex flex-col items-center justify-center gap-3 px-6 py-14 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-gray-400">
+                <Inbox className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="font-medium text-gray-900">
+                  No applications yet
+                </p>
+                <p className="mt-1 text-sm text-gray-500">
+                  Applications will appear here as soon as candidates apply.
+                </p>
+              </div>
+            </div>
           ) : (
             <ul className="divide-y divide-gray-100">
               {typedApplications.map((a) => (
                 <li
                   key={a.id}
-                  className="flex items-center justify-between gap-4 px-6 py-4"
+                  className="flex items-center justify-between gap-4 px-6 py-4 transition hover:bg-gray-50/60"
                 >
-                  <div>
-                    <p className="font-medium text-gray-900">
-                      {a.users.email}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      Applied {timeAgo(a.applied_at)}
-                    </p>
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-100 to-violet-100 text-sm font-semibold text-indigo-700">
+                      {a.users.email.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-gray-900">
+                        {a.users.email}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Applied {timeAgo(a.applied_at)}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex shrink-0 items-center gap-3">
                     <StatusBadge status={a.status} />
-                    <ViewResumeButton resumeKey={a.resume_url} />
+                    <ViewResumeButton applicationId={a.id} />
                   </div>
                 </li>
               ))}
