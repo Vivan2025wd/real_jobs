@@ -14,7 +14,6 @@ import {
   LogOut,
   Menu,
   X,
-  ArrowRight,
 } from "lucide-react";
 
 type Role = "EMPLOYER" | "JOB_SEEKER";
@@ -183,14 +182,19 @@ function UserFooter({
         </div>
       </div>
 
-      <Link
-        href="/logout"
-        onClick={onNavigate}
-        className="mt-2 flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-gray-500 transition hover:bg-rose-50 hover:text-rose-600"
-      >
-        <LogOut className="h-3.5 w-3.5" />
-        Sign out
-      </Link>
+      {/* FIX: POST form instead of GET Link. The /logout route is POST-only
+          to prevent Next.js <Link> prefetch from silently signing the user
+          out the moment the sidebar renders. */}
+      <form action="/logout" method="post" className="mt-2">
+        <button
+          type="submit"
+          onClick={onNavigate}
+          className="flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-gray-500 transition hover:bg-rose-50 hover:text-rose-600"
+        >
+          <LogOut className="h-3.5 w-3.5" />
+          Sign out
+        </button>
+      </form>
     </div>
   );
 }

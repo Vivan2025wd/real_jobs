@@ -7,11 +7,6 @@ import { useUser } from "@/hooks/useUser";
 import { Button } from "@/components/ui/Button";
 import { useState } from "react";
 
-// ---------------------------------------------------------------------------
-// Nav item list — filtered by auth state.
-// `active` uses exact match for `/` and prefix match for everything else so
-// `/jobs/category/design` keeps `/jobs` highlighted.
-// ---------------------------------------------------------------------------
 const PUBLIC_NAV = [
   { href: "/jobs", label: "Browse jobs" },
 ] as const;
@@ -80,13 +75,16 @@ export function Navbar() {
                 Dashboard
               </Link>
 
-              <Link
-                href="/logout"
-                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-rose-50 hover:text-rose-700"
-              >
-                <LogOut className="h-4 w-4" />
-                Sign out
-              </Link>
+              {/* FIX: POST form instead of GET Link */}
+              <form action="/logout" method="post">
+                <button
+                  type="submit"
+                  className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-rose-50 hover:text-rose-700"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Sign out
+                </button>
+              </form>
             </>
           ) : (
             <>
@@ -151,14 +149,17 @@ export function Navbar() {
                   <LayoutDashboard className="h-4 w-4" />
                   Dashboard
                 </Link>
-                <Link
-                  href="/logout"
-                  onClick={() => setMobileOpen(false)}
-                  className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-rose-50 hover:text-rose-700"
-                >
-                  <LogOut className="h-4 w-4" />
-                  Sign out
-                </Link>
+                {/* FIX: full-width, left-aligned, closes dropdown on click */}
+                <form action="/logout" method="post">
+                  <button
+                    type="submit"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium text-gray-600 transition hover:bg-rose-50 hover:text-rose-700"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Sign out
+                  </button>
+                </form>
               </>
             ) : (
               <>
