@@ -11,8 +11,8 @@
     "db:push": "supabase db push && tsx scripts/generate-db-types.ts"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1156.0",
-    "@aws-sdk/s3-request-presigner": "^3.1156.0",
+    "@aws-sdk/client-s3": "^3.1157.0",
+    "@aws-sdk/s3-request-presigner": "^3.1157.0",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.90.1",
     "clsx": "^2.1.1",
