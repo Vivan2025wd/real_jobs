@@ -1,3 +1,4 @@
+// src/components/layout/Navbar.tsx
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/Button";
@@ -44,9 +45,11 @@ export async function Navbar() {
               >
                 Dashboard
               </Link>
-              <Link href="/logout" className="rounded-md px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900">
-                Sign out
-              </Link>
+              <form action="/logout" method="post">
+                <Button type="submit" variant="ghost" size="sm">
+                  Sign out
+                </Button>
+              </form>
             </>
           ) : (
             <>

@@ -1,3 +1,4 @@
+// src/components/layout/Sidebar.tsx
 "use client";
 
 import Link from "next/link";
@@ -28,14 +29,18 @@ export function Sidebar({ role, email }: { role: Role; email: string }) {
     <aside className="hidden w-64 shrink-0 border-r border-gray-200 bg-white md:flex md:flex-col">
       <div className="flex h-16 items-center border-b border-gray-200 px-6 font-bold">
         <Link href="/" className="flex items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white">H</span>
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white">
+            H
+          </span>
           HireLoop
         </Link>
       </div>
+
       <nav className="flex-1 space-y-1 p-3">
         {items.map((item) => {
           const active =
-            item.href === "/dashboard/employer" || item.href === "/dashboard/seeker"
+            item.href === "/dashboard/employer" ||
+            item.href === "/dashboard/seeker"
               ? pathname === item.href
               : pathname.startsWith(item.href);
           return (
@@ -43,7 +48,9 @@ export function Sidebar({ role, email }: { role: Role; email: string }) {
               key={item.href}
               href={item.href}
               className={`block rounded-md px-3 py-2 text-sm font-medium transition ${
-                active ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"
+                active
+                  ? "bg-blue-50 text-blue-700"
+                  : "text-gray-700 hover:bg-gray-100"
               }`}
             >
               {item.label}
@@ -51,12 +58,18 @@ export function Sidebar({ role, email }: { role: Role; email: string }) {
           );
         })}
       </nav>
+
       <div className="border-t border-gray-200 p-4 text-xs text-gray-500">
         <p className="truncate">Signed in as</p>
         <p className="truncate font-medium text-gray-900">{email}</p>
-        <Link href="/logout" className="mt-2 inline-block text-blue-600 hover:underline">
-          Sign out
-        </Link>
+        <form action="/logout" method="post" className="mt-2">
+          <button
+            type="submit"
+            className="text-blue-600 hover:underline"
+          >
+            Sign out
+          </button>
+        </form>
       </div>
     </aside>
   );
