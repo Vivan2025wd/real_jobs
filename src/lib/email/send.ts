@@ -23,7 +23,7 @@ export async function sendEmail({
   }
 
   const { error } = await resend.emails.send({
-    from: process.env.EMAIL_FROM ?? "HireLoop <onboarding@resend.dev>",
+    from: process.env.EMAIL_FROM ?? "RealJobs <onboarding@resend.dev>",
     to,
     subject,
     html,

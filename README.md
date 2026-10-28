@@ -1,6 +1,6 @@
-# HireLoop 🔄
+# RealJobs
 
-> **The zero-stale job marketplace for small businesses.** Every listing has a fixed lifespan of 7, 14 or 30 days and expires automatically, so postings stay genuinely active.
+> **The zero-stale job marketplace.** Every listing runs for a fixed window (7, 14, or 30 days) and archives itself when the window ends. No ghost posts, no dead applications.
 
 [![Next.js](https://img.shields.io/badge/Next.js-14.2-black?style=flat&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue?style=flat&logo=typescript)](https://www.typescriptlang.org/)
@@ -12,25 +12,26 @@
 
 ---
 
-## Why HireLoop is Different
+## Why RealJobs
 
-Job boards suffer from one systemic flaw: **stale, ghost listings**. Employers fill roles and abandon their posts, leaving job seekers shouting into the void and recruiters inundated with irrelevant resumes.
+Traditional job boards suffer from one systemic flaw: **stale, ghost listings**. Employers fill a role and forget to remove the post, leaving job seekers shouting into the void and recruiters buried in irrelevant applications.
 
-HireLoop addresses this with a **fixed-lifespan listing model**:
+RealJobs fixes this at the data layer:
 
-1. The employer picks a duration when posting: **7 days (LKR 2,499), 14 days (LKR 4,499) or 30 days (LKR 8,499)**. The price is locked at creation.
-2. While the listing is live, automated emails keep the employer in the loop: a "still hiring?" check on long listings, a notice when **10+ candidates** have applied, and tips if a listing gets **no applicants** after 3 days.
-3. When `expires_at` passes, the listing is archived automatically and disappears from public search.
+1. Every listing has an **`expires_at` timestamp** set at creation, from the duration the employer paid for (7, 14, or 30 days).
+2. **Public queries filter on `expires_at > now()`**, so expired listings disappear from search the moment their window ends.
+3. A **daily cron** archives expired jobs and sends lifecycle notifications (applicant milestones, no-applicant tips, and a mid-life verification for 30-day listings).
 
-The result is a board where every public listing is inside the lifespan its employer paid for, and employers can close a filled role with one click.
+The result: every public listing is within the lifespan its employer chose and paid for.
 
 ---
 
 ## Table of Contents
 
-- [Screenshots](#screenshots)
+- [Live Demo](#live-demo)
 - [Core Features](#core-features)
 - [The Listing Lifecycle](#the-listing-lifecycle)
+- [Pricing](#pricing)
 - [Tech Stack](#tech-stack)
 - [Architecture](#architecture)
 - [Database Schema & RLS](#database-schema--rls)
@@ -48,14 +49,17 @@ The result is a board where every public listing is inside the lifespan its empl
 
 ---
 
-## Screenshots
+## Live Demo
 
-The app is live at **[realjobs-khaki.vercel.app](https://realjobs-khaki.vercel.app)**. Static screenshots will be added as the project grows. The key screens are:
+**[realjobs-khaki.vercel.app](https://realjobs-khaki.vercel.app)**
 
-- **Public Job Board**: fast, filtered search by work type, salary, and category.
-- **Job Detail**: clean listing with Google Jobs JSON-LD schema and direct application.
-- **Employer Dashboard**: manage listings, payment status, and applications.
-- **Single-Click Verification**: tokenized confirmation page, no login required.
+Key screens to try:
+
+- **`/`**: landing page with live stats (active jobs, companies)
+- **`/jobs`**: public board with category, work type, and salary filters
+- **`/jobs/[id]`**: job detail with Google Jobs JSON-LD schema
+- **`/dashboard/employer`**: employer dashboard
+- **`/dashboard/employer/jobs/new`**: duration-based pricing picker (7 / 14 / 30 days)
 
 ---
 
@@ -66,7 +70,7 @@ The app is live at **[realjobs-khaki.vercel.app](https://realjobs-khaki.vercel.a
 - **Structured Job Authoring**: role descriptions, compensation ranges in LKR, work type (Remote, Hybrid, Onsite), and standardized categories.
 - **Tiered Pricing & Payments**: choose 7, 14 or 30 days (LKR 2,499 / 4,499 / 8,499) and pay via PayHere popup checkout.
 - **Applicant Tracking**: review applications per listing with applied dates, statuses, and resume downloads.
-- **Smart Notification Emails**: a "still hiring?" check with one-click confirm/close links, a "candidates are applying" notice at 10+ applicants, and improvement tips when a listing has no applicants after 3 days.
+- **Smart Notification Emails**: a "candidates are applying" alert at 10+ applicants, improvement tips when a listing has no applicants after 3 days, and a one-click "still hiring?" check on 30-day listings.
 
 ### For Job Seekers
 - **Fresh Postings**: only listings inside their paid lifespan appear publicly, and filled roles can be closed in one click.
@@ -75,7 +79,8 @@ The app is live at **[realjobs-khaki.vercel.app](https://realjobs-khaki.vercel.a
 - **Application Dashboard**: track status (Pending, Reviewed, Shortlisted, Rejected).
 
 ### Platform & Automation
-- **Vercel Cron Orchestration**: daily jobs send verification, hot-listing and stale-listing emails and archive expired listings.
+- **Four automated tasks**: stale-listing tips, hot-listing alerts, mid-life verification and an expiry sweep, combined into one daily cron.
+- **Transactional email**: Resend integration.
 - **Incremental Static Regeneration (ISR)**: public job detail pages are cached and revalidated every 5 minutes.
 - **Role-Based Routing**: middleware-enforced isolation between seeker and employer areas.
 
@@ -83,48 +88,61 @@ The app is live at **[realjobs-khaki.vercel.app](https://realjobs-khaki.vercel.a
 
 ## The Listing Lifecycle
 
-A listing moves through a paid window with automated check-ins, driven by daily cron jobs:
+RealJobs runs four automated tasks. They are combined into a single daily Vercel Cron (`/api/cron/daily`, 09:00 UTC) to fit Vercel Hobby plan limits.
 
 ```mermaid
 sequenceDiagram
     autonumber
     participant Emp as Employer
-    participant App as HireLoop App
-    participant DB as Supabase PostgreSQL
+    participant App as RealJobs
+    participant DB as Supabase
     participant Cron as Vercel Cron (daily)
-    participant Mail as Resend Email
+    participant Email as Resend
 
-    Emp->>App: Picks 7 / 14 / 30 days and pays (PayHere)
+    Emp->>App: Pays LKR 2,499 / 4,499 / 8,499
     App->>DB: status = ACTIVE, expires_at = created_at + duration_days
 
-    Note over Cron,DB: Daily, 09:00 UTC
-    par Still-hiring check
-        Cron->>DB: ACTIVE jobs 14 days past last_verified_at (skips jobs expiring within 48h)
-        Cron->>Mail: "Still hiring?" email with tokenized link
-    and Hot listing
-        Cron->>DB: Jobs with 10+ applicants and no notified_10_applicants_at
-        Cron->>Mail: "Candidates are applying" email
-    and Stale listing
-        Cron->>DB: Jobs 3+ days old with 0 applicants and no notified_stale_at
-        Cron->>Mail: Tips email to improve the listing
+    Note over Cron,DB: Daily 09:00 UTC
+
+    par Stale jobs (0 applicants, 3+ days)
+        Cron->>DB: Find ACTIVE jobs, 0 apps, 3d+ old
+        Cron->>Email: Send suggestions (salary, description tips)
+    and Hot jobs (10+ applicants)
+        Cron->>DB: Find ACTIVE jobs, 10+ apps, not yet notified
+        Cron->>Email: Send "N candidates applied" alert
+    and Verification (30-day jobs only, day 14)
+        Cron->>DB: Find 30-day ACTIVE jobs, 14d+ since last verify
+        Cron->>Email: Send "Still hiring?" with token
+        Note over Emp,Email: 48h grace window
+        alt Employer responds "Yes"
+            Emp->>DB: status stays ACTIVE, last_verified_at = now
+        else Employer responds "No" or no response
+            Cron->>DB: status = EXPIRED (archived)
+        end
+    and Expiry sweep
+        Cron->>DB: Find ACTIVE jobs where expires_at < now
+        Cron->>DB: status = EXPIRED
     end
 
-    alt Employer clicks "Yes, still hiring"
-        Emp->>App: GET /verify-job/[token]
-        App->>DB: last_verified_at = now(), clear token
-    else Employer clicks "No, position filled"
-        Emp->>App: GET /verify-job/[token]
-        App->>DB: status = FILLED, clear token
-    end
-
-    Cron->>DB: ACTIVE jobs where expires_at has passed
-    Cron->>DB: Archive listing (removed from public search)
+    Note over DB: Public queries filter expires_at > now()<br/>so expired jobs are hidden immediately
 ```
 
 > **Notes**
-> - Public queries also filter on `expires_at`, so a listing disappears at its exact expiry time even though the archive sweep runs once a day.
-> - The 14-day "still hiring?" check only applies in practice to 30-day listings, since shorter listings expire first.
 > - Each notification is sent once per job; the `notified_*_at` columns prevent duplicates.
+> - The mid-life verification only applies to 30-day listings, since 7 and 14-day listings expire before the check is due.
+> - A listing marked "position filled" through the verification link is closed as `FILLED`.
+
+---
+
+## Pricing
+
+| Duration | Price (LKR) |
+| :--- | :--- |
+| 7 days | 2,499 |
+| 14 days | 4,499 |
+| 30 days | 8,499 |
+
+The price is locked when the draft is created and paid through PayHere. The listing goes live when the payment webhook is verified.
 
 ---
 
@@ -185,7 +203,7 @@ sequenceDiagram
 
 ## Database Schema & RLS
 
-HireLoop uses five relational tables in PostgreSQL:
+RealJobs uses five relational tables in PostgreSQL:
 
 - `public.users`: mirrors `auth.users` with `role` (`EMPLOYER` or `JOB_SEEKER`) and `resume_url`.
 - `public.companies`: employer company profiles (`employer_id` references `users.id`).
@@ -306,7 +324,7 @@ PAYHERE_MODE=sandbox
 RESEND_API_KEY=re_...
 # For testing, "onboarding@resend.dev" only delivers to your own verified email.
 # For production, verify a domain and use e.g. "notifications@yourdomain.com".
-EMAIL_FROM=HireLoop <onboarding@resend.dev>
+EMAIL_FROM=RealJobs <onboarding@resend.dev>
 
 # ==============================================================================
 # WhatsApp Business Cloud API (optional, planned)
@@ -407,8 +425,8 @@ The IAM user needs object access on both buckets, plus `ListBucket`:
 
 1. Connect your repository to Vercel.
 2. Under Project Settings → Environment Variables, add every variable from `.env.local.example`.
-3. Vercel reads `vercel.json` and configures the daily cron schedule. The cron work consists of four tasks:
-   - `verify-jobs`: sends the "still hiring?" email 14 days after `last_verified_at` (skips jobs expiring within 48 hours)
+3. Vercel reads `vercel.json` and configures one daily cron, `/api/cron/daily` (09:00 UTC), which runs four tasks:
+   - `verify-jobs`: sends the "still hiring?" email 14 days after `last_verified_at` (30-day listings)
    - `notify-hot-jobs`: emails the employer when a listing reaches 10+ applicants
    - `notify-stale-jobs`: emails tips when a listing has 0 applicants after 3 days
    - `expire-jobs`: archives listings once `expires_at` has passed
@@ -420,7 +438,7 @@ The IAM user needs object access on both buckets, plus `ListBucket`:
 - [ ] Your domain is verified in Resend so notification emails pass SPF/DKIM.
 - [ ] S3 CORS allows your production Vercel domain on **both** buckets.
 - [ ] The assets bucket is publicly readable (open a logo URL in a private browser window).
-- [ ] Every cron task runs successfully from Vercel dashboard → Cron Jobs → Run, returning `{ ok: true }`.
+- [ ] `/api/cron/daily` runs successfully from Vercel dashboard → Cron Jobs → Run, returning `{ ok: true }`.
 
 ---
 
@@ -472,7 +490,7 @@ The IAM user needs object access on both buckets, plus `ListBucket`:
 ## Design Decisions
 
 ### 1. Employer-Chosen Lifespans Instead of Open-Ended Listings
-Most job boards leave posts up until someone remembers to remove them, which creates zombie listings long after a role is filled. Small businesses usually hire fast, so HireLoop sells short, fixed windows (7, 14 or 30 days) with the price locked at creation. Automated emails keep employers engaged while the listing runs: a still-hiring check, a signal when candidates are flowing in, and tips when nobody is applying. A filled role can be closed in one click, and everything else expires on its own.
+Most job boards leave posts up until someone remembers to remove them, which creates zombie listings long after a role is filled. Small businesses usually hire fast, so RealJobs sells short, fixed windows (7, 14 or 30 days) with the price locked at creation. Automated emails keep employers engaged while the listing runs: a signal when candidates are flowing in, tips when nobody is applying, and a still-hiring check on 30-day listings. A filled role can be closed in one click, and everything else expires on its own.
 
 ### 2. Three-Client Supabase Architecture
 Supabase auth in the Next.js App Router needs strict client boundaries:
@@ -568,4 +586,4 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 
 ---
 
-[Back to top ↑](#hireloop-)
+[Back to top ↑](#realjobs)

@@ -329,7 +329,7 @@ function emailFrame(content: string): string {
       <table role="presentation" width="560" cellspacing="0" cellpadding="0" border="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,0.05);">
         ${content}
         <tr><td style="padding:16px 32px 24px;border-top:1px solid #e5e7eb;">
-          <p style="margin:0;font-size:12px;color:#9ca3af;">This is an automated message from HireLoop. Replies are not monitored.</p>
+          <p style="margin:0;font-size:12px;color:#9ca3af;">This is an automated message from RealJobs. Replies are not monitored.</p>
         </td></tr>
       </table>
     </td></tr>

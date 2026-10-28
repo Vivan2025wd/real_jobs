@@ -38,7 +38,7 @@ export function Footer() {
               <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-sm text-white shadow-sm">
                 H
               </span>
-              <span className="tracking-tight text-gray-900">HireLoop</span>
+              <span className="tracking-tight text-gray-900">RealJobs</span>
             </Link>
 
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-gray-500">
@@ -122,7 +122,7 @@ export function Footer() {
 
         {/* ─── Bottom bar ─── */}
         <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-gray-100 pt-6 text-xs text-gray-400 sm:flex-row">
-          <p>© {new Date().getFullYear()} HireLoop. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} RealJobs. All rights reserved.</p>
           <p>Built with Next.js · Supabase · AWS</p>
         </div>
       </div>

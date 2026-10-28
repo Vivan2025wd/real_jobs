@@ -85,7 +85,7 @@ function Brand() {
       <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-sm text-white shadow-sm">
         H
       </span>
-      <span className="tracking-tight text-gray-900">HireLoop</span>
+      <span className="tracking-tight text-gray-900">RealJobs</span>
     </Link>
   );
 }

@@ -103,7 +103,7 @@ export default async function SeekerProfilePage() {
       <Card>
         <CardHeader
           title="Account"
-          description="Your sign-in identity on HireLoop."
+          description="Your sign-in identity on RealJobs."
           icon={<User className="h-4 w-4" />}
         />
         <CardBody>

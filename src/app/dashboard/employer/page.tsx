@@ -79,7 +79,7 @@ export default async function EmployerOverview() {
             </div>
 
             <h1 className="mt-6 text-3xl font-bold tracking-tight text-gray-900">
-              Welcome to HireLoop
+              Welcome to RealJobs
             </h1>
             <p className="mx-auto mt-3 max-w-md text-balance text-gray-600">
               Set up your company profile to start posting jobs and receiving

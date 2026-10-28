@@ -37,7 +37,7 @@ export default async function HomePage() {
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-sm">
               H
             </span>
-            <span className="tracking-tight">HireLoop</span>
+            <span className="tracking-tight">RealJobs</span>
           </Link>
           <nav className="flex items-center gap-1 sm:gap-2">
             <Link
@@ -105,7 +105,7 @@ export default async function HomePage() {
           </h1>
 
           <p className="animate-fade-up animation-delay-200 mx-auto mt-6 max-w-2xl text-balance text-lg leading-relaxed text-gray-600">
-            Every listing on HireLoop has a lifespan — 7, 14, or 30 days. When
+            Every listing on RealJobs has a lifespan — 7, 14, or 30 days. When
             it ends, the job archives itself. We also re-verify with the
             employer halfway through. You never apply to a ghost posting again.
           </p>
@@ -290,7 +290,7 @@ export default async function HomePage() {
             <span className="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-indigo-500 to-violet-600 text-xs font-bold text-white">
               H
             </span>
-            <span>© {new Date().getFullYear()} HireLoop</span>
+            <span>© {new Date().getFullYear()} RealJobs</span>
           </div>
           <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
             <Link href="/jobs" className="transition hover:text-gray-900">

@@ -191,7 +191,7 @@ export function JobDetail({ job }: Props) {
               </h2>
             </div>
             <p className="mt-2 text-sm text-gray-600">
-              Applications are managed inside HireLoop. You&apos;ll need a
+              Applications are managed inside RealJobs. You&apos;ll need a
               resume on file to apply.
             </p>
             <div className="mt-5">

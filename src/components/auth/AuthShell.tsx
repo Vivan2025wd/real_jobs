@@ -26,7 +26,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20 text-sm font-bold backdrop-blur-sm">
             H
           </span>
-          <span className="text-lg font-bold tracking-tight">HireLoop</span>
+          <span className="text-lg font-bold tracking-tight">RealJobs</span>
         </Link>
 
         {/* Middle content */}
@@ -35,7 +35,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
             Job listings that stay actually open.
           </h1>
           <p className="mt-4 text-balance text-lg leading-relaxed text-white/80">
-            Every listing on HireLoop is verified weekly. No stale posts. No
+            Every listing on RealJobs is verified weekly. No stale posts. No
             dead applications.
           </p>
 
@@ -54,7 +54,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
 
         {/* Footer */}
         <p className="relative text-xs text-white/50">
-          © {new Date().getFullYear()} HireLoop. All rights reserved.
+          © {new Date().getFullYear()} RealJobs. All rights reserved.
         </p>
       </div>
 
@@ -67,7 +67,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
               H
             </span>
             <span className="text-sm font-bold tracking-tight text-gray-900">
-              HireLoop
+              RealJobs
             </span>
           </Link>
         </div>

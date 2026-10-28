@@ -22,7 +22,7 @@ import { formatDate, timeAgo } from "@/lib/utils/format";
 // Verification links must never be cached or indexed.
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
-  title: "Verify job listing · HireLoop",
+  title: "Verify job listing · RealJobs",
   robots: { index: false, follow: false },
 };
 
@@ -127,7 +127,7 @@ export default async function VerifyJobPage({
           icon={<CheckCircle2 className="h-7 w-7" />}
           eyebrow="Listing confirmed"
           title="Thanks — your listing is still active"
-          description="We've re-verified this job. It will stay live on HireLoop for another 14 days before we check in again."
+          description="We've re-verified this job. It will stay live on RealJobs for another 14 days before we check in again."
         >
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Link href="/dashboard/employer/jobs">
@@ -287,7 +287,7 @@ export default async function VerifyJobPage({
         <p className="mx-auto mt-3 max-w-lg text-balance text-sm text-gray-600">
           Let us know if you&apos;re still hiring for{" "}
           <strong className="text-gray-900">{job.title}</strong>. This keeps the
-          HireLoop job board accurate and saves job seekers from applying to
+          RealJobs job board accurate and saves job seekers from applying to
           filled roles.
         </p>
       </div>
@@ -426,7 +426,7 @@ function Shell({
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-xs text-white shadow-sm">
               H
             </span>
-            HireLoop
+            RealJobs
           </Link>
         </div>
 

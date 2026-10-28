@@ -193,7 +193,7 @@ export function VerificationToggle({
       <div className="flex items-start gap-2 border-t border-gray-100 bg-gray-50/60 px-5 py-2.5 text-xs text-gray-500">
         <Info className="mt-0.5 h-3 w-3 shrink-0 text-gray-400" />
         <p>
-          HireLoop re-verifies every listing every{" "}
+          RealJobs re-verifies every listing every{" "}
           <strong className="font-medium text-gray-700">14 days</strong>.
           Confirming now resets the timer. If no response is received, the
           listing is auto-archived after 48 hours.

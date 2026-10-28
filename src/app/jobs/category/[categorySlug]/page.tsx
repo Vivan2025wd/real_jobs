@@ -104,7 +104,7 @@ export async function generateMetadata({
   const label = CATEGORY_LABELS[category];
   return {
     title: `${label} jobs`,
-    description: `Browse active ${label.toLowerCase()} jobs on HireLoop. Every listing is verified weekly.`,
+    description: `Browse active ${label.toLowerCase()} jobs on RealJobs. Every listing is verified weekly.`,
   };
 }
 
@@ -151,7 +151,7 @@ export default async function CategoryPage({
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-sm text-white shadow-sm">
               H
             </span>
-            <span className="tracking-tight text-gray-900">HireLoop</span>
+            <span className="tracking-tight text-gray-900">RealJobs</span>
           </Link>
           <Link
             href="/jobs"

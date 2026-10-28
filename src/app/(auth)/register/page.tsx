@@ -85,7 +85,7 @@ export default async function RegisterPage({
           Create your account
         </h2>
         <p className="mt-1 text-sm text-gray-500">
-          Join HireLoop as an employer or a job seeker.
+          Join RealJobs as an employer or a job seeker.
         </p>
       </div>
 

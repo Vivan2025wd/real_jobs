@@ -37,11 +37,11 @@ function getMetadataBase(): URL {
 // ---------------------------------------------------------------------------
 export const metadata: Metadata = {
   metadataBase: getMetadataBase(),
-  applicationName: "HireLoop",
+  applicationName: "RealJobs",
 
   title: {
-    default: "HireLoop — Fresh jobs, verified weekly",
-    template: "%s | HireLoop",
+    default: "RealJobs — Fresh jobs, verified weekly",
+    template: "%s | RealJobs",
   },
   description:
     "A next-gen job marketplace with automated listing verification. No stale posts. No dead applications.",
@@ -55,9 +55,9 @@ export const metadata: Metadata = {
     "Sri Lanka jobs",
     "verified listings",
   ],
-  authors: [{ name: "HireLoop" }],
-  creator: "HireLoop",
-  publisher: "HireLoop",
+  authors: [{ name: "RealJobs" }],
+  creator: "RealJobs",
+  publisher: "RealJobs",
 
   // Default robots — individual pages can override (verify-job sets noindex).
   robots: {
@@ -81,8 +81,8 @@ export const metadata: Metadata = {
 
   openGraph: {
     type: "website",
-    siteName: "HireLoop",
-    title: "HireLoop — Fresh jobs, verified weekly",
+    siteName: "RealJobs",
+    title: "RealJobs — Fresh jobs, verified weekly",
     description:
       "A next-gen job marketplace with automated listing verification. No stale posts. No dead applications.",
     locale: "en_LK",
@@ -90,7 +90,7 @@ export const metadata: Metadata = {
 
   twitter: {
     card: "summary_large_image",
-    title: "HireLoop — Fresh jobs, verified weekly",
+    title: "RealJobs — Fresh jobs, verified weekly",
     description:
       "A next-gen job marketplace with automated listing verification. No stale posts. No dead applications.",
   },
@@ -98,7 +98,7 @@ export const metadata: Metadata = {
   // App metadata for PWA / mobile installs. Keep minimal — no manifest yet.
   other: {
     "mobile-web-app-capable": "yes",
-    "apple-mobile-web-app-title": "HireLoop",
+    "apple-mobile-web-app-title": "RealJobs",
   },
 };
 

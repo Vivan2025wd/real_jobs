@@ -118,7 +118,7 @@ export default async function JobsPage({
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-sm text-white shadow-sm">
               H
             </span>
-            <span className="tracking-tight text-gray-900">HireLoop</span>
+            <span className="tracking-tight text-gray-900">RealJobs</span>
           </Link>
           <nav className="flex items-center gap-1 sm:gap-2">
             <Link
