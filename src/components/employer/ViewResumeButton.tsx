@@ -78,7 +78,7 @@ export function ViewResumeButton({
       type="button"
       onClick={open}
       disabled={isOpening}
-      className="group inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 shadow-sm transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 disabled:cursor-wait disabled:opacity-60"
+      className="group inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 shadow-sm transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 disabled:cursor-wait disabled:opacity-60 sm:min-h-0 sm:px-2.5 sm:py-1.5"
       aria-label="Open resume in new tab"
     >
       {isOpening ? (

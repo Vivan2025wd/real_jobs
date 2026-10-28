@@ -98,7 +98,7 @@ export function JobFilters() {
           <button
             type="button"
             onClick={reset}
-            className="inline-flex items-center gap-1 rounded-md border border-gray-200 bg-white px-2 py-1 text-xs font-medium text-gray-600 shadow-sm transition hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900"
+            className="inline-flex min-h-[44px] items-center gap-1 rounded-md border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-600 shadow-sm transition hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900 sm:min-h-0 sm:px-2 sm:py-1"
           >
             <RotateCcw className="h-3 w-3" />
             Reset
