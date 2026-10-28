@@ -1,6 +1,6 @@
-next-gen-job-marketplace/
-├── .env.local
-├── .env.local.example                 # Environment variables template
+real_jobs/
+├── .env.local                              # (gitignored — do not commit)
+├── .env.local.example
 ├── .eslintrc.json
 ├── .gitignore
 ├── next.config.js
@@ -8,145 +8,160 @@ next-gen-job-marketplace/
 ├── postcss.config.js
 ├── tailwind.config.ts
 ├── tsconfig.json
-├── vercel.json                        # Vercel Cron Jobs configuration
+├── vercel.json
 ├── README.md
 │
-├── public/                            # Static assets
+├── docs/                                   # ⬅️ NEW — screenshots for README
+│   └── screenshots/
+│       ├── landing.png
+│       ├── jobs.png
+│       ├── job-detail.png
+│       ├── dashboard.png
+│       └── duration-pricing.png
+│
+├── public/
 │   ├── favicon.ico
 │   ├── logo.svg
 │   └── images/
 │       └── placeholder-logo.png
 │
-├── supabase/                          # Supabase local development & migrations
+├── supabase/
 │   ├── config.toml
-│   ├── migrations/                    # SQL migration files (schema, RLS policies)
-│   │   └── 20250101000000_init.sql
+│   ├── migrations/
+│   │   ├── 20250101000000_init.sql                     # original schema + RLS
+│   │   ├── 20250102000000_add_job_category.sql         # category column
+│   │   ├── 20250103000000_auth_trigger.sql             # handle_new_user trigger
+│   │   ├── 20250104000000_verification_and_payment.sql # verification_token + payments insert
+│   │   ├── 20250105000000_user_resume.sql              # resume_url on users
+│   │   ├── 20261023165321_add_rls_indexes.sql          # RLS-supporting indexes
+│   │   ├── 20261028000000_job_lifecycle.sql            # duration_days, expires_at, notified_*
+│   │   ├── 20261028100000_job_pricing.sql              # price_lkr
+│   │   ├── 20261028170000_companies_employer_id_unique.sql    # unique (employer_id)
+│   │   └── 20261028173000_users_employer_read_applicants.sql  # employer sees applicants
 │   └── seed.sql
 │
-├── src/
-│   ├── app/                           # Next.js App Router
-│   │   ├── layout.tsx                 # Root layout
-│   │   ├── page.tsx                   # Landing page
-│   │   ├── globals.css
-│   │   │
-│   │   ├── (auth)/                    # Auth route group
-│   │   │   ├── login/
-│   │   │   │   └── page.tsx
-│   │   │   ├── register/
-│   │   │   │   └── page.tsx
-│   │   │   └── callback/
-│   │   │       └── route.ts           # Supabase auth callback
-│   │   │
-│   │   ├── (dashboard)/               # Protected dashboard routes
-│   │   │   ├── layout.tsx             # Dashboard layout with sidebar
-│   │   │   ├── employer/
-│   │   │   │   ├── page.tsx           # Employer overview
-│   │   │   │   ├── jobs/
-│   │   │   │   │   ├── page.tsx       # List employer's jobs
-│   │   │   │   │   ├── new/
-│   │   │   │   │   │   └── page.tsx   # Create job form (Draft → Payment)
-│   │   │   │   │   └── [jobId]/
-│   │   │   │   │       ├── page.tsx   # Edit job / view applications
-│   │   │   │   │       └── edit/
-│   │   │   │   │           └── page.tsx
-│   │   │   │   └── company/
-│   │   │   │       └── page.tsx       # Company profile settings
-│   │   │   └── seeker/
-│   │   │       ├── page.tsx           # Seeker overview
-│   │   │       ├── applications/
-│   │   │       │   └── page.tsx       # List submitted applications
-│   │   │       └── profile/
-│   │   │           └── page.tsx       # Seeker profile & resume upload
-│   │   │
-│   │   ├── jobs/                      # Public job listings
-│   │   │   ├── page.tsx               # Search results (SSR with URL params)
-│   │   │   ├── loading.tsx
-│   │   │   ├── [jobId]/
-│   │   │   │   └── page.tsx           # Job detail page (SSG/ISR)
-│   │   │   └── category/
-│   │   │       └── [categorySlug]/
-│   │   │           └── page.tsx       # Pre-rendered category landing (SSG)
-│   │   │
-│   │   ├── api/
-│   │   │   ├── s3/
-│   │   │   │   └── presigned-url/
-│   │   │   │       └── route.ts       # Generate pre-signed URL for uploads
-│   │   │   ├── payment/
-│   │   │   │   ├── start/
-│   │   │   │   │   └── route.ts       # Initiate PayHere payment (hash generation)
-│   │   │   │   └── notify/
-│   │   │   │       └── route.ts       # PayHere webhook (verify signature)
-│   │   │   └── cron/
-│   │   │       ├── verify-jobs/
-│   │   │       │   └── route.ts       # Weekly verification email trigger
-│   │   │       └── expire-jobs/
-│   │   │           └── route.ts       # Expire jobs without response after 48h
-│   │   │
-│   │   └── verify-job/                # Tokenized links from verification email
-│   │       └── [token]/
-│   │           └── page.tsx           # Handle "Yes, Still Hiring" / "No, Filled"
-│   │
-│   ├── components/                    # Reusable UI components
-│   │   ├── ui/                        # Primitive components (buttons, inputs, etc.)
-│   │   │   ├── Button.tsx
-│   │   │   ├── Input.tsx
-│   │   │   ├── Select.tsx
-│   │   │   ├── Badge.tsx
-│   │   │   └── Card.tsx
-│   │   ├── layout/
-│   │   │   ├── Navbar.tsx
-│   │   │   ├── Footer.tsx
-│   │   │   └── Sidebar.tsx
-│   │   ├── jobs/
-│   │   │   ├── JobCard.tsx
-│   │   │   ├── JobFilters.tsx
-│   │   │   ├── JobList.tsx
-│   │   │   └── JobDetail.tsx
-│   │   ├── applications/
-│   │   │   ├── ApplicationCard.tsx
-│   │   │   └── ApplyButton.tsx
-│   │   ├── employer/
-│   │   │   ├── JobForm.tsx
-│   │   │   └── VerificationToggle.tsx
-│   │   ├── seeker/
-│   │   │   └── ResumeUpload.tsx
-│   │   └── payment/
-│   │       └── PayHereButton.tsx      # Client component initiating PayHere SDK
-│   │
-│   ├── lib/                           # Server-side libraries & utilities
-│   │   ├── supabase/
-│   │   │   ├── client.ts              # Browser Supabase client
-│   │   │   ├── server.ts              # Server Supabase client (cookies)
-│   │   │   ├── admin.ts               # Service-role client (for webhooks/cron)
-│   │   │   └── middleware.ts          # Middleware for auth session refresh
-│   │   ├── s3/
-│   │   │   ├── client.ts              # AWS SDK S3 client
-│   │   │   └── presigned.ts           # Pre-signed URL generation logic
-│   │   ├── payhere/
-│   │   │   ├── hash.ts                # MD5 hash generation helper
-│   │   │   └── verify.ts              # Webhook signature verification
-│   │   ├── email/
-│   │   │   └── send.ts                # Email sending (Resend/SendGrid)
-│   │   ├── cron/
-│   │   │   └── job-lifecycle.ts       # Core logic for verification & expiry
-│   │   ├── utils/
-│   │   │   ├── format.ts              # Date/currency formatting
-│   │   │   └── constants.ts
-│   │   └── validators/
-│   │       └── job.ts                 # Zod schemas for job form validation
-│   │
-│   ├── types/                         # TypeScript type definitions
-│   │   ├── database.types.ts          # Supabase generated types
-│   │   ├── job.ts
-│   │   ├── user.ts
-│   │   ├── assets.d.ts
-│   │   └── payment.ts
-│   │
-│   ├── hooks/                         # Custom React hooks
-│   │   ├── useUser.ts
-│   │   └── useJobs.ts
-│   │
-│   └── middleware.ts                  # Next.js middleware (route protection)
+├── scripts/
+│   └── generate-db-types.ts
 │
-└── scripts/                           # Optional utility scripts
-    └── generate-db-types.ts           # Script to generate Supabase types
+└── src/
+    ├── app/
+    │   ├── layout.tsx                      # root layout + viewport + safe-area
+    │   ├── page.tsx                        # landing (uses <Navbar initialUser={user} />)
+    │   ├── globals.css                     # mobile hardening + design tokens
+    │   ├── not-found.tsx                   # ⬅️ NEW — branded 404
+    │   │
+    │   ├── (auth)/
+    │   │   ├── login/page.tsx
+    │   │   ├── register/page.tsx
+    │   │   └── callback/route.ts           # Supabase auth callback
+    │   │
+    │   ├── logout/
+    │   │   └── route.ts                    # ⬅️ NEW — POST-only logout
+    │   │
+    │   ├── (dashboard)/
+    │   │   ├── layout.tsx
+    │   │   ├── employer/
+    │   │   │   ├── page.tsx
+    │   │   │   ├── jobs/
+    │   │   │   │   ├── page.tsx
+    │   │   │   │   ├── new/page.tsx
+    │   │   │   │   └── [jobId]/
+    │   │   │   │       ├── page.tsx
+    │   │   │   │       └── edit/page.tsx
+    │   │   │   └── company/page.tsx
+    │   │   └── seeker/
+    │   │       ├── page.tsx
+    │   │       ├── applications/page.tsx
+    │   │       └── profile/page.tsx
+    │   │
+    │   ├── jobs/
+    │   │   ├── page.tsx                    # public board with mobile filter drawer
+    │   │   ├── loading.tsx                 # skeleton matches new shape
+    │   │   ├── [jobId]/page.tsx            # ISR detail
+    │   │   └── category/[categorySlug]/page.tsx   # SSG category pages
+    │   │
+    │   ├── verify-job/
+    │   │   └── [token]/page.tsx            # tokenized verification response
+    │   │
+    │   └── api/
+    │       ├── s3/
+    │       │   ├── presigned-url/route.ts  # PUT for uploads
+    │       │   └── download-url/route.ts   # ⬅️ NEW — GET for resume downloads
+    │       ├── payment/
+    │       │   ├── start/route.ts          # PayHere checkout initiation
+    │       │   └── notify/route.ts         # PayHere webhook
+    │       └── cron/
+    │           ├── daily/route.ts          # ⬅️ NEW — combined cron (Hobby plan)
+    │           ├── verify-jobs/route.ts    # ⬅️ manual trigger endpoint (still exists)
+    │           ├── expire-jobs/route.ts    # ⬅️ manual trigger endpoint (still exists)
+    │           ├── notify-hot-jobs/route.ts    # ⬅️ NEW — 10+ applicants email
+    │           └── notify-stale-jobs/route.ts  # ⬅️ NEW — 3-day 0-applicant email
+    │
+    ├── components/
+    │   ├── ui/
+    │   │   ├── Button.tsx
+    │   │   ├── Input.tsx
+    │   │   ├── Select.tsx
+    │   │   ├── Badge.tsx
+    │   │   ├── Card.tsx
+    │   │   ├── SubmitButton.tsx            # ⬅️ NEW
+    │   │   └── Logo.tsx                    # ⬅️ NEW — extracted brand mark
+    │   ├── layout/
+    │   │   ├── Navbar.tsx
+    │   │   ├── Footer.tsx
+    │   │   └── Sidebar.tsx
+    │   ├── auth/
+    │   │   └── AuthShell.tsx               # ⬅️ NEW — split-screen auth layout
+    │   ├── jobs/
+    │   │   ├── JobCard.tsx
+    │   │   ├── JobFilters.tsx              # mobile drawer
+    │   │   ├── JobList.tsx
+    │   │   └── JobDetail.tsx
+    │   ├── applications/
+    │   │   ├── ApplicationCard.tsx
+    │   │   └── ApplyButton.tsx
+    │   ├── employer/
+    │   │   ├── JobForm.tsx
+    │   │   ├── VerificationToggle.tsx
+    │   │   ├── CompanyLogoUploader.tsx      # ⬅️ NEW
+    │   │   ├── ViewResumeButton.tsx         # ⬅️ NEW
+    │   │   └── ApplicationStatusSelect.tsx  # ⬅️ NEW (just now)
+    │   ├── seeker/
+    │   │   └── ResumeUpload.tsx
+    │   └── payment/
+    │       └── PayHereButton.tsx
+    │
+    ├── lib/
+    │   ├── supabase/
+    │   │   ├── client.ts
+    │   │   ├── server.ts
+    │   │   ├── admin.ts
+    │   │   └── middleware.ts
+    │   ├── s3/
+    │   │   ├── client.ts
+    │   │   └── presigned.ts                # resolvePublicUrl() helper
+    │   ├── payhere/
+    │   │   ├── hash.ts
+    │   │   └── verify.ts
+    │   ├── email/
+    │   │   └── send.ts
+    │   ├── cron/
+    │   │   └── job-lifecycle.ts            # dispatchVerificationEmails, expireStaleJobs, notifyHotJobs, notifyStaleJobs
+    │   ├── utils/
+    │   │   ├── format.ts
+    │   │   └── constants.ts                # JOB_POSTING_PRICES, priceForDuration
+    │   └── validators/
+    │       └── job.ts
+    │
+    ├── types/
+    │   ├── database.types.ts               # auto-generated
+    │   ├── job.ts                          # JobRow, ApplicationWithJob, ApplicationWithSeeker
+    │   ├── user.ts                         # UserRole, SeekerProfile, CompanyRow
+    │   ├── assets.d.ts                     # CSS/image declarations
+    │   └── payment.ts                      # PaymentStatus, PayHereCheckoutParams
+    │
+    ├── hooks/
+    │   ├── useUser.ts
+    │   └── useJobs.ts
+    │
+    └── middleware.ts

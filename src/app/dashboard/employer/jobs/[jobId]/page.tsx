@@ -104,7 +104,7 @@ async function markFilled(formData: FormData) {
   revalidatePath("/dashboard/employer");
 }
 
-// ─── NEW: update application status + notify seeker ───
+// ─── Update application status + notify seeker ───
 async function updateApplicationStatus(jobId: string, formData: FormData) {
   "use server";
 
@@ -123,6 +123,16 @@ async function updateApplicationStatus(jobId: string, formData: FormData) {
   } = await supabase.auth.getUser();
   if (!user) return;
 
+  // Diagnostic log — confirms the form reached the action. If you never see
+  // this line in the terminal when changing the dropdown, the form isn't
+  // submitting at all.
+  console.log("[updateApplicationStatus] called:", {
+    applicationId,
+    newStatus,
+    jobId,
+    userId: user.id,
+  });
+
   // Update the status. RLS enforces that the employer owns the job this
   // application belongs to. The select returns the joined user + job so we
   // can build the email without a second round-trip.
@@ -135,8 +145,19 @@ async function updateApplicationStatus(jobId: string, formData: FormData) {
     )
     .maybeSingle();
 
-  if (error || !updatedApp) {
-    console.error("[updateApplicationStatus] update failed:", error);
+  if (error) {
+    console.error(
+      "[updateApplicationStatus] update returned an error:",
+      error
+    );
+    return;
+  }
+  if (!updatedApp) {
+    console.error(
+      "[updateApplicationStatus] update affected 0 rows — RLS likely blocked it. " +
+        "Check that the employer has an UPDATE policy on applications for their jobs. " +
+        `applicationId=${applicationId}, newStatus=${newStatus}, userId=${user.id}`
+    );
     return;
   }
 
