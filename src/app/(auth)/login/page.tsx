@@ -124,7 +124,7 @@ export default async function LoginPage({
             type="email"
             autoComplete="email"
             required
-            className="mt-1.5 block w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-sm shadow-sm transition placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+            className="mt-1.5 block w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-base sm:text-sm shadow-sm transition placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
             placeholder="you@example.com"
           />
         </div>
@@ -142,7 +142,7 @@ export default async function LoginPage({
             type="password"
             autoComplete="current-password"
             required
-            className="mt-1.5 block w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-sm shadow-sm transition placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+            className="mt-1.5 block w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-base sm:text-sm shadow-sm transition placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
           />
         </div>
 
@@ -173,7 +173,7 @@ export default async function LoginPage({
             autoComplete="email"
             required
             placeholder="Enter email for a magic link"
-            className="block w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-10 pr-3 text-sm shadow-sm transition placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+            className="block w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-10 pr-3 text-base sm:text-sm shadow-sm transition placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
           />
         </div>
         <SubmitButton pendingText="Sending…" variant="secondary">
