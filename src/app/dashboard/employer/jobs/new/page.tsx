@@ -11,6 +11,7 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { JobForm } from "@/components/employer/JobForm";
 import { jobSchema } from "@/lib/validators/job";
+import { priceForDuration } from "@/lib/utils/constants";
 
 async function createJob(formData: FormData) {
   "use server";
@@ -23,6 +24,7 @@ async function createJob(formData: FormData) {
     category: formData.get("category") || null,
     salary_min: formData.get("salary_min") || null,
     salary_max: formData.get("salary_max") || null,
+    duration_days: formData.get("duration_days") || 14,
   });
 
   if (!parsed.success) {
@@ -31,7 +33,9 @@ async function createJob(formData: FormData) {
   }
 
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
   const { data: company } = await supabase
@@ -42,6 +46,13 @@ async function createJob(formData: FormData) {
 
   const companyId = (company as { id: string } | null)?.id;
   if (!companyId) redirect("/dashboard/employer/company");
+
+  // ─── Lock the price at creation time ───
+  const priceLkr = priceForDuration(parsed.data.duration_days);
+  const now = new Date();
+  const expiresAt = new Date(
+    now.getTime() + parsed.data.duration_days * 86_400_000
+  );
 
   const { data: job, error } = await supabase
     .from("jobs")
@@ -54,13 +65,18 @@ async function createJob(formData: FormData) {
       category: parsed.data.category ?? null,
       salary_min: parsed.data.salary_min ?? null,
       salary_max: parsed.data.salary_max ?? null,
+      duration_days: parsed.data.duration_days,
+      price_lkr: priceLkr,
+      expires_at: expiresAt.toISOString(),
       status: "DRAFT",
     } as never)
     .select("id")
     .single();
 
   if (error) {
-    redirect(`/dashboard/employer/jobs/new?error=${encodeURIComponent(error.message)}`);
+    redirect(
+      `/dashboard/employer/jobs/new?error=${encodeURIComponent(error.message)}`
+    );
   }
 
   revalidatePath("/dashboard/employer/jobs");
@@ -95,8 +111,8 @@ export default async function NewJobPage({
               Post a new job
             </h1>
             <p className="mt-1 text-sm text-gray-500">
-              Save as a draft first — publish by paying the LKR 2,500 listing
-              fee when ready.
+              Save as a draft first — then pay to publish. Plans start at{" "}
+              <strong className="text-gray-700">LKR 2,499</strong> for 7 days.
             </p>
           </div>
         </div>

@@ -3,13 +3,6 @@
   "framework": "nextjs",
   "regions": ["bom1"],
   "crons": [
-    {
-      "path": "/api/cron/verify-jobs",
-      "schedule": "0 9 * * 1"
-    },
-    {
-      "path": "/api/cron/expire-jobs",
-      "schedule": "0 9 * * *"
-    }
+    { "path": "/api/cron/daily", "schedule": "0 9 * * *" }
   ]
 }

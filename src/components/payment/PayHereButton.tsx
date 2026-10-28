@@ -26,7 +26,13 @@ type PayHereWindow = Window & {
   };
 };
 
-export function PayHereButton({ jobId }: { jobId: string }) {
+export function PayHereButton({
+  jobId,
+  amount,
+}: {
+  jobId: string;
+  amount: number;
+}) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -90,7 +96,9 @@ export function PayHereButton({ jobId }: { jobId: string }) {
           )
         }
       >
-        {pending ? "Opening PayHere…" : "Pay LKR 2,500 & publish"}
+        {pending
+          ? "Opening PayHere…"
+          : `Pay LKR ${amount.toLocaleString("en-LK")} & publish`}
       </Button>
 
       {/* Trust line — a lock icon is the universal "safe" signal */}

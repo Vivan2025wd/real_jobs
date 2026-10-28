@@ -1,4 +1,5 @@
 next-gen-job-marketplace/
+├── .env.local
 ├── .env.local.example                 # Environment variables template
 ├── .eslintrc.json
 ├── .gitignore

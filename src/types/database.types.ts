@@ -125,9 +125,15 @@ export type Database = {
           company_id: string
           created_at: string
           description: string
+          duration_days: number
+          expires_at: string
           id: string
           last_verified_at: string | null
           location: string
+          notified_10_applicants_at: string | null
+          notified_expiring_at: string | null
+          notified_stale_at: string | null
+          price_lkr: number
           salary_max: number | null
           salary_min: number | null
           status: string
@@ -141,9 +147,15 @@ export type Database = {
           company_id: string
           created_at?: string
           description: string
+          duration_days?: number
+          expires_at: string
           id?: string
           last_verified_at?: string | null
           location: string
+          notified_10_applicants_at?: string | null
+          notified_expiring_at?: string | null
+          notified_stale_at?: string | null
+          price_lkr: number
           salary_max?: number | null
           salary_min?: number | null
           status?: string
@@ -157,9 +169,15 @@ export type Database = {
           company_id?: string
           created_at?: string
           description?: string
+          duration_days?: number
+          expires_at?: string
           id?: string
           last_verified_at?: string | null
           location?: string
+          notified_10_applicants_at?: string | null
+          notified_expiring_at?: string | null
+          notified_stale_at?: string | null
+          price_lkr?: number
           salary_max?: number | null
           salary_min?: number | null
           status?: string

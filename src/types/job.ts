@@ -79,8 +79,17 @@ export type JobRow = {
   last_verified_at: string | null;
   verification_token: string | null;
   verification_sent_at: string | null;
-};
 
+  // Lifecycle (added by 20261028000000_job_lifecycle.sql)
+  duration_days: number;
+  expires_at: string | null;
+  notified_10_applicants_at: string | null;
+  notified_stale_at: string | null;
+  notified_expiring_at: string | null;
+
+  // Pricing (added by 20261028100000_job_pricing.sql)
+  price_lkr: number;
+};
 // Trimmed row for the employer's jobs list — the columns that list actually
 // selects. Narrower type catches accidental `.map(j => j.description)` in
 // the list view, where description isn't fetched.

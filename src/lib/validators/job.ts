@@ -22,6 +22,13 @@ export const jobSchema = z.object({
   category: z.enum(JOB_CATEGORIES).nullable().optional(),
   salary_min: z.coerce.number().int().nonnegative().nullable().optional(),
   salary_max: z.coerce.number().int().nonnegative().nullable().optional(),
+  duration_days: z.coerce
+    .number()
+    .int()
+    .refine((n) => [7, 14, 30].includes(n), {
+      message: "Duration must be 7, 14, or 30 days",
+    })
+    .default(14),   // ← NEW
 }).refine(
   (v) => v.salary_min == null || v.salary_max == null || v.salary_min <= v.salary_max,
   { message: "Minimum salary cannot exceed maximum", path: ["salary_max"] }
@@ -29,7 +36,6 @@ export const jobSchema = z.object({
 
 export type JobInput = z.infer<typeof jobSchema>;
 
-// Maps URL slugs (/jobs/category/engineering) to stored enum values.
 export const CATEGORY_SLUGS: Record<string, JobCategory> = {
   engineering: "ENGINEERING",
   design: "DESIGN",
@@ -42,4 +48,14 @@ export const CATEGORY_SLUGS: Record<string, JobCategory> = {
   other: "OTHER",
 };
 
-export { CATEGORY_LABELS } from "@/types/job";
+export const CATEGORY_LABELS: Record<JobCategory, string> = {
+  ENGINEERING: "Engineering",
+  DESIGN: "Design",
+  MARKETING: "Marketing",
+  SALES: "Sales",
+  CUSTOMER_SUPPORT: "Customer Support",
+  FINANCE: "Finance",
+  OPERATIONS: "Operations",
+  HR: "HR",
+  OTHER: "Other",
+};

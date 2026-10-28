@@ -13,6 +13,7 @@ import {
   FileText,
   Users,
   Inbox,
+  Timer,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
@@ -24,15 +25,6 @@ import { ViewResumeButton } from "@/components/employer/ViewResumeButton";
 import { formatSalary, formatDate, timeAgo } from "@/lib/utils/format";
 import type { ApplicationWithSeeker, JobRow } from "@/types/job";
 
-// ---------------------------------------------------------------------------
-// Composite of the shared JobRow with the single-level `companies` embed.
-// `select("*", …)` fetches every JobRow column, so the full row type applies;
-// the embed adds only the two fields the header needs.
-//
-// `.returns<T>()` would override inference, but PostgREST still collapses the
-// multi-column `select("*") + join` shape to `never` before the override
-// applies. Casting the awaited result remains the reliable escape hatch.
-// ---------------------------------------------------------------------------
 type JobWithCompany = JobRow & {
   companies: {
     employer_id: string;
@@ -45,6 +37,39 @@ const WORK_TYPE_LABEL: Record<string, string> = {
   ONSITE: "On-site",
   HYBRID: "Hybrid",
 };
+
+// ---------------------------------------------------------------------------
+// Expiry countdown — colour tiers based on urgency
+//   > 7 days  → muted gray    (informational)
+//   3–7 days  → amber         (heads up)
+//   ≤ 3 days  → rose          (urgent)
+//   0 days    → rose bold     (expires today)
+// ---------------------------------------------------------------------------
+function ExpiryCountdown({ expiresAt }: { expiresAt: string }) {
+  const ms = new Date(expiresAt).getTime() - Date.now();
+  const days = Math.max(0, Math.ceil(ms / 86_400_000));
+
+  const tone =
+    days === 0
+      ? "text-rose-600 font-medium"
+      : days <= 3
+        ? "text-rose-500"
+        : days <= 7
+          ? "text-amber-600"
+          : "text-gray-400";
+
+  const label =
+    days === 0
+      ? "Expires today"
+      : `Expires in ${days} day${days === 1 ? "" : "s"}`;
+
+  return (
+    <span className={`inline-flex items-center gap-1 ${tone}`}>
+      <Timer className="h-3.5 w-3.5" />
+      {label}
+    </span>
+  );
+}
 
 // ---------------------------------------------------------------------------
 // Server Actions
@@ -179,16 +204,19 @@ export default async function EmployerJobDetailPage({
               )}
             </div>
 
-            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-400">
-              <span className="inline-flex items-center gap-1">
+            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+              <span className="inline-flex items-center gap-1 text-gray-400">
                 <Calendar className="h-3.5 w-3.5" />
                 Posted {formatDate(typedJob.created_at)}
               </span>
               {typedJob.last_verified_at && (
-                <span className="inline-flex items-center gap-1">
+                <span className="inline-flex items-center gap-1 text-gray-400">
                   <Clock className="h-3.5 w-3.5" />
                   Last verified {timeAgo(typedJob.last_verified_at)}
                 </span>
+              )}
+              {typedJob.status === "ACTIVE" && typedJob.expires_at && (
+                <ExpiryCountdown expiresAt={typedJob.expires_at} />
               )}
             </div>
           </div>
@@ -214,7 +242,7 @@ export default async function EmployerJobDetailPage({
         />
       )}
 
-      {/* ─── DRAFT payment banner ─── */}
+      {/* ─── DRAFT payment banner — dynamic price ─── */}
       {typedJob.status === "DRAFT" && (
         <div className="relative overflow-hidden rounded-2xl border border-indigo-200 bg-gradient-to-br from-indigo-50 via-white to-violet-50 p-6 shadow-card">
           <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-indigo-200/30 blur-2xl" />
@@ -228,13 +256,21 @@ export default async function EmployerJobDetailPage({
                   Ready to publish?
                 </h3>
                 <p className="mt-1 text-sm text-gray-600">
-                  Pay the LKR 2,500 listing fee to activate this job. PayHere
+                  Pay the{" "}
+                  <strong className="text-gray-900">
+                    LKR {typedJob.price_lkr.toLocaleString("en-LK")}
+                  </strong>{" "}
+                  listing fee to activate this{" "}
+                  <strong>{typedJob.duration_days}-day</strong> job. PayHere
                   handles the transaction — no card details touch our servers.
                 </p>
               </div>
             </div>
             <div className="shrink-0">
-              <PayHereButton jobId={typedJob.id} />
+              <PayHereButton
+                jobId={typedJob.id}
+                amount={typedJob.price_lkr}
+              />
             </div>
           </div>
         </div>
