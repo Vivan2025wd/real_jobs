@@ -292,6 +292,7 @@ export function JobForm({
             name="salary_min"
             id="salary_min"
             type="number"
+            inputMode="numeric"
             min={0}
             defaultValue={defaults.salary_min ?? ""}
             placeholder="100000"
@@ -302,6 +303,7 @@ export function JobForm({
             name="salary_max"
             id="salary_max"
             type="number"
+            inputMode="numeric"
             min={0}
             defaultValue={defaults.salary_max ?? ""}
             placeholder="200000"
@@ -323,7 +325,7 @@ export function JobForm({
         title="Posting duration"
         description="How long the listing stays live before auto-archiving."
       >
-        <div className="grid gap-2 sm:grid-cols-3">
+        <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
           {DURATION_OPTIONS.map((opt) => {
             const isSelected = selectedDuration === opt.value;
             return (
