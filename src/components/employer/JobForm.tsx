@@ -71,6 +71,7 @@ function Submit({ children }: { children: string }) {
     <Button
       type="submit"
       size="lg"
+      className="w-full sm:w-auto"
       disabled={pending}
       icon={
         pending ? (
