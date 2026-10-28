@@ -88,6 +88,7 @@ export function PayHereButton({
         onClick={startPayment}
         disabled={pending}
         size="lg"
+        className="w-full sm:w-auto"
         icon={
           pending ? (
             <RefreshCw className="h-4 w-4 animate-spin" />

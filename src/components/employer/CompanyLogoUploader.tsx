@@ -305,7 +305,7 @@ export function CompanyLogoUploader({
             type="button"
             onClick={clearFile}
             disabled={pending}
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-gray-400 transition hover:bg-white hover:text-gray-700 disabled:opacity-50"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-gray-400 transition hover:bg-white hover:text-gray-700 disabled:opacity-50 sm:h-7 sm:w-7"
             aria-label="Remove file"
           >
             <X className="h-4 w-4" />
@@ -334,6 +334,7 @@ export function CompanyLogoUploader({
           type="button"
           onClick={handleUpload}
           disabled={!file || pending}
+          className="w-full sm:w-auto"
           icon={
             pending ? (
               <RefreshCw className="h-4 w-4 animate-spin" />
@@ -355,6 +356,7 @@ export function CompanyLogoUploader({
             variant="ghost"
             onClick={clearFile}
             size="md"
+            className="w-full sm:w-auto"
           >
             Cancel
           </Button>

@@ -32,7 +32,7 @@ export function CardHeader({
   icon?: ReactNode;
 }) {
   return (
-    <div className="flex items-start justify-between gap-4 border-b border-gray-100 px-4 py-3.5 sm:px-6 sm:py-4">
+    <div className="flex flex-col gap-3 border-b border-gray-100 px-4 py-3.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4 sm:px-6 sm:py-4">
       <div className="flex items-start gap-3">
         {icon && (
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">

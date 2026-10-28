@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { MapPin, Banknote, Clock, ArrowUpRight } from "lucide-react";
+import { Badge } from "@/components/ui/Badge";
 import { formatSalary, timeAgo } from "@/lib/utils/format";
 import type { PublicJobCard } from "@/types/job";
 
@@ -10,6 +11,12 @@ const WORK_TYPE_LABEL: Record<string, string> = {
 };
 
 export function JobCard({ job }: { job: PublicJobCard }) {
+  const workTypeLabel = WORK_TYPE_LABEL[job.work_type] ?? job.work_type;
+  const categoryLabel = job.category
+    ? job.category.charAt(0) +
+      job.category.slice(1).toLowerCase().replace("_", " ")
+    : null;
+
   return (
     <Link
       href={`/jobs/${job.id}`}
@@ -38,9 +45,15 @@ export function JobCard({ job }: { job: PublicJobCard }) {
             </p>
           </div>
         </div>
-        <span className="shrink-0 rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700">
-          {WORK_TYPE_LABEL[job.work_type] ?? job.work_type}
+        <span className="hidden shrink-0 rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700 sm:inline-flex">
+          {workTypeLabel}
         </span>
+      </div>
+
+      {/* Mobile-only badges keep the title full-width at narrow viewports */}
+      <div className="mt-2 flex flex-wrap items-center gap-2 sm:hidden">
+        <Badge tone="blue">{workTypeLabel}</Badge>
+        {categoryLabel && <Badge tone="gray">{categoryLabel}</Badge>}
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-gray-600">
@@ -58,11 +71,10 @@ export function JobCard({ job }: { job: PublicJobCard }) {
         </span>
       </div>
 
-      {job.category && (
-        <div className="mt-3 flex items-center gap-2">
+      {categoryLabel && (
+        <div className="mt-3 hidden items-center gap-2 sm:flex">
           <span className="rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600">
-            {job.category.charAt(0) +
-              job.category.slice(1).toLowerCase().replace("_", " ")}
+            {categoryLabel}
           </span>
         </div>
       )}

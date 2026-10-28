@@ -26,9 +26,9 @@ export default function Loading() {
         </div>
 
         {/* ─── Two-column layout: filters + results ─── */}
-        <div className="grid gap-8 lg:grid-cols-[240px_1fr]">
-          {/* ─── Filter sidebar skeleton ─── */}
-          <aside className="space-y-5">
+        <div className="grid gap-8 lg:grid-cols-[260px_1fr]">
+          {/* ─── Filter sidebar skeleton (desktop only) ─── */}
+          <aside className="hidden space-y-5 lg:block">
             {/* Header row: "Filters" + Reset */}
             <div className="flex items-center justify-between">
               <div className="h-4 w-16 animate-pulse rounded bg-gray-200" />
@@ -48,6 +48,15 @@ export default function Loading() {
 
           {/* ─── Job cards skeleton ─── */}
           <div className="space-y-3">
+            {/* Mobile filter trigger skeleton — mirrors the drawer trigger */}
+            <div className="flex min-h-[50px] w-full items-center justify-between rounded-xl border border-gray-200 bg-white px-4 shadow-sm lg:hidden">
+              <div className="flex items-center gap-2">
+                <div className="h-4 w-4 animate-pulse rounded bg-gray-200" />
+                <div className="h-4 w-12 animate-pulse rounded bg-gray-200" />
+              </div>
+              <div className="h-3 w-16 animate-pulse rounded bg-gray-100" />
+            </div>
+
             {/* Count line ("N active jobs") */}
             <div className="mb-1 h-3 w-32 animate-pulse rounded bg-gray-100" />
 

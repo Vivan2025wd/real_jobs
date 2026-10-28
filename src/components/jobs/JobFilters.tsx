@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import {
   Filter,
   RotateCcw,
@@ -11,6 +11,7 @@ import {
   Clock,
   Banknote,
   ArrowUpDown,
+  X,
 } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -43,72 +44,34 @@ const SORT_OPTIONS = [
 ];
 
 // Any of these being present in the URL counts as an "active filter".
+// `sort` is deliberately excluded — it changes order, not scope, and the
+// results bar on /jobs uses the same definition.
 const FILTER_KEYS = [
   "q",
   "location",
   "category",
   "work_type",
   "salary_min",
-  "sort",
 ] as const;
 
-export function JobFilters() {
-  const router = useRouter();
-  const params = useSearchParams();
-  const [pending, startTransition] = useTransition();
+type FilterFieldsProps = {
+  params: ReturnType<typeof useSearchParams>;
+  setParam: (key: string, value: string) => void;
+  idPrefix: string;
+};
 
-  function setParam(key: string, value: string) {
-    const next = new URLSearchParams(params.toString());
-    if (value) next.set(key, value);
-    else next.delete(key);
-    next.delete("page"); // reset pagination on any filter change
-    startTransition(() => {
-      router.push(`/jobs${next.size ? `?${next.toString()}` : ""}`);
-    });
-  }
-
-  function reset() {
-    startTransition(() => router.push("/jobs"));
-  }
-
-  const activeFilterCount = FILTER_KEYS.filter((k) => params.get(k)).length;
-  const hasActiveFilters = activeFilterCount > 0;
+// ---------------------------------------------------------------------------
+// Filter fields — shared by the desktop sidebar and the mobile drawer.
+// `idPrefix` keeps labels and inputs unique when both copies are mounted.
+// ---------------------------------------------------------------------------
+function FilterFields({ params, setParam, idPrefix }: FilterFieldsProps) {
+  const fieldId = (name: string) => `${idPrefix}-${name}`;
 
   return (
-    <aside
-      className={`space-y-5 transition-opacity ${pending ? "pointer-events-none opacity-60" : ""}`}
-    >
-      {/* ─── Header ─── */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
-            <Filter className="h-3.5 w-3.5" />
-          </div>
-          <h2 className="text-sm font-semibold tracking-tight text-gray-900">
-            Filters
-          </h2>
-          {hasActiveFilters && (
-            <span className="inline-flex items-center justify-center rounded-full bg-indigo-100 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-700">
-              {activeFilterCount}
-            </span>
-          )}
-        </div>
-
-        {hasActiveFilters && (
-          <button
-            type="button"
-            onClick={reset}
-            className="inline-flex min-h-[44px] items-center gap-1 rounded-md border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-600 shadow-sm transition hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900 sm:min-h-0 sm:px-2 sm:py-1"
-          >
-            <RotateCcw className="h-3 w-3" />
-            Reset
-          </button>
-        )}
-      </div>
-
+    <>
       {/* ─── Search ─── */}
       <Input
-        id="f-q"
+        id={fieldId("q")}
         name="q"
         type="search"
         label="Keyword"
@@ -126,7 +89,7 @@ export function JobFilters() {
 
       {/* ─── Location ─── */}
       <Input
-        id="f-location"
+        id={fieldId("location")}
         name="location"
         type="text"
         label="Location"
@@ -147,7 +110,7 @@ export function JobFilters() {
 
       {/* ─── Category ─── */}
       <Select
-        id="f-category"
+        id={fieldId("category")}
         name="category"
         label="Category"
         placeholder="All categories"
@@ -158,7 +121,7 @@ export function JobFilters() {
 
       {/* ─── Work type ─── */}
       <Select
-        id="f-work"
+        id={fieldId("work")}
         name="work_type"
         label="Work type"
         placeholder="Any"
@@ -169,7 +132,7 @@ export function JobFilters() {
 
       {/* ─── Minimum salary ─── */}
       <Input
-        id="f-salary"
+        id={fieldId("salary")}
         name="salary_min"
         type="number"
         min={0}
@@ -183,7 +146,7 @@ export function JobFilters() {
 
       {/* ─── Sort ─── */}
       <Select
-        id="f-sort"
+        id={fieldId("sort")}
         name="sort"
         label="Sort by"
         options={SORT_OPTIONS}
@@ -199,6 +162,176 @@ export function JobFilters() {
         <Clock className="h-4 w-4" />
         <ArrowUpDown className="h-4 w-4" />
       </div>
-    </aside>
+    </>
+  );
+}
+
+export function JobFilters() {
+  const router = useRouter();
+  const params = useSearchParams();
+  const [pending, startTransition] = useTransition();
+  const [open, setOpen] = useState(false);
+
+  function setParam(key: string, value: string) {
+    const next = new URLSearchParams(params.toString());
+    if (value) next.set(key, value);
+    else next.delete(key);
+    next.delete("page"); // reset pagination on any filter change
+    startTransition(() => {
+      router.push(`/jobs${next.size ? `?${next.toString()}` : ""}`);
+    });
+  }
+
+  function reset() {
+    startTransition(() => router.push("/jobs"));
+  }
+
+  // Lock body scroll while the mobile drawer is open so the page behind
+  // it doesn't drift. Restores whatever the previous value was on close.
+  useEffect(() => {
+    if (!open) return;
+    const original = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = original;
+    };
+  }, [open]);
+
+  // Escape closes the drawer. Only bound while open.
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [open]);
+
+  const activeFilterCount = FILTER_KEYS.filter((k) => params.get(k)).length;
+  const hasActiveFilters = activeFilterCount > 0;
+
+  return (
+    <>
+      {/* ─── Mobile trigger ─── */}
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        aria-controls="job-filters-drawer"
+        className="flex w-full items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium shadow-sm lg:hidden"
+      >
+        <span className="inline-flex items-center gap-2">
+          <Filter className="h-4 w-4" />
+          Filters
+          {activeFilterCount > 0 && (
+            <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-700">
+              {activeFilterCount}
+            </span>
+          )}
+        </span>
+        <span className="text-xs text-gray-400">Tap to open</span>
+      </button>
+
+      {/* ─── Desktop sidebar ─── */}
+      <aside
+        className={`hidden space-y-5 transition-opacity lg:block ${
+          pending ? "pointer-events-none opacity-60" : ""
+        }`}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+              <Filter className="h-3.5 w-3.5" />
+            </div>
+            <h2 className="text-sm font-semibold tracking-tight text-gray-900">
+              Filters
+            </h2>
+            {hasActiveFilters && (
+              <span className="inline-flex items-center justify-center rounded-full bg-indigo-100 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-700">
+                {activeFilterCount}
+              </span>
+            )}
+          </div>
+
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={reset}
+              className="inline-flex min-h-[44px] items-center gap-1 rounded-md border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-600 shadow-sm transition hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900 sm:min-h-0 sm:px-2 sm:py-1"
+            >
+              <RotateCcw className="h-3 w-3" />
+              Reset
+            </button>
+          )}
+        </div>
+
+        <FilterFields params={params} setParam={setParam} idPrefix="f" />
+      </aside>
+
+      {/* ─── Mobile drawer ─── */}
+      {open && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div
+            className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
+            onClick={() => setOpen(false)}
+            aria-hidden
+          />
+
+          <div
+            id="job-filters-drawer"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Job filters"
+            className="absolute inset-x-0 bottom-0 max-h-[90vh] overflow-y-auto rounded-t-2xl bg-white p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] shadow-xl"
+          >
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-semibold">Filters</h2>
+                {hasActiveFilters && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      reset();
+                      setOpen(false);
+                    }}
+                    className="inline-flex items-center gap-1 rounded-md px-2.5 text-xs font-medium text-gray-500 transition hover:bg-gray-100 hover:text-gray-900"
+                  >
+                    <RotateCcw className="h-3 w-3" />
+                    Reset
+                  </button>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-100"
+                aria-label="Close filters"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div
+              className={`space-y-4 py-4 transition-opacity ${
+                pending ? "pointer-events-none opacity-60" : ""
+              }`}
+            >
+              <FilterFields params={params} setParam={setParam} idPrefix="m" />
+            </div>
+
+            <div className="sticky bottom-0 border-t border-gray-100 bg-white pt-3">
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="w-full rounded-lg bg-indigo-600 px-4 py-3 text-sm font-semibold text-white shadow-sm"
+              >
+                Show results
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

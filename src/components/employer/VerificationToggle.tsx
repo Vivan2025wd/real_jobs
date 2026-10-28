@@ -137,7 +137,7 @@ export function VerificationToggle({
         </div>
 
         {/* ─── Right: actions ─── */}
-        <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:shrink-0">
           <form
             action={(fd) => {
               fd.set("jobId", jobId);
@@ -149,6 +149,7 @@ export function VerificationToggle({
             <Button
               type="submit"
               size="sm"
+              className="w-full sm:w-auto"
               disabled={pendingConfirm}
               icon={
                 pendingConfirm ? (
@@ -174,6 +175,7 @@ export function VerificationToggle({
               type="submit"
               size="sm"
               variant="secondary"
+              className="w-full sm:w-auto"
               disabled={pendingFill}
               icon={
                 pendingFill ? (

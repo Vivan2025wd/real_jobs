@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   LayoutDashboard,
   Briefcase,
@@ -196,6 +196,17 @@ export function Sidebar({ role, email }: { role: Role; email: string }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  // Lock body scroll while the mobile drawer is open. The drawer is fixed,
+  // so without this the page behind can still scroll under it.
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const original = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = original;
+    };
+  }, [mobileOpen]);
+
   return (
     <>
       {/* ═══════════════ Desktop sidebar ═══════════════ */}
@@ -252,11 +263,15 @@ export function Sidebar({ role, email }: { role: Role; email: string }) {
               />
             </div>
 
-            <UserFooter
-              email={email}
-              role={role}
-              onNavigate={() => setMobileOpen(false)}
-            />
+            {/* Safe-area padding — the drawer is fixed, so <body>'s
+                safe-area padding doesn't reach its footer. */}
+            <div className="pb-[env(safe-area-inset-bottom)]">
+              <UserFooter
+                email={email}
+                role={role}
+                onNavigate={() => setMobileOpen(false)}
+              />
+            </div>
           </div>
         </>
       )}

@@ -1,5 +1,6 @@
 "use client";
 
+import type { User } from "@supabase/supabase-js";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, LogOut, Sparkles, Menu } from "lucide-react";
 import { useUser } from "@/hooks/useUser";
@@ -12,10 +13,29 @@ const PUBLIC_NAV = [
   { href: "/jobs", label: "Browse jobs" },
 ] as const;
 
-export function Navbar() {
+export function Navbar({
+  initialUser,
+}: {
+  /** Server-resolved user. If provided, avoids the skeleton flash. */
+  initialUser?: User | null;
+} = {}) {
   const pathname = usePathname();
-  const { user, role, loading, isSignedIn, isEmployer } = useUser();
+  const hook = useUser();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Prefer initialUser for the first render (no flash), then let the
+  // hook take over once it resolves (keeps multi-tab sign-out reactive).
+  const user = hook.loading ? (initialUser ?? null) : hook.user;
+  const loading = initialUser === undefined ? hook.loading : false;
+
+  const isSignedIn = !!user;
+  const role =
+    (user?.user_metadata?.role as string)?.toUpperCase() === "EMPLOYER"
+      ? "EMPLOYER"
+      : user
+        ? "JOB_SEEKER"
+        : null;
+  const isEmployer = role === "EMPLOYER";
 
   const dashboardHref = isEmployer
     ? "/dashboard/employer"

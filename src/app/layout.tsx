@@ -113,6 +113,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5, // allow zoom (accessibility) but cap it
+  userScalable: true,
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#4f46e5" },
   ],
@@ -124,7 +125,7 @@ export default function RootLayout({
 }: Readonly<{ children: ReactNode }>) {
   return (
     <html lang="en" className={inter.variable}>
-      <body className="min-h-screen bg-white font-sans text-gray-900 antialiased selection:bg-indigo-100 selection:text-indigo-900">
+      <body className="min-h-screen bg-white pb-[env(safe-area-inset-bottom)] font-sans text-gray-900 antialiased selection:bg-indigo-100 selection:text-indigo-900">
         {children}
       </body>
     </html>

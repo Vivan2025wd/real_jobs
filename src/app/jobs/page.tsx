@@ -175,7 +175,7 @@ export default async function JobsPage({
             <JobFilters />
           </Suspense>
 
-          <div className="space-y-4">
+          <div className="min-w-0 space-y-4">
             {/* ─── Results bar ─── */}
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="flex items-center gap-2 text-sm text-gray-600">
@@ -228,18 +228,24 @@ export default async function JobsPage({
 // ---------------------------------------------------------------------------
 function FiltersSkeleton() {
   return (
-    <aside className="space-y-5">
-      <div className="flex items-center justify-between">
-        <div className="h-4 w-16 animate-pulse rounded bg-gray-200" />
-        <div className="h-3 w-10 animate-pulse rounded bg-gray-100" />
-      </div>
-      {[...Array(6)].map((_, i) => (
-        <div key={i} className="space-y-1.5">
-          <div className="h-3 w-20 animate-pulse rounded bg-gray-200" />
-          <div className="h-10 w-full animate-pulse rounded-lg border border-gray-100 bg-gray-50" />
+    <>
+      {/* Mobile trigger skeleton — matches the new filter trigger */}
+      <div className="h-12 animate-pulse rounded-xl border border-gray-100 bg-gray-50 lg:hidden" />
+
+      {/* Desktop sidebar skeleton */}
+      <aside className="hidden space-y-5 lg:block">
+        <div className="flex items-center justify-between">
+          <div className="h-4 w-16 animate-pulse rounded bg-gray-200" />
+          <div className="h-3 w-10 animate-pulse rounded bg-gray-100" />
         </div>
-      ))}
-    </aside>
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className="space-y-1.5">
+            <div className="h-3 w-20 animate-pulse rounded bg-gray-200" />
+            <div className="h-10 w-full animate-pulse rounded-lg border border-gray-100 bg-gray-50" />
+          </div>
+        ))}
+      </aside>
+    </>
   );
 }
 

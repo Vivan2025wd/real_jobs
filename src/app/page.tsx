@@ -9,16 +9,13 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Logo } from "@/components/ui/Logo";
+import { Navbar } from "@/components/layout/Navbar";
 
 export default async function HomePage() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  const role = (user?.user_metadata?.role ?? "").toUpperCase();
-  const dashboardHref =
-    role === "EMPLOYER" ? "/dashboard/employer" : "/dashboard/seeker";
 
   // Live stats
   const [{ count: activeJobs }, { count: totalCompanies }] = await Promise.all([
@@ -32,54 +29,7 @@ export default async function HomePage() {
   return (
     <div className="flex min-h-screen flex-col bg-white">
       {/* ─── Navbar ─── */}
-      <header className="sticky top-0 z-40 border-b border-gray-200/60 glass">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-          <Logo />
-          <nav className="flex items-center gap-1 sm:gap-2">
-            <Link
-              href="/jobs"
-              className="hidden rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-100 hover:text-gray-900 sm:block"
-            >
-              Browse jobs
-            </Link>
-            {user ? (
-              <>
-                <Link
-                  href={dashboardHref}
-                  className="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"
-                >
-                  Dashboard
-                </Link>
-                {/* FIX: POST form — /logout is POST-only to avoid the
-                    <Link> prefetch bug that auto-signs-out on page render. */}
-                <form action="/logout" method="post">
-                  <button
-                    type="submit"
-                    className="rounded-lg bg-gray-900 px-3.5 py-2 text-sm font-medium text-white transition hover:bg-gray-800"
-                  >
-                    Sign out
-                  </button>
-                </form>
-              </>
-            ) : (
-              <>
-                <Link
-                  href="/login"
-                  className="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"
-                >
-                  Sign in
-                </Link>
-                <Link
-                  href="/register"
-                  className="rounded-lg bg-gray-900 px-3.5 py-2 text-sm font-medium text-white transition hover:bg-gray-800"
-                >
-                  Get started
-                </Link>
-              </>
-            )}
-          </nav>
-        </div>
-      </header>
+      <Navbar initialUser={user} />
 
       {/* ─── Hero ─── */}
       <section className="relative overflow-hidden bg-mesh">

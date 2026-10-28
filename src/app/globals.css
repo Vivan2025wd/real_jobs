@@ -19,12 +19,37 @@
   html {
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html,
+  body {
+    overflow-x: hidden;
+    max-width: 100vw;
   }
 
   body {
     background: hsl(var(--background));
     color: hsl(var(--foreground));
     font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1;
+  }
+
+  /* 16px inputs on mobile prevents iOS auto-zoom on focus */
+  @media (max-width: 640px) {
+    input,
+    select,
+    textarea {
+      font-size: 16px !important;
+    }
+  }
+
+  /* Minimum tap target for interactive elements */
+  @media (max-width: 640px) {
+    button,
+    [role="button"] {
+      min-height: 44px;
+    }
   }
 
   h1,

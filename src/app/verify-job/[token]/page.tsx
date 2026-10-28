@@ -294,7 +294,7 @@ export default async function VerifyJobPage({
       </div>
 
       {/* ─── Job summary card ─── */}
-      <dl className="mt-8 grid grid-cols-2 gap-4 rounded-xl border border-gray-200 bg-gray-50/70 p-4 text-sm sm:p-5">
+      <dl className="mt-8 grid grid-cols-1 gap-4 rounded-xl border border-gray-200 bg-gray-50/70 p-4 text-sm sm:grid-cols-2 sm:p-5">
         <div>
           <dt className="flex items-center gap-1.5 text-xs text-gray-500">
             <Building2 className="h-3.5 w-3.5" />
@@ -313,7 +313,7 @@ export default async function VerifyJobPage({
             {formatDate(job.created_at)}
           </dd>
         </div>
-        <div className="col-span-2">
+        <div className="sm:col-span-2">
           <dt className="flex items-center gap-1.5 text-xs text-gray-500">
             <ShieldCheck className="h-3.5 w-3.5" />
             Last verified
@@ -388,7 +388,7 @@ export default async function VerifyJobPage({
         <Mail className="mt-0.5 h-3.5 w-3.5 shrink-0 text-gray-400" />
         <p>
           This verification was sent to{" "}
-          <span className="font-medium text-gray-700">
+          <span className="break-all font-medium text-gray-700">
             {employerEmail ?? "the registered employer"}
           </span>
           . If you believe you received this in error, simply ignore it — the

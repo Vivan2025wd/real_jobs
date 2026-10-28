@@ -266,7 +266,7 @@ export default async function EmployerJobDetailPage({
                 </p>
               </div>
             </div>
-            <div className="shrink-0">
+            <div className="w-full sm:w-auto sm:shrink-0">
               <PayHereButton
                 jobId={typedJob.id}
                 amount={typedJob.price_lkr}
