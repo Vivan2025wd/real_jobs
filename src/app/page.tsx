@@ -2,12 +2,10 @@ import Link from "next/link";
 import {
   ArrowRight,
   CheckCircle2,
-  Zap,
   ShieldCheck,
   Users,
   Sparkles,
   Clock,
-  Briefcase,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 
@@ -56,12 +54,16 @@ export default async function HomePage() {
                 >
                   Dashboard
                 </Link>
-                <Link
-                  href="/logout"
-                  className="rounded-lg bg-gray-900 px-3.5 py-2 text-sm font-medium text-white transition hover:bg-gray-800"
-                >
-                  Sign out
-                </Link>
+                {/* FIX: POST form — /logout is POST-only to avoid the
+                    <Link> prefetch bug that auto-signs-out on page render. */}
+                <form action="/logout" method="post">
+                  <button
+                    type="submit"
+                    className="rounded-lg bg-gray-900 px-3.5 py-2 text-sm font-medium text-white transition hover:bg-gray-800"
+                  >
+                    Sign out
+                  </button>
+                </form>
               </>
             ) : (
               <>
@@ -92,7 +94,7 @@ export default async function HomePage() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
             </span>
-            Verified weekly · No stale listings
+            Auto-expiring · No stale listings
           </div>
 
           <h1 className="animate-fade-up animation-delay-100 mt-6 text-balance text-5xl font-bold tracking-tighter text-gray-900 sm:text-6xl lg:text-7xl">
@@ -103,9 +105,9 @@ export default async function HomePage() {
           </h1>
 
           <p className="animate-fade-up animation-delay-200 mx-auto mt-6 max-w-2xl text-balance text-lg leading-relaxed text-gray-600">
-            HireLoop re-verifies every listing with the employer every 14 days.
-            If they don&apos;t respond, the job is archived. You never apply to
-            a ghost posting again.
+            Every listing on HireLoop has a lifespan — 7, 14, or 30 days. When
+            it ends, the job archives itself. We also re-verify with the
+            employer halfway through. You never apply to a ghost posting again.
           </p>
 
           <div className="animate-fade-up animation-delay-300 mt-10 flex flex-wrap items-center justify-center gap-3">
@@ -141,7 +143,7 @@ export default async function HomePage() {
             </div>
             <div className="flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-              <span>Weekly verification</span>
+              <span>Auto-expiring</span>
             </div>
           </div>
         </div>
@@ -168,7 +170,7 @@ export default async function HomePage() {
               {
                 icon: Clock,
                 title: "Automated lifecycle",
-                body: "Every active job is re-verified weekly. Employers confirm with one click, or the listing auto-expires in 48 hours.",
+                body: "Every listing has a lifespan — 7, 14, or 30 days. When it ends, the job archives itself. We re-verify with the employer halfway through.",
                 tone: "from-indigo-500 to-violet-600",
               },
               {
