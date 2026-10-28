@@ -16,12 +16,14 @@ import {
   Timer,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { sendEmail } from "@/lib/email/send";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge, Badge } from "@/components/ui/Badge";
 import { PayHereButton } from "@/components/payment/PayHereButton";
 import { VerificationToggle } from "@/components/employer/VerificationToggle";
 import { ViewResumeButton } from "@/components/employer/ViewResumeButton";
+import { ApplicationStatusSelect } from "@/components/employer/ApplicationStatusSelect";
 import { formatSalary, formatDate, timeAgo } from "@/lib/utils/format";
 import type { ApplicationWithSeeker, JobRow } from "@/types/job";
 
@@ -39,11 +41,7 @@ const WORK_TYPE_LABEL: Record<string, string> = {
 };
 
 // ---------------------------------------------------------------------------
-// Expiry countdown — colour tiers based on urgency
-//   > 7 days  → muted gray    (informational)
-//   3–7 days  → amber         (heads up)
-//   ≤ 3 days  → rose          (urgent)
-//   0 days    → rose bold     (expires today)
+// Expiry countdown
 // ---------------------------------------------------------------------------
 function ExpiryCountdown({ expiresAt }: { expiresAt: string }) {
   const ms = new Date(expiresAt).getTime() - Date.now();
@@ -104,6 +102,105 @@ async function markFilled(formData: FormData) {
   revalidatePath(`/dashboard/employer/jobs/${jobId}`);
   revalidatePath("/dashboard/employer/jobs");
   revalidatePath("/dashboard/employer");
+}
+
+// ─── NEW: update application status + notify seeker ───
+async function updateApplicationStatus(jobId: string, formData: FormData) {
+  "use server";
+
+  const applicationId = String(formData.get("applicationId") ?? "");
+  const newStatus = String(formData.get("status") ?? "") as
+    | "PENDING"
+    | "REVIEWED"
+    | "SHORTLISTED"
+    | "REJECTED";
+
+  if (!applicationId || !newStatus) return;
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  // Update the status. RLS enforces that the employer owns the job this
+  // application belongs to. The select returns the joined user + job so we
+  // can build the email without a second round-trip.
+  const { data: updatedApp, error } = await supabase
+    .from("applications")
+    .update({ status: newStatus } as never)
+    .eq("id", applicationId)
+    .select(
+      "id, status, users!inner(email), jobs!inner(title, companies!inner(company_name))"
+    )
+    .maybeSingle();
+
+  if (error || !updatedApp) {
+    console.error("[updateApplicationStatus] update failed:", error);
+    return;
+  }
+
+  // Deep embeds collapse to `never` in TS — cast to the shape we selected.
+  const app = updatedApp as unknown as {
+    users: { email: string };
+    jobs: { title: string; companies: { company_name: string } };
+  };
+
+  // Only email on "notification-worthy" transitions. Don't email when
+  // reverting to PENDING — that's the employer undoing a mistake.
+  if (["REVIEWED", "SHORTLISTED", "REJECTED"].includes(newStatus)) {
+    const statusLabel =
+      newStatus === "REVIEWED"
+        ? "Under Review"
+        : newStatus === "SHORTLISTED"
+          ? "Shortlisted"
+          : "Not Selected";
+
+    const statusColor =
+      newStatus === "SHORTLISTED"
+        ? "#059669" // emerald-600
+        : newStatus === "REJECTED"
+          ? "#e11d48" // rose-600
+          : "#4f46e5"; // indigo-600
+
+    try {
+      await sendEmail({
+        to: app.users.email,
+        subject: `Update on your application for ${app.jobs.title}`,
+        html: `
+          <div style="font-family: -apple-system, Segoe UI, Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 16px;">
+            <div style="text-align: center; margin-bottom: 24px;">
+              <span style="display: inline-block; width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; font-weight: 700; line-height: 32px;">R</span>
+            </div>
+            <h1 style="font-size: 22px; color: #111827; margin: 0 0 8px;">Application update</h1>
+            <p style="color: #374151; line-height: 1.6; font-size: 15px;">
+              Your application for <strong>${app.jobs.title}</strong> at
+              <strong>${app.jobs.companies.company_name}</strong> has been updated.
+            </p>
+            <div style="background: #f9fafb; border-left: 3px solid ${statusColor}; padding: 12px 16px; margin: 20px 0; border-radius: 4px;">
+              <p style="margin: 0; font-size: 13px; color: #6b7280;">New status</p>
+              <p style="margin: 4px 0 0; font-size: 16px; font-weight: 600; color: ${statusColor};">${statusLabel}</p>
+            </div>
+            <div style="text-align: center; margin-top: 28px;">
+              <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/seeker/applications"
+                 style="display: inline-block; background: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px;">
+                View application
+              </a>
+            </div>
+            <p style="color: #9ca3af; font-size: 12px; text-align: center; margin-top: 32px;">
+              You're receiving this because you applied via RealJobs.
+            </p>
+          </div>
+        `,
+      });
+    } catch (err) {
+      // Email failure should not fail the status update — the DB write is
+      // already committed. Just log it.
+      console.error("[updateApplicationStatus] email send failed:", err);
+    }
+  }
+
+  revalidatePath(`/dashboard/employer/jobs/${jobId}`);
 }
 
 // ---------------------------------------------------------------------------
@@ -185,7 +282,7 @@ export default async function EmployerJobDetailPage({
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-xl font-bold tracking-tight text-gray-900 sm:text-2xl lg:text-3xl text-balance">
+              <h1 className="text-balance text-xl font-bold tracking-tight text-gray-900 sm:text-2xl lg:text-3xl">
                 {typedJob.title}
               </h1>
               <StatusBadge status={typedJob.status} />
@@ -239,7 +336,7 @@ export default async function EmployerJobDetailPage({
         </div>
       </div>
 
-      {/* ─── Verification toggle (ACTIVE only) ─── */}
+      {/* ─── Verification toggle ─── */}
       {typedJob.status === "ACTIVE" && (
         <VerificationToggle
           jobId={typedJob.id}
@@ -249,7 +346,7 @@ export default async function EmployerJobDetailPage({
         />
       )}
 
-      {/* ─── DRAFT payment banner — dynamic price ─── */}
+      {/* ─── DRAFT payment banner ─── */}
       {typedJob.status === "DRAFT" && (
         <div className="relative overflow-hidden rounded-2xl border border-indigo-200 bg-gradient-to-br from-indigo-50 via-white to-violet-50 p-6 shadow-card">
           <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-indigo-200/30 blur-2xl" />
@@ -303,7 +400,7 @@ export default async function EmployerJobDetailPage({
           icon={<Users className="h-4 w-4" />}
           description={
             typedApplications.length > 0
-              ? "Review candidates and download their resumes."
+              ? "Review candidates, download resumes, and update their status."
               : undefined
           }
         />
@@ -343,7 +440,11 @@ export default async function EmployerJobDetailPage({
                     </div>
                   </div>
                   <div className="flex flex-wrap items-center gap-2 sm:shrink-0 sm:gap-3">
-                    <StatusBadge status={a.status} />
+                    <ApplicationStatusSelect
+                      applicationId={a.id}
+                      currentStatus={a.status}
+                      onUpdate={updateApplicationStatus.bind(null, typedJob.id)}
+                    />
                     <ViewResumeButton applicationId={a.id} />
                   </div>
                 </li>
