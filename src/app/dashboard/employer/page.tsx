@@ -176,12 +176,20 @@ export default async function EmployerOverview() {
   ];
 
   // ─── Recent applications ───
-  const { data: recentApplicationsData } = await supabase
+  const { data: recentApplicationsData, error: recentError } = await supabase
     .from("applications")
     .select("id, status, applied_at, jobs!inner(title, company_id), users!inner(email)")
     .eq("jobs.company_id", company.id)
     .order("applied_at", { ascending: false })
     .limit(5);
+
+  if (recentError) {
+    console.error(
+      "[employer overview] recent applications failed:",
+      recentError
+    );
+  }
+
   const recentApplications = recentApplicationsData as unknown as {
     id: string;
     status: Parameters<typeof StatusBadge>[0]["status"];

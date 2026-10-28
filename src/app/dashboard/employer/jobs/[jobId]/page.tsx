@@ -133,11 +133,18 @@ export default async function EmployerJobDetailPage({
 
   if (!typedJob || typedJob.companies.employer_id !== user.id) notFound();
 
-  const { data: applications } = await supabase
+  const { data: applications, error: applicationsError } = await supabase
     .from("applications")
     .select("id, status, applied_at, resume_url, users!inner(email)")
     .eq("job_id", typedJob.id)
     .order("applied_at", { ascending: false });
+
+  if (applicationsError) {
+    console.error(
+      "[employer job detail] applications failed:",
+      applicationsError
+    );
+  }
 
   const typedApplications = (applications ?? []) as ApplicationWithSeeker[];
 
