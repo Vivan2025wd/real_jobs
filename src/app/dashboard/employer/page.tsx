@@ -58,11 +58,17 @@ export default async function EmployerOverview() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  const { data: companyData } = await supabase
+  const { data: companyData, error: companyError } = await supabase
     .from("companies")
     .select("id, company_name")
     .eq("employer_id", user!.id)
+    .limit(1)
     .maybeSingle();
+
+  if (companyError) {
+    console.error("[employer overview] failed to load company:", companyError);
+  }
+
   const company = companyData as { id: string; company_name: string } | null;
 
   // ─── Empty state: no company yet ───

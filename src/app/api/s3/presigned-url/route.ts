@@ -56,11 +56,16 @@ export async function POST(req: NextRequest) {
 
   // Ownership checks
   if (purpose === "COMPANY_LOGO") {
-    const { data: company } = await supabase
+    const { data: company, error: companyError } = await supabase
       .from("companies")
       .select("id")
       .eq("employer_id", user.id)
+      .limit(1)
       .maybeSingle();
+
+    if (companyError) {
+      console.error("[presigned-url] failed to load company:", companyError);
+    }
 
     if (!company) {
       return NextResponse.json(

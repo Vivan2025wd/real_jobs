@@ -38,11 +38,16 @@ async function createJob(formData: FormData) {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: company } = await supabase
+  const { data: company, error: companyError } = await supabase
     .from("companies")
     .select("id")
     .eq("employer_id", user.id)
+    .limit(1)
     .maybeSingle();
+
+  if (companyError) {
+    console.error("[new job] failed to load company:", companyError);
+  }
 
   const companyId = (company as { id: string } | null)?.id;
   if (!companyId) redirect("/dashboard/employer/company");

@@ -67,12 +67,17 @@ export default async function EmployerJobsPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: company } = await supabase
+  const { data: company, error: companyError } = await supabase
     .from("companies")
     .select("id")
     .eq("employer_id", user!.id)
+    .limit(1)
     .returns<CompanyId>()
     .maybeSingle();
+
+  if (companyError) {
+    console.error("[employer jobs] failed to load company:", companyError);
+  }
 
   const companyId = (company as CompanyId | null)?.id;
   if (!companyId) redirect("/dashboard/employer/company");

@@ -4,6 +4,7 @@ import { Building2, FileText, Image as ImageIcon, Save } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { CompanyLogoUploader } from "@/components/employer/CompanyLogoUploader";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
+import { SubmitButton } from "@/components/ui/SubmitButton";
 
 type CompanyRow = {
   company_name: string;
@@ -29,23 +30,25 @@ async function saveCompany(formData: FormData) {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: existing } = await supabase
+  // Single atomic upsert — cannot create duplicates, and cannot fail on a
+  // double-submit: the second insert hits the unique constraint and updates
+  // the existing row instead. Requires the companies_employer_id_key
+  // constraint from migration 20261028170000.
+  const { error } = await supabase
     .from("companies")
-    .select("id")
-    .eq("employer_id", user.id)
-    .maybeSingle();
+    .upsert(
+      {
+        employer_id: user.id,
+        company_name: name,
+        description,
+      } as never,
+      { onConflict: "employer_id" }
+    );
 
-  const existingId = (existing as { id: string } | null)?.id;
-
-  if (existingId) {
-    await supabase
-      .from("companies")
-      .update({ company_name: name, description } as never)
-      .eq("id", existingId);
-  } else {
-    await supabase
-      .from("companies")
-      .insert({ employer_id: user.id, company_name: name, description } as never);
+  if (error) {
+    redirect(
+      "/dashboard/employer/company?error=" + encodeURIComponent(error.message)
+    );
   }
 
   revalidatePath("/dashboard/employer/company");
@@ -63,11 +66,16 @@ export default async function CompanySettingsPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data } = await supabase
+  const { data, error: companyError } = await supabase
     .from("companies")
     .select("company_name, description, logo_url")
     .eq("employer_id", user!.id)
+    .limit(1)
     .maybeSingle();
+
+  if (companyError) {
+    console.error("[company page] failed to load company:", companyError);
+  }
 
   const company = data as CompanyRow | null;
 
@@ -156,13 +164,13 @@ export default async function CompanySettingsPage({
 
           {/* Footer actions */}
           <div className="flex items-center justify-end gap-3 border-t border-gray-100 bg-gray-50/50 px-6 py-4 rounded-b-xl">
-            <button
-              type="submit"
-              className="inline-flex h-10 items-center gap-2 rounded-lg bg-indigo-600 px-5 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700 hover:shadow-md active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+            <SubmitButton
+              pendingText="Saving…"
+              fullWidth={false}
+              icon={<Save className="h-4 w-4" />}
             >
-              <Save className="h-4 w-4" />
-              Save changes
-            </button>
+              Save profile
+            </SubmitButton>
           </div>
         </Card>
       </form>
