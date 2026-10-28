@@ -8,6 +8,7 @@ import {
   Clock,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { Logo } from "@/components/ui/Logo";
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -33,12 +34,7 @@ export default async function HomePage() {
       {/* ─── Navbar ─── */}
       <header className="sticky top-0 z-40 border-b border-gray-200/60 glass">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-          <Link href="/" className="flex items-center gap-2 font-bold">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-sm">
-              H
-            </span>
-            <span className="tracking-tight">RealJobs</span>
-          </Link>
+          <Logo />
           <nav className="flex items-center gap-1 sm:gap-2">
             <Link
               href="/jobs"
@@ -287,9 +283,7 @@ export default async function HomePage() {
       <footer className="mt-auto border-t border-gray-200 bg-white">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-10 text-sm text-gray-500 sm:flex-row">
           <div className="flex items-center gap-2">
-            <span className="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-indigo-500 to-violet-600 text-xs font-bold text-white">
-              H
-            </span>
+            <Logo size="sm" withText={false} />
             <span>© {new Date().getFullYear()} RealJobs</span>
           </div>
           <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">

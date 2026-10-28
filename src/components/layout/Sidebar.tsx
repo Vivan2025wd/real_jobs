@@ -15,6 +15,7 @@ import {
   Menu,
   X,
 } from "lucide-react";
+import { Logo } from "@/components/ui/Logo";
 
 type Role = "EMPLOYER" | "JOB_SEEKER";
 
@@ -80,14 +81,7 @@ const navByRole: Record<Role, { section: string; items: NavItem[] }[]> = {
 
 // ─── Brand mark (shared between desktop and mobile) ───────────────────
 function Brand() {
-  return (
-    <Link href="/" className="flex items-center gap-2.5 font-bold">
-      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-sm text-white shadow-sm">
-        H
-      </span>
-      <span className="tracking-tight text-gray-900">RealJobs</span>
-    </Link>
-  );
+  return <Logo />;
 }
 
 // ─── Nav list (shared between desktop and mobile) ─────────────────────
@@ -182,9 +176,8 @@ function UserFooter({
         </div>
       </div>
 
-      {/* FIX: POST form instead of GET Link. The /logout route is POST-only
-          to prevent Next.js <Link> prefetch from silently signing the user
-          out the moment the sidebar renders. */}
+      {/* POST form — /logout is POST-only to avoid Next.js <Link> prefetch
+          firing the handler on render and auto-signing the user out. */}
       <form action="/logout" method="post" className="mt-2">
         <button
           type="submit"

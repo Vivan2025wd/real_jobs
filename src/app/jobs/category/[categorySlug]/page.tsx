@@ -25,6 +25,7 @@ import {
   type JobCategory,
 } from "@/lib/validators/job";
 import type { PublicJobCard } from "@/types/job";
+import { Logo } from "@/components/ui/Logo";
 
 // ─── Icon + tagline per category ──────────────────────────────────────
 const CATEGORY_META: Record<
@@ -147,12 +148,7 @@ export default async function CategoryPage({
       {/* ─── Sticky glass header ─── */}
       <header className="sticky top-0 z-40 border-b border-gray-200/60 glass">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-          <Link href="/" className="flex items-center gap-2.5 font-bold">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-sm text-white shadow-sm">
-              H
-            </span>
-            <span className="tracking-tight text-gray-900">RealJobs</span>
-          </Link>
+          <Logo />
           <Link
             href="/jobs"
             className="group inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"

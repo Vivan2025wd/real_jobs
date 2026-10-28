@@ -1,10 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, LogOut, Sparkles, Menu } from "lucide-react";
 import { useUser } from "@/hooks/useUser";
 import { Button } from "@/components/ui/Button";
+import { Logo } from "@/components/ui/Logo";
+import Link from "next/link";
 import { useState } from "react";
 
 const PUBLIC_NAV = [
@@ -29,15 +30,7 @@ export function Navbar() {
     <header className="sticky top-0 z-40 border-b border-gray-200/60 glass">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
         {/* ─── Brand ─── */}
-        <Link
-          href="/"
-          className="flex items-center gap-2.5 font-bold transition hover:opacity-90"
-        >
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-sm text-white shadow-sm">
-            H
-          </span>
-          <span className="tracking-tight text-gray-900">RealJobs</span>
-        </Link>
+        <Logo />
 
         {/* ─── Desktop nav ─── */}
         <nav className="hidden items-center gap-1 sm:flex">
@@ -75,7 +68,7 @@ export function Navbar() {
                 Dashboard
               </Link>
 
-              {/* FIX: POST form instead of GET Link */}
+              {/* POST form — /logout is POST-only to avoid prefetch logout */}
               <form action="/logout" method="post">
                 <button
                   type="submit"
@@ -149,7 +142,6 @@ export function Navbar() {
                   <LayoutDashboard className="h-4 w-4" />
                   Dashboard
                 </Link>
-                {/* FIX: full-width, left-aligned, closes dropdown on click */}
                 <form action="/logout" method="post">
                   <button
                     type="submit"

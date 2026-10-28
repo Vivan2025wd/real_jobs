@@ -1,10 +1,9 @@
 import Link from "next/link";
 import { ArrowRight, ShieldCheck } from "lucide-react";
+import { Logo } from "@/components/ui/Logo";
 
 // ---------------------------------------------------------------------------
-// Link groups. Grouping by purpose (Product / For employers / Get started)
-// instead of a flat list makes the footer scannable — visitors find the
-// correct column instantly based on who they are.
+// Link groups — grouped by purpose so visitors find their column instantly.
 // ---------------------------------------------------------------------------
 const productLinks = [
   { href: "/jobs", label: "Browse jobs" },
@@ -31,24 +30,16 @@ export function Footer() {
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           {/* Brand column (spans 2 on tablet, 1 on desktop) */}
           <div className="sm:col-span-2 lg:col-span-1">
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2.5 font-bold"
-            >
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-sm text-white shadow-sm">
-                H
-              </span>
-              <span className="tracking-tight text-gray-900">RealJobs</span>
-            </Link>
+            <Logo />
 
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-gray-500">
-              The job marketplace where every listing is verified weekly. No
-              stale posts. No dead applications.
+              The job marketplace where every listing has a lifespan. No stale
+              posts. No dead applications.
             </p>
 
             <div className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
               <ShieldCheck className="h-3 w-3" />
-              Verified weekly
+              Auto-expiring listings
             </div>
           </div>
 

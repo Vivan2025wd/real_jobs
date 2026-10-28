@@ -2,10 +2,11 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { CheckCircle2 } from "lucide-react";
+import { Logo } from "@/components/ui/Logo";
 
 const BENEFITS = [
-  "Automated 14-day re-verification",
-  "Auto-archive if employer doesn't respond",
+  "Listings auto-expire after 7, 14, or 30 days",
+  "Mid-life verification on 30-day postings",
   "Zero ghost listings guaranteed",
 ];
 
@@ -18,13 +19,13 @@ export function AuthShell({ children }: { children: ReactNode }) {
         <div className="pointer-events-none absolute -right-20 -top-20 h-96 w-96 rounded-full bg-white/10 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-20 -left-20 h-96 w-96 rounded-full bg-violet-400/20 blur-3xl" />
 
-        {/* Brand mark */}
+        {/* Brand mark — translucent variant for the dark panel */}
         <Link
           href="/"
           className="relative inline-flex items-center gap-2.5 text-white transition hover:opacity-90"
         >
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20 text-sm font-bold backdrop-blur-sm">
-            H
+            R
           </span>
           <span className="text-lg font-bold tracking-tight">RealJobs</span>
         </Link>
@@ -35,7 +36,8 @@ export function AuthShell({ children }: { children: ReactNode }) {
             Job listings that stay actually open.
           </h1>
           <p className="mt-4 text-balance text-lg leading-relaxed text-white/80">
-            Every listing on RealJobs is verified weekly. No stale posts. No
+            Every listing on RealJobs has a fixed lifespan — 7, 14, or 30
+            days. When it ends, the job archives itself. No stale posts. No
             dead applications.
           </p>
 
@@ -62,14 +64,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
       <div className="flex flex-col bg-white">
         {/* Mobile brand bar */}
         <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4 lg:hidden">
-          <Link href="/" className="inline-flex items-center gap-2.5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-xs font-bold text-white">
-              H
-            </span>
-            <span className="text-sm font-bold tracking-tight text-gray-900">
-              RealJobs
-            </span>
-          </Link>
+          <Logo size="sm" />
         </div>
 
         {/* Centered content */}

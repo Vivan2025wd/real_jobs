@@ -15,6 +15,7 @@ import { JobFilters } from "@/components/jobs/JobFilters";
 import { JobList } from "@/components/jobs/JobList";
 import { Button } from "@/components/ui/Button";
 import type { PublicJobCard } from "@/types/job";
+import { Logo } from "@/components/ui/Logo";
 
 export const metadata: Metadata = {
   title: "Browse jobs",
@@ -114,12 +115,7 @@ export default async function JobsPage({
       {/* ─── Sticky glass header ─── */}
       <header className="sticky top-0 z-40 border-b border-gray-200/60 glass">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-          <Link href="/" className="flex items-center gap-2.5 font-bold">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-sm text-white shadow-sm">
-              H
-            </span>
-            <span className="tracking-tight text-gray-900">RealJobs</span>
-          </Link>
+          <Logo />
           <nav className="flex items-center gap-1 sm:gap-2">
             <Link
               href="/jobs"

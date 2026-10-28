@@ -5,6 +5,7 @@ import { createClient as createAnonClient } from "@supabase/supabase-js";
 import { ArrowLeft } from "lucide-react";
 import { JobDetail } from "@/components/jobs/JobDetail";
 import type { PublicJobDetail } from "@/types/job";
+import { Logo } from "@/components/ui/Logo";
 
 // ISR — re-rendered at most once every 5 minutes. Publishing or marking a
 // job as filled updates `status` on the DB; ISR catches up within the window.
@@ -128,12 +129,7 @@ export default async function JobDetailPage({
       {/* ─── Sticky glass header ─── */}
       <header className="sticky top-0 z-40 border-b border-gray-200/60 glass">
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
-          <Link href="/" className="flex items-center gap-2.5 font-bold">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-sm text-white shadow-sm">
-              H
-            </span>
-            <span className="tracking-tight text-gray-900">RealJobs</span>
-          </Link>
+          <Logo />
           <Link
             href="/jobs"
             className="group inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"

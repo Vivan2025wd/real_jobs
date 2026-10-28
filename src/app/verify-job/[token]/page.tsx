@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Button } from "@/components/ui/Button";
+import { Logo } from "@/components/ui/Logo";
 import { formatDate, timeAgo } from "@/lib/utils/format";
 
 // Verification links must never be cached or indexed.
@@ -419,15 +420,7 @@ function Shell({
       >
         {/* Brand mark */}
         <div className="mb-8 text-center">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-sm font-bold text-gray-900 transition hover:text-indigo-700"
-          >
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-xs text-white shadow-sm">
-              H
-            </span>
-            RealJobs
-          </Link>
+          <Logo size="sm" />
         </div>
 
         {children}
