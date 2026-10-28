@@ -138,7 +138,7 @@ export default async function SeekerOverview() {
   return (
     <div className="space-y-8">
       {/* ─── Welcome header ─── */}
-      <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-br from-white via-white to-indigo-50/40 p-6 shadow-card">
+      <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-br from-white via-white to-indigo-50/40 p-4 shadow-card sm:p-6">
         <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-indigo-100/50 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-24 -left-20 h-56 w-56 rounded-full bg-violet-100/40 blur-3xl" />
 
@@ -148,7 +148,7 @@ export default async function SeekerOverview() {
               {user?.email?.charAt(0).toUpperCase() ?? "U"}
             </div>
             <div className="min-w-0">
-              <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
+              <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl text-balance">
                 Welcome back 👋
               </h1>
               <p className="mt-1 truncate text-sm text-gray-500">
@@ -169,7 +169,7 @@ export default async function SeekerOverview() {
       </div>
 
       {/* ─── Stat cards ─── */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((s) => {
           const tone = STAT_TONES[s.tone];
           return (
@@ -253,7 +253,7 @@ export default async function SeekerOverview() {
               {recent.map((a) => (
                 <li
                   key={a.id}
-                  className="flex items-center justify-between gap-4 px-6 py-4 transition hover:bg-gray-50/60"
+                  className="flex items-center justify-between gap-3 px-4 py-3.5 transition hover:bg-gray-50/60 sm:px-6 sm:py-4"
                 >
                   <div className="flex min-w-0 items-center gap-3">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-100 to-violet-100 text-sm font-semibold text-indigo-700">

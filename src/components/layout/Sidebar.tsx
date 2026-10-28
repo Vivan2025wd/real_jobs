@@ -119,7 +119,7 @@ function NavList({
                   key={item.href}
                   href={item.href}
                   onClick={onNavigate}
-                  className={`group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition ${
+                  className={`group flex min-h-[44px] items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition md:min-h-0 md:py-2 ${
                     active
                       ? "bg-indigo-50 text-indigo-700"
                       : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
@@ -182,7 +182,7 @@ function UserFooter({
         <button
           type="submit"
           onClick={onNavigate}
-          className="flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-gray-500 transition hover:bg-rose-50 hover:text-rose-600"
+          className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-xs font-medium text-gray-500 transition hover:bg-rose-50 hover:text-rose-600 md:min-h-0 md:py-2"
         >
           <LogOut className="h-3.5 w-3.5" />
           Sign out
@@ -213,7 +213,7 @@ export function Sidebar({ role, email }: { role: Role; email: string }) {
         <button
           type="button"
           onClick={() => setMobileOpen(true)}
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-600 transition hover:bg-gray-100"
+          className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-gray-600 transition hover:bg-gray-100"
           aria-label="Open menu"
         >
           <Menu className="h-5 w-5" />
@@ -237,7 +237,7 @@ export function Sidebar({ role, email }: { role: Role; email: string }) {
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}
-                className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-600 transition hover:bg-gray-100"
+                className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-gray-600 transition hover:bg-gray-100"
                 aria-label="Close menu"
               >
                 <X className="h-5 w-5" />

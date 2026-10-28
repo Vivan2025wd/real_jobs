@@ -100,14 +100,14 @@ export default async function NewJobPage({
       </Link>
 
       {/* ─── Header ─── */}
-      <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-card">
+      <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4 shadow-card sm:p-6">
         <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-indigo-100/40 blur-3xl" />
         <div className="relative flex items-start gap-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-sm">
             <Briefcase className="h-6 w-6" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+            <h1 className="text-xl font-bold tracking-tight text-gray-900 sm:text-2xl text-balance">
               Post a new job
             </h1>
             <p className="mt-1 text-sm text-gray-500">
@@ -144,7 +144,7 @@ export default async function NewJobPage({
 
       {/* ─── Form card ─── */}
       <div className="rounded-2xl border border-gray-200 bg-white shadow-card">
-        <div className="flex items-center gap-3 border-b border-gray-100 px-6 py-4">
+        <div className="flex items-center gap-3 border-b border-gray-100 px-4 py-3.5 sm:px-6 sm:py-4">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
             <Sparkles className="h-4 w-4" />
           </div>
@@ -157,7 +157,7 @@ export default async function NewJobPage({
             </p>
           </div>
         </div>
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           <JobForm
             action={createJob}
             submitLabel="Save as draft"

@@ -41,7 +41,7 @@ export default async function SeekerProfilePage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       {/* ─── Identity header ─── */}
-      <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-br from-white via-white to-indigo-50/40 p-6 shadow-card">
+      <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-br from-white via-white to-indigo-50/40 p-4 shadow-card sm:p-6">
         <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-indigo-100/50 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-20 -left-16 h-48 w-48 rounded-full bg-violet-100/40 blur-3xl" />
 
@@ -52,7 +52,7 @@ export default async function SeekerProfilePage() {
             </div>
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+                <h1 className="text-xl font-bold tracking-tight text-gray-900 sm:text-2xl text-balance">
                   Profile &amp; resume
                 </h1>
                 {hasResume && (

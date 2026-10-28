@@ -161,7 +161,7 @@ export default async function CategoryPage({
 
       <div className="mx-auto max-w-4xl px-4 py-10 sm:py-14">
         {/* ─── Category hero ─── */}
-        <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-card sm:p-8">
+        <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4 shadow-card sm:p-6 lg:p-8">
           <div
             className={`pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-gradient-to-br ${meta.gradient} opacity-10 blur-3xl`}
           />
@@ -178,7 +178,7 @@ export default async function CategoryPage({
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500">Category</p>
-                <h1 className="mt-0.5 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+                <h1 className="mt-0.5 text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl lg:text-4xl text-balance">
                   {label} jobs
                 </h1>
                 <p className="mt-2 max-w-lg text-balance text-sm text-gray-600">

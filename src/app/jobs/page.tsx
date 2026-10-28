@@ -141,7 +141,7 @@ export default async function JobsPage({
               <Briefcase className="h-6 w-6" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+              <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl text-balance">
                 Open roles
               </h1>
               <p className="mt-1 text-sm text-gray-500">

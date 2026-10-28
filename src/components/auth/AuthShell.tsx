@@ -63,12 +63,12 @@ export function AuthShell({ children }: { children: ReactNode }) {
       {/* ═══ Right: form panel ═══ */}
       <div className="flex flex-col bg-white">
         {/* Mobile brand bar */}
-        <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4 lg:hidden">
+        <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3.5 sm:px-6 lg:hidden">
           <Logo size="sm" />
         </div>
 
         {/* Centered content */}
-        <div className="flex flex-1 items-center justify-center px-6 py-10 sm:px-10">
+        <div className="flex flex-1 items-center justify-center px-4 py-8 sm:px-10">
           <div className="w-full max-w-md">{children}</div>
         </div>
       </div>

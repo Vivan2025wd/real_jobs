@@ -95,7 +95,7 @@ export default async function EmployerJobsPage() {
       {/* ─── Header ─── */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl text-balance">
             My jobs
           </h1>
           <p className="mt-1 text-sm text-gray-500">
@@ -156,11 +156,11 @@ export default async function EmployerJobsPage() {
               {jobs.map((job) => (
                 <li
                   key={job.id}
-                  className="group flex flex-col gap-4 px-6 py-5 transition hover:bg-gray-50/50 sm:flex-row sm:items-center sm:justify-between"
+                  className="group flex flex-col gap-4 px-4 py-4 transition hover:bg-gray-50/50 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-5"
                 >
                   {/* Left: title + meta */}
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2.5">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
                       <Link
                         href={`/dashboard/employer/jobs/${job.id}`}
                         className="truncate font-semibold tracking-tight text-gray-900 transition hover:text-indigo-700"

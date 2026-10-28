@@ -29,7 +29,7 @@ export const Input = forwardRef<HTMLInputElement, Props>(
           <input
             ref={ref}
             id={inputId}
-            className={`block w-full rounded-lg border bg-white px-3.5 py-2.5 text-sm shadow-sm transition placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-0 ${
+            className={`block w-full rounded-lg border bg-white px-3.5 py-2.5 text-base sm:text-sm shadow-sm transition placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-0 ${
               icon ? "pl-10" : ""
             } ${
               error

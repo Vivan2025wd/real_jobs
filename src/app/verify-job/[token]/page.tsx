@@ -416,7 +416,7 @@ function Shell({
       <div className="pointer-events-none absolute -bottom-40 -right-32 h-96 w-96 rounded-full bg-violet-200/30 blur-3xl" />
 
       <div
-        className={`relative w-full ${wide ? "max-w-2xl" : "max-w-md"} rounded-2xl border border-gray-200 bg-white p-8 shadow-card sm:p-10`}
+        className={`relative w-full ${wide ? "max-w-2xl" : "max-w-md"} rounded-2xl border border-gray-200 bg-white p-6 shadow-card sm:p-10`}
       >
         {/* Brand mark */}
         <div className="mb-8 text-center">
@@ -481,7 +481,7 @@ function ResultCard({
       >
         {eyebrow}
       </p>
-      <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-gray-900">
+      <h1 className="mt-1.5 text-xl font-bold tracking-tight text-gray-900 sm:text-2xl text-balance">
         {title}
       </h1>
       <p className="mx-auto mt-3 max-w-sm text-balance text-sm text-gray-600">

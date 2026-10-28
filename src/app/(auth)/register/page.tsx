@@ -81,7 +81,7 @@ export default async function RegisterPage({
     <AuthShell>
       {/* Heading */}
       <div>
-        <h2 className="text-2xl font-bold tracking-tight text-gray-900">
+        <h2 className="text-xl font-bold tracking-tight text-gray-900 sm:text-2xl text-balance">
           Create your account
         </h2>
         <p className="mt-1 text-sm text-gray-500">

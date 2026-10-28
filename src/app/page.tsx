@@ -84,7 +84,7 @@ export default async function HomePage() {
       {/* ─── Hero ─── */}
       <section className="relative overflow-hidden bg-mesh">
         <div className="absolute inset-0 bg-grid opacity-40" />
-        <div className="relative mx-auto max-w-4xl px-4 py-24 text-center sm:py-32">
+        <div className="relative mx-auto max-w-4xl px-4 py-16 text-center sm:py-24 lg:py-32">
           <div className="animate-fade-up inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white/80 px-4 py-1.5 text-xs font-medium text-indigo-700 shadow-sm backdrop-blur">
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
@@ -93,14 +93,14 @@ export default async function HomePage() {
             Auto-expiring · No stale listings
           </div>
 
-          <h1 className="animate-fade-up animation-delay-100 mt-6 text-balance text-5xl font-bold tracking-tighter text-gray-900 sm:text-6xl lg:text-7xl">
+          <h1 className="animate-fade-up animation-delay-100 mt-6 text-balance text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl">
             Job listings that{" "}
             <span className="bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-600 bg-clip-text text-transparent">
               stay actually open
             </span>
           </h1>
 
-          <p className="animate-fade-up animation-delay-200 mx-auto mt-6 max-w-2xl text-balance text-lg leading-relaxed text-gray-600">
+          <p className="animate-fade-up animation-delay-200 mx-auto mt-6 max-w-2xl text-balance text-base leading-relaxed text-gray-600 sm:text-lg">
             Every listing on RealJobs has a lifespan — 7, 14, or 30 days. When
             it ends, the job archives itself. We also re-verify with the
             employer halfway through. You never apply to a ghost posting again.
@@ -146,13 +146,13 @@ export default async function HomePage() {
       </section>
 
       {/* ─── Features ─── */}
-      <section className="border-t border-gray-100 bg-white py-24">
+      <section className="border-t border-gray-100 bg-white py-16 sm:py-20 lg:py-24">
         <div className="mx-auto max-w-6xl px-4">
           <div className="mx-auto max-w-2xl text-center">
             <p className="text-sm font-semibold uppercase tracking-wider text-indigo-600">
               Built different
             </p>
-            <h2 className="mt-2 text-balance text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            <h2 className="mt-2 text-balance text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl lg:text-4xl">
               Every listing verified. Every application real.
             </h2>
             <p className="mt-4 text-balance text-base text-gray-600">
@@ -204,13 +204,13 @@ export default async function HomePage() {
       </section>
 
       {/* ─── How it works ─── */}
-      <section className="border-t border-gray-100 bg-gray-50 py-24">
+      <section className="border-t border-gray-100 bg-gray-50 py-16 sm:py-20 lg:py-24">
         <div className="mx-auto max-w-4xl px-4">
           <div className="mx-auto max-w-2xl text-center">
             <p className="text-sm font-semibold uppercase tracking-wider text-indigo-600">
               How it works
             </p>
-            <h2 className="mt-2 text-balance text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            <h2 className="mt-2 text-balance text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl lg:text-4xl">
               Three steps. Zero guesswork.
             </h2>
           </div>
@@ -250,11 +250,11 @@ export default async function HomePage() {
       </section>
 
       {/* ─── CTA ─── */}
-      <section className="relative overflow-hidden bg-gray-900 py-24">
+      <section className="relative overflow-hidden bg-gray-900 py-16 sm:py-20 lg:py-24">
         <div className="absolute inset-0 bg-grid opacity-20" />
         <div className="relative mx-auto max-w-3xl px-4 text-center">
           <Sparkles className="mx-auto h-10 w-10 text-indigo-400" />
-          <h2 className="mt-6 text-balance text-3xl font-bold tracking-tight text-white sm:text-4xl">
+          <h2 className="mt-6 text-balance text-2xl font-bold tracking-tight text-white sm:text-3xl lg:text-4xl">
             Stop applying to dead job posts.
           </h2>
           <p className="mt-4 text-balance text-lg text-gray-300">

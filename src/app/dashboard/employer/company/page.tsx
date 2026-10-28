@@ -79,7 +79,7 @@ export default async function CompanySettingsPage({
           <Building2 className="h-4 w-4" />
           Employer settings
         </div>
-        <h1 className="mt-1 text-2xl font-bold tracking-tight text-gray-900">
+        <h1 className="mt-1 text-xl font-bold tracking-tight text-gray-900 sm:text-2xl text-balance">
           Company profile
         </h1>
         <p className="mt-1 text-sm text-gray-500">
@@ -127,7 +127,7 @@ export default async function CompanySettingsPage({
                 name="company_name"
                 required
                 defaultValue={company?.company_name ?? ""}
-                className="mt-1.5 block w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-sm shadow-sm transition placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                className="mt-1.5 block w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-base sm:text-sm shadow-sm transition placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                 placeholder="Acme (Pvt) Ltd"
               />
             </div>
@@ -144,7 +144,7 @@ export default async function CompanySettingsPage({
                 name="description"
                 rows={6}
                 defaultValue={company?.description ?? ""}
-                className="mt-1.5 block w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-sm leading-relaxed shadow-sm transition placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                className="mt-1.5 block w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-base sm:text-sm leading-relaxed shadow-sm transition placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                 placeholder="What does your company do? What's the mission? What makes it a great place to work?"
               />
               <p className="mt-1.5 text-xs text-gray-500">

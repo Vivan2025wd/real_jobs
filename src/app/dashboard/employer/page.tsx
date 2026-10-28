@@ -69,7 +69,7 @@ export default async function EmployerOverview() {
   if (!company) {
     return (
       <div className="mx-auto max-w-2xl py-10">
-        <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-10 text-center shadow-card">
+        <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 text-center shadow-card sm:p-10">
           <div className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-indigo-100/50 blur-3xl" />
           <div className="pointer-events-none absolute -bottom-16 -left-12 h-48 w-48 rounded-full bg-violet-100/40 blur-3xl" />
 
@@ -78,7 +78,7 @@ export default async function EmployerOverview() {
               <Building2 className="h-8 w-8" />
             </div>
 
-            <h1 className="mt-6 text-3xl font-bold tracking-tight text-gray-900">
+            <h1 className="mt-6 text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl text-balance">
               Welcome to RealJobs
             </h1>
             <p className="mx-auto mt-3 max-w-md text-balance text-gray-600">
@@ -194,7 +194,7 @@ export default async function EmployerOverview() {
               {company.company_name.charAt(0).toUpperCase()}
             </div>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+              <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl text-balance">
                 {company.company_name}
               </h1>
               <p className="text-sm text-gray-500">
@@ -220,7 +220,7 @@ export default async function EmployerOverview() {
       </div>
 
       {/* ─── Stat cards ─── */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((s) => {
           const tone = STAT_TONES[s.tone];
           return (
@@ -297,7 +297,7 @@ export default async function EmployerOverview() {
                 return (
                   <li
                     key={a.id}
-                    className="flex items-center justify-between gap-4 px-6 py-4 transition hover:bg-gray-50/60"
+                    className="flex items-center justify-between gap-3 px-4 py-3.5 transition hover:bg-gray-50/60 sm:px-6 sm:py-4"
                   >
                     <div className="flex min-w-0 items-center gap-3">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-100 to-violet-100 text-sm font-semibold text-indigo-700">

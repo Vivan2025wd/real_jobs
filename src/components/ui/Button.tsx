@@ -21,9 +21,9 @@ const variants: Record<Variant, string> = {
 };
 
 const sizes: Record<Size, string> = {
-  sm: "h-9 px-3.5 text-sm gap-1.5",
-  md: "h-10 px-4 text-sm gap-2",
-  lg: "h-11 px-6 text-base gap-2",
+  sm: "min-h-[44px] px-3.5 text-sm gap-1.5 sm:min-h-0 sm:h-9",
+  md: "min-h-[44px] px-4 text-sm gap-2 sm:min-h-0 sm:h-10",
+  lg: "min-h-[44px] px-6 text-base gap-2 sm:h-11",
 };
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {

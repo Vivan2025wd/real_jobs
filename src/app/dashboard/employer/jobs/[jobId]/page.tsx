@@ -174,11 +174,11 @@ export default async function EmployerJobDetailPage({
       )}
 
       {/* ─── Header card ─── */}
-      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-card">
+      <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-card sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+              <h1 className="text-xl font-bold tracking-tight text-gray-900 sm:text-2xl lg:text-3xl text-balance">
                 {typedJob.title}
               </h1>
               <StatusBadge status={typedJob.status} />
@@ -320,7 +320,7 @@ export default async function EmployerJobDetailPage({
               {typedApplications.map((a) => (
                 <li
                   key={a.id}
-                  className="flex items-center justify-between gap-4 px-6 py-4 transition hover:bg-gray-50/60"
+                  className="flex flex-col gap-3 px-4 py-4 transition hover:bg-gray-50/60 sm:flex-row sm:items-center sm:justify-between sm:px-6"
                 >
                   <div className="flex min-w-0 items-center gap-3">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-100 to-violet-100 text-sm font-semibold text-indigo-700">
@@ -335,7 +335,7 @@ export default async function EmployerJobDetailPage({
                       </p>
                     </div>
                   </div>
-                  <div className="flex shrink-0 items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-2 sm:shrink-0 sm:gap-3">
                     <StatusBadge status={a.status} />
                     <ViewResumeButton applicationId={a.id} />
                   </div>

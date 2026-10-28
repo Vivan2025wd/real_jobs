@@ -157,7 +157,7 @@ function Textarea({
         rows={rows}
         defaultValue={defaultValue}
         placeholder={placeholder}
-        className="mt-1.5 block w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-sm shadow-sm transition placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+        className="mt-1.5 block w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-base sm:text-sm shadow-sm transition placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
       />
       {hint && <p className="mt-1.5 text-xs text-gray-500">{hint}</p>}
     </div>

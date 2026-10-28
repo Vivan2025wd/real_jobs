@@ -59,7 +59,7 @@ export function JobDetail({ job }: Props) {
       {/* ═══════════════ Main column ═══════════════ */}
       <main className="space-y-6">
         {/* ─── Hero card ─── */}
-        <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-card sm:p-8">
+        <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4 shadow-card sm:p-6 lg:p-8">
           <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-indigo-100/40 blur-3xl" />
 
           <div className="relative flex flex-col gap-5 sm:flex-row sm:items-start">
@@ -78,7 +78,7 @@ export function JobDetail({ job }: Props) {
             )}
 
             <div className="min-w-0">
-              <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
+              <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl text-balance">
                 {job.title}
               </h1>
 
@@ -132,7 +132,7 @@ export function JobDetail({ job }: Props) {
         </div>
 
         {/* ─── Description ─── */}
-        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-card sm:p-8">
+        <section className="rounded-2xl border border-gray-200 bg-white p-4 shadow-card sm:p-6 lg:p-8">
           <div className="flex items-center gap-2">
             <FileText className="h-4 w-4 text-gray-400" />
             <h2 className="text-lg font-semibold tracking-tight text-gray-900">
@@ -146,7 +146,7 @@ export function JobDetail({ job }: Props) {
 
         {/* ─── About company ─── */}
         {company.description && (
-          <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-card sm:p-8">
+          <section className="rounded-2xl border border-gray-200 bg-white p-4 shadow-card sm:p-6 lg:p-8">
             <div className="flex items-center gap-3">
               {company.logo_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -181,7 +181,7 @@ export function JobDetail({ job }: Props) {
       {/* ═══════════════ Sidebar ═══════════════ */}
       <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
         {/* ─── Apply CTA ─── */}
-        <div className="relative overflow-hidden rounded-2xl border border-indigo-200 bg-gradient-to-br from-indigo-50 via-white to-violet-50 p-6 shadow-card">
+        <div className="relative overflow-hidden rounded-2xl border border-indigo-200 bg-gradient-to-br from-indigo-50 via-white to-violet-50 p-4 shadow-card sm:p-6">
           <div className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-indigo-200/40 blur-2xl" />
           <div className="relative">
             <div className="flex items-center gap-2">
@@ -201,7 +201,7 @@ export function JobDetail({ job }: Props) {
         </div>
 
         {/* ─── Details ─── */}
-        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-card">
+        <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-card sm:p-6">
           <h2 className="text-sm font-semibold text-gray-900">Job details</h2>
           <dl className="mt-4 space-y-3 text-sm">
             <div className="flex items-start justify-between gap-3">
