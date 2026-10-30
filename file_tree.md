@@ -52,6 +52,7 @@ real_jobs/
     │   │
     │   ├── (auth)/
     │   │   ├── login/page.tsx
+    │   │   ├── confirm/route.ts
     │   │   ├── register/page.tsx
     │   │   └── callback/route.ts           # Supabase auth callback
     │   │

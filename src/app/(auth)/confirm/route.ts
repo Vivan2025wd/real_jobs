@@ -7,7 +7,8 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const token_hash = searchParams.get('token_hash')
-  // ඔයාගේ ලින්ක් එකේ type එක හිස් නම්, default විදියට 'email' ගන්නවා
+  
+  // type එක හිස් නම්, default විදියට 'email' ගන්නවා
   const type = (searchParams.get('type') as EmailOtpType) || 'email'
   const next = searchParams.get('next') ?? '/dashboard'
 
