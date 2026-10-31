@@ -165,7 +165,6 @@ export function Navbar({
                 <form action="/logout" method="post">
                   <button
                     type="submit"
-                    onClick={() => setMobileOpen(false)}
                     className="flex min-h-[44px] w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-base font-medium text-gray-600 transition hover:bg-rose-50 hover:text-rose-700"
                   >
                     <LogOut className="h-5 w-5" />
