@@ -13,11 +13,11 @@ real_jobs/
 │
 ├── docs/                                   # ⬅️ NEW — screenshots for README
 │   └── screenshots/
-│       ├── landing.png
-│       ├── jobs.png
-│       ├── job-detail.png
-│       ├── dashboard.png
-│       └── duration-pricing.png
+│       ├── landing-page.png
+│       ├── employer-dashboard.png
+│       ├── seeker-dashboard.png
+│       └── job-board.png
+
 │
 ├── public/
 │   ├── favicon.ico
