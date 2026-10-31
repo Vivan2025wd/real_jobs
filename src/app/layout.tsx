@@ -1,4 +1,5 @@
 // src/app/layout.tsx
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Inter } from "next/font/google";
@@ -10,14 +11,6 @@ const inter = Inter({
   display: "swap",
 });
 
-// ---------------------------------------------------------------------------
-// Defensive metadataBase resolver.
-//
-// `new URL("example.com")` throws — the URL constructor requires a scheme.
-// Env values are often pasted without `https://` (a real build failure mode),
-// so this normalises the input and falls back to localhost on any parse error.
-// The build must never crash because an env var was formatted loosely.
-// ---------------------------------------------------------------------------
 function getMetadataBase(): URL {
   const raw = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   const withScheme = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
@@ -28,13 +21,6 @@ function getMetadataBase(): URL {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Site-wide metadata.
-//
-// Per-page `metadata` exports override these — this is only the fallback for
-// pages that don't declare their own, plus the defaults for OG / Twitter cards
-// used when a page is shared without specific metadata.
-// ---------------------------------------------------------------------------
 export const metadata: Metadata = {
   metadataBase: getMetadataBase(),
   applicationName: "RealJobs",
@@ -59,7 +45,6 @@ export const metadata: Metadata = {
   creator: "RealJobs",
   publisher: "RealJobs",
 
-  // Default robots — individual pages can override (verify-job sets noindex).
   robots: {
     index: true,
     follow: true,
@@ -72,7 +57,6 @@ export const metadata: Metadata = {
     },
   },
 
-  // Prevent iOS Safari from auto-linking emails / phone numbers in job text.
   formatDetection: {
     telephone: false,
     email: false,
@@ -95,24 +79,16 @@ export const metadata: Metadata = {
       "A next-gen job marketplace with automated listing verification. No stale posts. No dead applications.",
   },
 
-  // App metadata for PWA / mobile installs. Keep minimal — no manifest yet.
   other: {
     "mobile-web-app-capable": "yes",
     "apple-mobile-web-app-title": "RealJobs",
   },
 };
 
-// ---------------------------------------------------------------------------
-// Viewport — separate export in Next.js 14+.
-//
-// themeColor controls the mobile browser chrome color (address bar tint).
-// `colorScheme: "light"` declares the app doesn't support dark mode yet —
-// removing this tells browsers to respect the OS preference, which we don't.
-// ---------------------------------------------------------------------------
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 5, // allow zoom (accessibility) but cap it
+  maximumScale: 5,
   userScalable: true,
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#4f46e5" },
@@ -127,6 +103,7 @@ export default function RootLayout({
     <html lang="en" className={inter.variable}>
       <body className="min-h-screen bg-white pb-[env(safe-area-inset-bottom)] font-sans text-gray-900 antialiased selection:bg-indigo-100 selection:text-indigo-900">
         {children}
+        <Analytics /> {/* මේක මෙතනට දාන්න ඕනේ */}
       </body>
     </html>
   );
