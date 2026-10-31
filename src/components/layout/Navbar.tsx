@@ -1,13 +1,14 @@
 "use client";
 
 import type { User } from "@supabase/supabase-js";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation"; // <-- useRouter එකතු කළා
 import { LayoutDashboard, LogOut, Sparkles, Menu } from "lucide-react";
 import { useUser } from "@/hooks/useUser";
 import { Button } from "@/components/ui/Button";
 import { Logo } from "@/components/ui/Logo";
 import Link from "next/link";
 import { useState } from "react";
+import { createClient } from "@/lib/supabase/client"; // <-- Client එක එකතු කළා
 
 const PUBLIC_NAV = [
   { href: "/jobs", label: "Browse jobs" },
@@ -16,15 +17,15 @@ const PUBLIC_NAV = [
 export function Navbar({
   initialUser,
 }: {
-  /** Server-resolved user. If provided, avoids the skeleton flash. */
   initialUser?: User | null;
 } = {}) {
   const pathname = usePathname();
+  const router = useRouter(); // <-- Router එක initialize කළා
+  const supabase = createClient(); // <-- Supabase client එක හැදුවා
+  
   const hook = useUser();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Prefer initialUser for the first render (no flash), then let the
-  // hook take over once it resolves (keeps multi-tab sign-out reactive).
   const user = hook.loading ? (initialUser ?? null) : hook.user;
   const loading = initialUser === undefined ? hook.loading : false;
 
@@ -46,10 +47,17 @@ export function Navbar({
     return pathname === href || pathname.startsWith(href + "/");
   }
 
+  // <-- අලුත් Logout Function එක
+  const handleSignOut = async () => {
+    await supabase.auth.signOut(); // Cookie එක Client එකෙන් අයින් කරනවා
+    setMobileOpen(false); // Mobile menu එක වහනවා
+    router.push("/login"); // Login පේජ් එකට යනවා
+    router.refresh(); // Server Components වල cache එක ක්ලියර් කරනවා (වැදගත්!)
+  };
+
   return (
     <header className="sticky top-0 z-40 border-b border-gray-200/60 glass">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-        {/* ─── Brand ─── */}
         <Logo />
 
         {/* ─── Desktop nav ─── */}
@@ -68,7 +76,6 @@ export function Navbar({
             </Link>
           ))}
 
-          {/* ─── Auth-dependent right side ─── */}
           {loading ? (
             <>
               <div className="h-9 w-24 animate-pulse rounded-lg bg-gray-100" />
@@ -88,16 +95,14 @@ export function Navbar({
                 Dashboard
               </Link>
 
-              {/* POST form — /logout is POST-only to avoid prefetch logout */}
-              <form action="/logout" method="post">
-                <button
-                  type="submit"
-                  className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-rose-50 hover:text-rose-700"
-                >
-                  <LogOut className="h-4 w-4" />
-                  Sign out
-                </button>
-              </form>
+              {/* Form එක වෙනුවට onClick දැම්මා */}
+              <button
+                onClick={handleSignOut}
+                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-rose-50 hover:text-rose-700"
+              >
+                <LogOut className="h-4 w-4" />
+                Sign out
+              </button>
             </>
           ) : (
             <>
@@ -162,15 +167,15 @@ export function Navbar({
                   <LayoutDashboard className="h-5 w-5" />
                   Dashboard
                 </Link>
-                <form action="/logout" method="post">
-                  <button
-                    type="submit"
-                    className="flex min-h-[44px] w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-base font-medium text-gray-600 transition hover:bg-rose-50 hover:text-rose-700"
-                  >
-                    <LogOut className="h-5 w-5" />
-                    Sign out
-                  </button>
-                </form>
+                
+                {/* මොබයිල් Form එකත් onClick එකට මාරු කළා */}
+                <button
+                  onClick={handleSignOut}
+                  className="flex min-h-[44px] w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-base font-medium text-gray-600 transition hover:bg-rose-50 hover:text-rose-700"
+                >
+                  <LogOut className="h-5 w-5" />
+                  Sign out
+                </button>
               </>
             ) : (
               <>
