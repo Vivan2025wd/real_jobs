@@ -1,5 +1,6 @@
 // src/app/layout.tsx
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next"; // 1. මේක අලුතෙන් එකතු කළා
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Inter } from "next/font/google";
@@ -103,7 +104,8 @@ export default function RootLayout({
     <html lang="en" className={inter.variable}>
       <body className="min-h-screen bg-white pb-[env(safe-area-inset-bottom)] font-sans text-gray-900 antialiased selection:bg-indigo-100 selection:text-indigo-900">
         {children}
-        <Analytics /> {/* මේක මෙතනට දාන්න ඕනේ */}
+        <Analytics /> {/* දැනටමත් තියෙනවා */}
+        <SpeedInsights /> {/* 2. මේක අලුතෙන් එකතු කළා */}
       </body>
     </html>
   );
