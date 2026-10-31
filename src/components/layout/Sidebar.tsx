@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation"; // <-- useRouter එකතු කළා
 import { useEffect, useState } from "react";
 import {
   LayoutDashboard,
@@ -16,6 +16,7 @@ import {
   X,
 } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
+import { createClient } from "@/lib/supabase/client"; // <-- Supabase Client එක එකතු කළා
 
 type Role = "EMPLOYER" | "JOB_SEEKER";
 
@@ -105,7 +106,6 @@ function NavList({
           </p>
           <div className="space-y-0.5">
             {section.items.map((item) => {
-              // Exact match for overview roots, prefix match for everything else
               const isOverview =
                 item.href === "/dashboard/employer" ||
                 item.href === "/dashboard/seeker";
@@ -157,6 +157,15 @@ function UserFooter({
   onNavigate?: () => void;
 }) {
   const roleLabel = role === "EMPLOYER" ? "Employer" : "Job seeker";
+  const router = useRouter(); // <-- Router එක හැදුවා
+  const supabase = createClient(); // <-- Supabase හැදුවා
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    if (onNavigate) onNavigate(); // මොබයිල් මෙනු එක වහන්න
+    router.push("/login");
+    router.refresh();
+  };
 
   return (
     <div className="border-t border-gray-100 p-3">
@@ -176,18 +185,14 @@ function UserFooter({
         </div>
       </div>
 
-      {/* POST form — /logout is POST-only to avoid Next.js <Link> prefetch
-          firing the handler on render and auto-signing the user out. */}
-      <form action="/logout" method="post" className="mt-2">
-        <button
-          type="submit"
-          onClick={onNavigate}
-          className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-xs font-medium text-gray-500 transition hover:bg-rose-50 hover:text-rose-600 md:min-h-0 md:py-2"
-        >
-          <LogOut className="h-3.5 w-3.5" />
-          Sign out
-        </button>
-      </form>
+      {/* Form එක වෙනුවට onClick එක දැම්මා */}
+      <button
+        onClick={handleSignOut}
+        className="mt-2 flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-xs font-medium text-gray-500 transition hover:bg-rose-50 hover:text-rose-600 md:min-h-0 md:py-2"
+      >
+        <LogOut className="h-3.5 w-3.5" />
+        Sign out
+      </button>
     </div>
   );
 }
@@ -196,8 +201,7 @@ export function Sidebar({ role, email }: { role: Role; email: string }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Lock body scroll while the mobile drawer is open. The drawer is fixed,
-  // so without this the page behind can still scroll under it.
+  // Lock body scroll while the mobile drawer is open.
   useEffect(() => {
     if (!mobileOpen) return;
     const original = document.body.style.overflow;
@@ -263,8 +267,6 @@ export function Sidebar({ role, email }: { role: Role; email: string }) {
               />
             </div>
 
-            {/* Safe-area padding — the drawer is fixed, so <body>'s
-                safe-area padding doesn't reach its footer. */}
             <div className="pb-[env(safe-area-inset-bottom)]">
               <UserFooter
                 email={email}
