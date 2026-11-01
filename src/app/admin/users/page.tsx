@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { Trash2, User, Briefcase, Calendar, Inbox, ShieldAlert } from "lucide-react";
 
@@ -17,6 +18,15 @@ type UserRow = {
 // ---------------------------------------------------------------------------
 async function deleteUser(formData: FormData) {
   "use server";
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user || user.email !== process.env.ADMIN_EMAIL) {
+    throw new Error("Unauthorized: Admin access required");
+  }
+
   const userId = String(formData.get("userId"));
   const adminDb = createAdminClient();
   
