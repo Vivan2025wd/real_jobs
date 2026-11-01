@@ -1,5 +1,6 @@
 // src/components/auth/AuthShell.tsx
 import Link from "next/link";
+import Image from "next/image";
 import type { ReactNode } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
@@ -24,8 +25,17 @@ export function AuthShell({ children }: { children: ReactNode }) {
           href="/"
           className="relative inline-flex items-center gap-2.5 text-white transition hover:opacity-90"
         >
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20 text-sm font-bold backdrop-blur-sm">
-            R
+          {/* ලෝගෝ එක සුදු පසුබිමක දාලා තියෙනවා. 
+              මෙතනට overflow-hidden දැම්මා, එතකොට scale කරද්දී එළියට පනින්නේ නෑ. */}
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white shadow-sm overflow-hidden relative">
+            <Image
+              src="/logo.jpg"
+              alt="RealJobs Logo"
+              width={36}
+              height={36}
+              // මෙන්න මෙතන scale-[3] දැම්මා
+              className="object-contain scale-[1.0]" 
+            />
           </span>
           <span className="text-lg font-bold tracking-tight">RealJobs</span>
         </Link>
