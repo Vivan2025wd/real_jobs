@@ -46,6 +46,15 @@ export const metadata: Metadata = {
   creator: "RealJobs",
   publisher: "RealJobs",
 
+  // මෙන්න මේ කොටස අලුතෙන් එකතු කළා. 
+  // මේකෙන් බ්‍රව්සර් එකට කියනවා ලෝගෝ එක තියෙන තැන.
+  icons: {
+    icon: "/favicon.ico", // ඔයා public/ ෆෝල්ඩර් එකේ තියෙනවා නම් මේක වැඩ කරයි.
+    // ඔයා ෆයිල් එක src/app/icon.png කියලා දැම්මා නම් උඩ තියෙන එක අයින් කරලා මේක දාන්න:
+    // icon: "/icon.png",
+    apple: "/apple-touch-icon.png", // අයිෆෝන් හෝම් ස්ක්‍රීන් එකට දාද්දී පේන්න (අවශ්‍ය නම් විතරයි)
+  },
+
   robots: {
     index: true,
     follow: true,
@@ -101,7 +110,8 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en" className={inter.variable}>
+    // suppressHydrationWarning දැම්මා Browser Extensions නිසා එන Error නවත්තන්න
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
       {/* 
         Mobile-First Defensive Classes:
         - w-full max-w-[100vw]: තිරයේ පළල 100% ට වඩා වැඩි නොවීමට
