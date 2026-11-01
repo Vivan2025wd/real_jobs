@@ -6,7 +6,6 @@ import {
   CheckCircle2,
   AlertCircle,
   Info,
-  Sparkles,
   ArrowRight,
   Building2,
   Clock,

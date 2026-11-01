@@ -67,10 +67,6 @@ export default async function AdminJobs() {
     .order("created_at", { ascending: false })
     .returns<JobListRow[]>();
 
-  if (error) {
-    console.error("[admin/jobs] failed to load:", error);
-  }
-
   return (
     <div className="space-y-5 sm:space-y-6">
       {/* ─── Page Header ─── */}
@@ -90,7 +86,14 @@ export default async function AdminJobs() {
       </div>
 
       {/* ─── Empty State ─── */}
-      {!jobs?.length ? (
+      {error ? (
+        <div
+          role="alert"
+          className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800"
+        >
+          Failed to load jobs. Please try again.
+        </div>
+      ) : !jobs?.length ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white p-8 text-center shadow-sm sm:p-12">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-50 text-gray-400 sm:h-14 sm:w-14">
             <Inbox className="h-5 w-5 sm:h-6 sm:w-6" />

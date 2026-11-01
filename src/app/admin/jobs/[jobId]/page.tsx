@@ -1,6 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import Link from "next/link";
-import { ArrowLeft, FileText, Mail, Calendar, Inbox } from "lucide-react";
+import { ArrowLeft, FileText, Calendar, Inbox } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // Types

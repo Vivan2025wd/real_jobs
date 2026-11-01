@@ -40,6 +40,19 @@ const WORK_TYPE_LABEL: Record<string, string> = {
   HYBRID: "Hybrid",
 };
 
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (character) => {
+    const entities: Record<string, string> = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    };
+    return entities[character];
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Expiry countdown
 // ---------------------------------------------------------------------------
@@ -74,10 +87,15 @@ function ExpiryCountdown({ expiresAt }: { expiresAt: string }) {
 // ---------------------------------------------------------------------------
 async function confirmHiring(formData: FormData) {
   "use server";
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Unauthorized");
+
   const jobId = String(formData.get("jobId") ?? "");
   if (!jobId) return;
 
-  const supabase = await createClient();
   await supabase
     .from("jobs")
     .update({ last_verified_at: new Date().toISOString() } as never)
@@ -90,10 +108,15 @@ async function confirmHiring(formData: FormData) {
 
 async function markFilled(formData: FormData) {
   "use server";
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Unauthorized");
+
   const jobId = String(formData.get("jobId") ?? "");
   if (!jobId) return;
 
-  const supabase = await createClient();
   await supabase
     .from("jobs")
     .update({ status: "FILLED" } as never)
@@ -122,13 +145,6 @@ async function updateApplicationStatus(jobId: string, formData: FormData) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return;
-
-  console.log("[updateApplicationStatus] called:", {
-    applicationId,
-    newStatus,
-    jobId,
-    userId: user.id,
-  });
 
   const { data: updatedApp, error } = await supabase
     .from("applications")
@@ -175,6 +191,9 @@ async function updateApplicationStatus(jobId: string, formData: FormData) {
           ? "#e11d48" // rose-600
           : "#4f46e5"; // indigo-600
 
+    const escapedJobTitle = escapeHtml(app.jobs.title);
+    const escapedCompanyName = escapeHtml(app.jobs.companies.company_name);
+
     try {
       await sendEmail({
         to: app.users.email,
@@ -186,8 +205,8 @@ async function updateApplicationStatus(jobId: string, formData: FormData) {
             </div>
             <h1 style="font-size: 22px; color: #111827; margin: 0 0 8px;">Application update</h1>
             <p style="color: #374151; line-height: 1.6; font-size: 15px;">
-              Your application for <strong>${app.jobs.title}</strong> at
-              <strong>${app.jobs.companies.company_name}</strong> has been updated.
+              Your application for <strong>${escapedJobTitle}</strong> at
+              <strong>${escapedCompanyName}</strong> has been updated.
             </p>
             <div style="background: #f9fafb; border-left: 3px solid ${statusColor}; padding: 12px 16px; margin: 20px 0; border-radius: 4px;">
               <p style="margin: 0; font-size: 13px; color: #6b7280;">New status</p>

@@ -10,7 +10,7 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { createClient as createAnonClient } from "@supabase/supabase-js";
 import { JobFilters } from "@/components/jobs/JobFilters";
 import { JobList } from "@/components/jobs/JobList";
 import { Button } from "@/components/ui/Button";
@@ -23,8 +23,14 @@ export const metadata: Metadata = {
     "Browse verified, up-to-date jobs across engineering, design, marketing, and more.",
 };
 
-// Public search depends on URL params + session cookie → always dynamic.
+// Public search depends on URL params, so it remains dynamic without reading
+// the user's session.
 export const dynamic = "force-dynamic";
+
+const supabase = createAnonClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 type SearchParams = {
   q?: string;
@@ -53,8 +59,6 @@ export default async function JobsPage({
 }: {
   searchParams: SearchParams;
 }) {
-  const supabase = await createClient();
-
   const page = Math.max(1, parseInt(searchParams.page ?? "1", 10) || 1);
   const from = (page - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;

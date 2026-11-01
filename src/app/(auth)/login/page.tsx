@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { AlertCircle, CheckCircle2, Mail, Lock } from "lucide-react";
+import { AlertCircle, CheckCircle2, Mail } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { SubmitButton } from "@/components/ui/SubmitButton";

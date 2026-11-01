@@ -8,7 +8,6 @@ const VERIFICATION_CYCLE_DAYS = 14;
 const VERIFICATION_GRACE_HOURS = 48;
 const STALE_THRESHOLD_DAYS = 3;
 const HOT_THRESHOLD = 10;
-const EXPIRING_WINDOW_HOURS = 24;
 
 // ───────────────────────────────────────────────────────────────────────────
 // Verification emails (unchanged behavior, kept for long-duration jobs)

@@ -52,7 +52,6 @@ export const metadata: Metadata = {
     icon: "/favicon.ico", // ඔයා public/ ෆෝල්ඩර් එකේ තියෙනවා නම් මේක වැඩ කරයි.
     // ඔයා ෆයිල් එක src/app/icon.png කියලා දැම්මා නම් උඩ තියෙන එක අයින් කරලා මේක දාන්න:
     // icon: "/icon.png",
-    apple: "/apple-touch-icon.png", // අයිෆෝන් හෝම් ස්ක්‍රීන් එකට දාද්දී පේන්න (අවශ්‍ය නම් විතරයි)
   },
 
   robots: {

@@ -1,7 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { Trash2, User, Briefcase, Calendar, Inbox, ShieldAlert } from "lucide-react";
+import { Trash2, User, Briefcase, Calendar, Inbox } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -153,10 +153,6 @@ export default async function AdminUsers() {
     .order("created_at", { ascending: false })
     .returns<UserRow[]>();
 
-  if (error) {
-    console.error("[admin/users] failed to load:", error);
-  }
-
   const seekers = users?.filter((u) => u.role === "JOB_SEEKER") || [];
   const employers = users?.filter((u) => u.role === "EMPLOYER") || [];
 
@@ -172,21 +168,32 @@ export default async function AdminUsers() {
         </p>
       </div>
 
-      {/* ─── Employers Section ─── */}
-      <UserList 
-        title="Employers" 
-        description="Companies and recruiters posting jobs."
-        icon={Briefcase}
-        data={employers} 
-      />
+      {error ? (
+        <div
+          role="alert"
+          className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800"
+        >
+          Failed to load users. Please try again.
+        </div>
+      ) : (
+        <>
+          {/* ─── Employers Section ─── */}
+          <UserList
+            title="Employers"
+            description="Companies and recruiters posting jobs."
+            icon={Briefcase}
+            data={employers}
+          />
 
-      {/* ─── Seekers Section ─── */}
-      <UserList 
-        title="Job Seekers" 
-        description="Candidates applying for jobs."
-        icon={User}
-        data={seekers} 
-      />
+          {/* ─── Seekers Section ─── */}
+          <UserList
+            title="Job Seekers"
+            description="Candidates applying for jobs."
+            icon={User}
+            data={seekers}
+          />
+        </>
+      )}
     </div>
   );
 }

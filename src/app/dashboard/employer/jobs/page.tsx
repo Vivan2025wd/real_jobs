@@ -31,10 +31,15 @@ const WORK_TYPE_LABEL: Record<string, string> = {
 // ----- Server Actions -----
 async function markFilled(formData: FormData) {
   "use server";
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Unauthorized");
+
   const jobId = String(formData.get("jobId") ?? "");
   if (!jobId) return;
 
-  const supabase = await createClient();
   await supabase
     .from("jobs")
     .update({ status: "FILLED" } as never)
@@ -46,10 +51,15 @@ async function markFilled(formData: FormData) {
 
 async function deleteJob(formData: FormData) {
   "use server";
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Unauthorized");
+
   const jobId = String(formData.get("jobId") ?? "");
   if (!jobId) return;
 
-  const supabase = await createClient();
   await supabase.from("jobs").delete().eq("id", jobId);
 
   revalidatePath("/dashboard/employer/jobs");
