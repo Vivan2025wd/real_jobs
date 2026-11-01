@@ -17,8 +17,6 @@ import { StatusBadge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { timeAgo } from "@/lib/utils/format";
 
-// Stat card config — keeps the JSX clean and makes future stat additions a
-// one-line change.
 type StatConfig = {
   key: "total" | "active" | "draft" | "applications";
   label: string;
@@ -239,7 +237,8 @@ export default async function EmployerOverview() {
       </div>
 
       {/* ─── Stat cards ─── */}
-      <div className="grid gap-2.5 sm:grid-cols-2 sm:gap-3 lg:grid-cols-4">
+      {/* මොබයිල් එකේදී 2 columns (grid-cols-2) කළා, එතකොට ඉඩ ඉතුරු වෙනවා */}
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
         {stats.map((s) => {
           const tone = STAT_TONES[s.tone];
           return (
@@ -247,20 +246,20 @@ export default async function EmployerOverview() {
               key={s.key}
               className={`relative overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br ${tone.bg} p-3.5 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-card-hover sm:p-5`}
             >
-              <div className="flex items-start justify-between gap-2">
+              <div className="flex items-start justify-between gap-1.5">
                 <div
-                  className={`flex h-8 w-8 items-center justify-center rounded-lg border shadow-sm sm:h-9 sm:w-9 ${tone.icon}`}
+                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md border bg-white shadow-sm sm:h-9 sm:w-9 sm:rounded-lg ${tone.icon}`}
                 >
                   <s.icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 </div>
                 <span
-                  className={`truncate rounded-full bg-white/70 px-2 py-0.5 text-[9px] font-medium uppercase tracking-wider text-gray-500 ring-1 sm:text-[10px] ${tone.ring}`}
+                  className={`truncate rounded-full bg-white/70 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider text-gray-500 ring-1 sm:px-2 sm:text-[10px] ${tone.ring}`}
                 >
                   {s.hint}
                 </span>
               </div>
-              <p className="mt-3 text-xs font-medium text-gray-600 sm:mt-4 sm:text-sm">{s.label}</p>
-              <p className="mt-0.5 text-2xl font-bold tracking-tight text-gray-900 sm:mt-1 sm:text-3xl">
+              <p className="mt-2.5 text-xs font-medium text-gray-600 sm:mt-4 sm:text-sm">{s.label}</p>
+              <p className="mt-0.5 text-xl font-bold tracking-tight text-gray-900 sm:mt-1 sm:text-3xl">
                 {s.value}
               </p>
             </div>
