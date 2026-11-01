@@ -279,7 +279,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_application_notification_details: {
+        Args: {
+          p_application_id: string
+        }
+        Returns: {
+          company_name: string
+          employer_email: string
+          job_title: string
+          seeker_email: string | null
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

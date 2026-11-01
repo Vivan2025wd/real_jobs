@@ -12,6 +12,8 @@ type PaymentRow = {
   order_id: string;
   job_id: string | null;
   status: "PENDING" | "COMPLETED" | "FAILED";
+  amount: number;
+  currency: string;
 };
 
 // PayHere status codes:
@@ -50,11 +52,16 @@ export async function POST(req: NextRequest) {
 
   const supabase = createAdminClient();
 
-  const { data: rawPayment } = await supabase
+  const { data: rawPayment, error: paymentLookupError } = await supabase
     .from("payments")
-    .select("id, order_id, job_id, status")
+    .select("id, order_id, job_id, status, amount, currency")
     .eq("order_id", payload.order_id)
     .maybeSingle();
+
+  if (paymentLookupError) {
+    console.error("[api/payment/notify] payment lookup failed:", paymentLookupError);
+    return NextResponse.json({ error: "Payment lookup failed" }, { status: 500 });
+  }
 
   const payment = rawPayment as PaymentRow | null;
 
@@ -64,21 +71,46 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true });
   }
 
+  const payloadAmount = Number(payload.payhere_amount);
+  if (
+    !Number.isFinite(payloadAmount) ||
+    Number(payment.amount) !== payloadAmount ||
+    payment.currency !== payload.payhere_currency
+  ) {
+    console.error(
+      `[api/payment/notify] amount or currency mismatch for order ${payload.order_id}`
+    );
+    return NextResponse.json(
+      { error: "Payment amount or currency mismatch" },
+      { status: 400 }
+    );
+  }
+
   // Idempotency: don't downgrade a COMPLETED payment.
   if (payment.status === "COMPLETED") {
     if (payment.job_id) {
-      const { data: jobState } = await supabase
+      const { data: jobState, error: jobLookupError } = await supabase
         .from("jobs")
         .select("status")
         .eq("id", payment.job_id)
         .maybeSingle();
 
+      if (jobLookupError) {
+        console.error("[api/payment/notify] job lookup failed:", jobLookupError);
+        return NextResponse.json({ error: "Job lookup failed" }, { status: 500 });
+      }
+
       if (jobState?.status === "DRAFT") {
-        await supabase
+        const { error: jobUpdateError } = await supabase
           .from("jobs")
           .update({ status: "ACTIVE" } as never)
           .eq("id", payment.job_id)
           .eq("status", "DRAFT");
+
+        if (jobUpdateError) {
+          console.error("[api/payment/notify] job activation failed:", jobUpdateError);
+          return NextResponse.json({ error: "Job activation failed" }, { status: 500 });
+        }
       }
     }
     return NextResponse.json({ ok: true, note: "already completed" });
@@ -87,20 +119,30 @@ export async function POST(req: NextRequest) {
   const success = payload.status_code === SUCCESS_CODE;
 
   if (success && payment.job_id) {
-    await supabase
+    const { error: jobUpdateError } = await supabase
       .from("jobs")
       .update({ status: "ACTIVE" } as never)
       .eq("id", payment.job_id)
       .eq("status", "DRAFT");
+
+    if (jobUpdateError) {
+      console.error("[api/payment/notify] job activation failed:", jobUpdateError);
+      return NextResponse.json({ error: "Job activation failed" }, { status: 500 });
+    }
   }
 
-  await supabase
+  const { error: paymentUpdateError } = await supabase
     .from("payments")
     .update({
       status: success ? "COMPLETED" : "FAILED",
       gateway_reference: payload.payment_id || null,
     } as never)
     .eq("id", payment.id);
+
+  if (paymentUpdateError) {
+    console.error("[api/payment/notify] payment update failed:", paymentUpdateError);
+    return NextResponse.json({ error: "Payment update failed" }, { status: 500 });
+  }
 
   return NextResponse.json({ ok: true });
 }

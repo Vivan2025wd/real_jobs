@@ -125,7 +125,7 @@ function UserList({
                     <input type="hidden" name="userId" value={u.id} />
                     <button
                       type="submit"
-                      className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 transition hover:bg-rose-50 hover:text-rose-600 sm:h-8 sm:w-8"
+                      className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-gray-400 transition hover:bg-rose-50 hover:text-rose-600 md:min-h-0 md:min-w-0 md:h-8 md:w-8"
                       title="Delete User"
                     >
                       <Trash2 className="h-4 w-4" />

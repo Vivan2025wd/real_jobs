@@ -88,7 +88,7 @@ export function AdminSidebar() {
         <button
           type="button"
           onClick={() => setMobileOpen(true)}
-          className="flex h-10 w-10 items-center justify-center rounded-lg text-gray-600 transition hover:bg-gray-100"
+          className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-gray-600 transition hover:bg-gray-100"
           aria-label="Open menu"
         >
           <Menu className="h-5 w-5" />
@@ -111,7 +111,7 @@ export function AdminSidebar() {
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}
-                className="flex h-10 w-10 items-center justify-center rounded-lg text-gray-600 transition hover:bg-gray-100"
+                className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-gray-600 transition hover:bg-gray-100"
                 aria-label="Close menu"
               >
                 <X className="h-5 w-5" />

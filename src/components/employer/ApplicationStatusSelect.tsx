@@ -46,7 +46,7 @@ export function ApplicationStatusSelect({
         }}
         disabled={pending}
         // මොබයිල් එකේදී ලොකුවට (py-2 text-sm), ඩෙස්ක්ටොප් එකේදී පොඩියට (sm:py-1 sm:text-xs)
-        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:border-gray-300 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:cursor-wait disabled:opacity-60 sm:w-auto sm:rounded-md sm:px-2 sm:py-1 sm:text-xs"
+        className="min-h-[44px] w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-base font-medium text-gray-700 shadow-sm transition hover:border-gray-300 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:cursor-wait disabled:opacity-60 sm:min-h-0 sm:w-auto sm:rounded-md sm:px-2 sm:py-1 sm:text-xs"
       >
         {STATUS_OPTIONS.map((opt) => (
           <option key={opt.value} value={opt.value}>

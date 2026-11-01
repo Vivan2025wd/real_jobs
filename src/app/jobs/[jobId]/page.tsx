@@ -110,13 +110,14 @@ export default async function JobDetailPage({
         }
       : {}),
   };
+  const safeJsonLd = JSON.stringify(jsonLd).replace(/</g, "\\u003c");
 
   return (
     // min-h-screen සහ overflow-x-hidden දැම්මා horizontal scroll එක නවත්තන්න
     <div className="min-h-screen w-full overflow-x-hidden bg-gradient-to-br from-slate-50 via-white to-slate-50">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd }}
       />
 
       {/* ─── Sticky glass header ─── */}

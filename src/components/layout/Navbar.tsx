@@ -131,7 +131,7 @@ export function Navbar({
         <button
           type="button"
           onClick={() => setMobileOpen((v) => !v)}
-          className="flex h-10 w-10 items-center justify-center rounded-lg text-gray-600 transition hover:bg-gray-100 sm:hidden"
+          className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-gray-600 transition hover:bg-gray-100 sm:hidden"
           aria-label="Toggle navigation"
           aria-expanded={mobileOpen}
         >
@@ -174,7 +174,7 @@ export function Navbar({
                 
                 <button
                   onClick={handleSignOut}
-                  className="flex min-h-[44px] w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium text-gray-600 transition hover:bg-rose-50 hover:text-rose-700"
+                  className="flex min-h-[44px] min-w-[44px] w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium text-gray-600 transition hover:bg-rose-50 hover:text-rose-700"
                 >
                   <LogOut className="h-4 w-4" />
                   Sign out
