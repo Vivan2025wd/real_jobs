@@ -18,12 +18,6 @@ const MAX_SIZE_BYTES = 2 * 1024 * 1024;
 const ACCEPTED = ["image/png", "image/jpeg", "image/webp"] as const;
 const ACCEPTED_LABEL = "PNG, JPEG, or WebP · max 2 MB";
 
-// ---------------------------------------------------------------------------
-// Verify a URL actually loads before we save it to the DB.
-// If the S3 bucket isn't public (or the CloudFront domain is a placeholder),
-// the URL will 403 and the <img> will fail silently. This helper does the
-// check explicitly so we can surface a real error instead of a blank box.
-// ---------------------------------------------------------------------------
 function verifyImageLoads(url: string): Promise<boolean> {
   return new Promise((resolve) => {
     const img = new Image();
@@ -105,7 +99,6 @@ export function CompanyLogoUploader({
     setSuccess(false);
 
     try {
-      // ─── 1. Get pre-signed URL ───
       const presignRes = await fetch("/api/s3/presigned-url", {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -126,7 +119,6 @@ export function CompanyLogoUploader({
         publicUrl: string;
       };
 
-      // ─── 2. Upload directly to S3 ───
       const putRes = await fetch(uploadUrl, {
         method: "PUT",
         headers: { "content-type": file.type },
@@ -143,7 +135,6 @@ export function CompanyLogoUploader({
         throw new Error(`Upload to storage failed (${putRes.status})`);
       }
 
-      // ─── 3. Verify the public URL actually serves the image ───
       const urlWorks = await verifyImageLoads(publicUrl);
       if (!urlWorks) {
         console.error("[CompanyLogoUploader] Upload succeeded but URL is broken:", publicUrl);
@@ -157,7 +148,6 @@ export function CompanyLogoUploader({
         return;
       }
 
-      // ─── 4. Save the URL to the company row ───
       const supabase = createClient();
       const {
         data: { user },
@@ -192,16 +182,16 @@ export function CompanyLogoUploader({
   const showExisting = currentUrl && !file;
 
   return (
-    <div className="space-y-4">
+    <div className="w-full space-y-3 sm:space-y-4">
       {/* ─── Preview area ─── */}
-      <div className="flex items-start gap-4">
-        <div className="relative">
+      <div className="flex min-w-0 items-start gap-3 sm:gap-4">
+        <div className="relative shrink-0">
           {showExisting ? (
-            <div className="relative h-24 w-24 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+            <div className="relative h-20 w-20 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm sm:h-24 sm:w-24 sm:rounded-2xl">
               {imageBroken ? (
                 <div className="flex h-full w-full flex-col items-center justify-center gap-1 bg-rose-50 text-rose-500">
-                  <AlertCircle className="h-6 w-6" />
-                  <span className="text-[10px] font-medium">Broken URL</span>
+                  <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6" />
+                  <span className="text-[9px] font-medium sm:text-[10px]">Broken URL</span>
                 </div>
               ) : (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -214,7 +204,7 @@ export function CompanyLogoUploader({
               )}
             </div>
           ) : preview ? (
-            <div className="relative h-24 w-24 overflow-hidden rounded-2xl border border-indigo-200 bg-white shadow-sm ring-2 ring-indigo-100">
+            <div className="relative h-20 w-20 overflow-hidden rounded-xl border border-indigo-200 bg-white shadow-sm ring-2 ring-indigo-100 sm:h-24 sm:w-24 sm:rounded-2xl">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={preview}
@@ -223,36 +213,36 @@ export function CompanyLogoUploader({
               />
             </div>
           ) : (
-            <div className="flex h-24 w-24 flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 text-gray-400">
-              <ImageIcon className="h-6 w-6" />
-              <span className="text-[10px] font-medium">No logo</span>
+            <div className="flex h-20 w-20 flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 text-gray-400 sm:h-24 sm:w-24 sm:rounded-2xl">
+              <ImageIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+              <span className="text-[9px] font-medium sm:text-[10px]">No logo</span>
             </div>
           )}
         </div>
 
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-gray-900">
+        <div className="min-w-0 flex-1 pt-1">
+          <p className="text-xs font-medium text-gray-900 sm:text-sm">
             {showExisting
               ? "Current company logo"
               : preview
                 ? "Ready to upload"
                 : "No logo set"}
           </p>
-          <p className="mt-0.5 text-xs text-gray-500">{ACCEPTED_LABEL}</p>
+          <p className="mt-0.5 text-[11px] text-gray-500 sm:text-xs">{ACCEPTED_LABEL}</p>
 
           {imageBroken && currentUrl && (
-            <div className="mt-2 rounded-md border border-rose-200 bg-rose-50 px-2.5 py-2 text-xs text-rose-700">
+            <div className="mt-2 rounded-lg border border-rose-200 bg-rose-50 p-2 text-[10px] text-rose-700 sm:px-2.5 sm:py-2 sm:text-xs">
               <p className="font-medium">The saved logo URL isn&apos;t loading.</p>
               <p className="mt-1 break-all text-rose-600/80">{currentUrl}</p>
-              <p className="mt-1">
+              <p className="mt-1 leading-snug">
                 Check that your assets bucket is publicly readable.
               </p>
             </div>
           )}
 
           {success && (
-            <div className="mt-2 flex items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs text-emerald-700">
-              <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+            <div className="mt-2 flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-1.5 text-[10px] text-emerald-700 sm:px-2.5 sm:text-xs">
+              <CheckCircle2 className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
               Logo updated successfully.
             </div>
           )}
@@ -263,16 +253,16 @@ export function CompanyLogoUploader({
       {!file && (
         <label
           htmlFor="logo-input"
-          className="group flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50/60 px-4 py-6 text-center transition hover:border-indigo-300 hover:bg-indigo-50/40"
+          className="group flex w-full cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50/60 px-3 py-5 text-center transition hover:border-indigo-300 hover:bg-indigo-50/40 sm:gap-2 sm:px-4 sm:py-6"
         >
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-gray-400 shadow-sm ring-1 ring-gray-200 transition group-hover:text-indigo-600 group-hover:ring-indigo-200">
-            <Upload className="h-4 w-4" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-gray-400 shadow-sm ring-1 ring-gray-200 transition group-hover:text-indigo-600 group-hover:ring-indigo-200 sm:h-10 sm:w-10 sm:rounded-xl">
+            <Upload className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-900">
+            <p className="text-xs font-medium text-gray-900 sm:text-sm">
               {currentUrl ? "Replace logo" : "Upload a logo"}
             </p>
-            <p className="mt-0.5 text-xs text-gray-500">
+            <p className="mt-0.5 text-[10px] text-gray-500 sm:text-xs">
               Click to browse · {ACCEPTED_LABEL}
             </p>
           </div>
@@ -289,15 +279,15 @@ export function CompanyLogoUploader({
 
       {/* ─── Selected file row ─── */}
       {file && (
-        <div className="flex items-center gap-3 rounded-xl border border-indigo-200 bg-indigo-50/40 px-3 py-2.5">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-indigo-600 shadow-sm ring-1 ring-indigo-100">
-            <ImageIcon className="h-4 w-4" />
+        <div className="flex w-full items-center gap-2.5 rounded-xl border border-indigo-200 bg-indigo-50/40 p-2 sm:gap-3 sm:px-3 sm:py-2.5">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-indigo-600 shadow-sm ring-1 ring-indigo-100 sm:h-9 sm:w-9">
+            <ImageIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-gray-900">
+            <p className="truncate text-xs font-medium text-gray-900 sm:text-sm">
               {file.name}
             </p>
-            <p className="text-xs text-gray-500">
+            <p className="text-[10px] text-gray-500 sm:text-xs">
               {(file.size / 1024).toFixed(0)} KB
             </p>
           </div>
@@ -305,22 +295,22 @@ export function CompanyLogoUploader({
             type="button"
             onClick={clearFile}
             disabled={pending}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-gray-400 transition hover:bg-white hover:text-gray-700 disabled:opacity-50 sm:h-7 sm:w-7"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-white hover:text-gray-700 disabled:opacity-50 sm:h-7 sm:w-7"
             aria-label="Remove file"
           >
-            <X className="h-4 w-4" />
+            <X className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
           </button>
         </div>
       )}
 
       {/* ─── Error banner ─── */}
       {error && (
-        <div className="flex items-start gap-2.5 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2.5">
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-rose-500" />
+        <div className="flex w-full items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-2.5 sm:gap-2.5 sm:px-3 sm:py-2.5">
+          <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-rose-500 sm:h-4 sm:w-4" />
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-rose-900">{error}</p>
+            <p className="text-xs font-medium text-rose-900 sm:text-sm">{error}</p>
             {errorHint && (
-              <p className="mt-0.5 break-words text-xs text-rose-700">
+              <p className="mt-0.5 break-words text-[10px] leading-snug text-rose-700 sm:text-xs">
                 {errorHint}
               </p>
             )}
@@ -329,12 +319,13 @@ export function CompanyLogoUploader({
       )}
 
       {/* ─── Actions ─── */}
-      <div className="flex flex-wrap items-center gap-2">
+      {/* මොබයිල් එකේදී බටන්ස් එකින් එක පහළින් (flex-col), ඩෙස්ක්ටොප් එකේදී පැත්තට පැත්ත (sm:flex-row) */}
+      <div className="flex w-full flex-col items-center gap-2 sm:flex-row">
         <Button
           type="button"
           onClick={handleUpload}
           disabled={!file || pending}
-          className="w-full sm:w-auto"
+          className="w-full justify-center sm:w-auto"
           icon={
             pending ? (
               <RefreshCw className="h-4 w-4 animate-spin" />
@@ -356,7 +347,7 @@ export function CompanyLogoUploader({
             variant="ghost"
             onClick={clearFile}
             size="md"
-            className="w-full sm:w-auto"
+            className="w-full justify-center sm:w-auto"
           >
             Cancel
           </Button>
@@ -369,10 +360,10 @@ export function CompanyLogoUploader({
           href={currentUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-700 hover:underline"
+          className="inline-flex w-full items-center justify-center gap-1 break-all text-[10px] text-indigo-600 hover:text-indigo-700 hover:underline sm:w-auto sm:justify-start sm:text-xs"
         >
           Open logo URL in new tab
-          <ExternalLink className="h-3 w-3" />
+          <ExternalLink className="h-3 w-3 shrink-0" />
         </a>
       )}
     </div>

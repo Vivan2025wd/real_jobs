@@ -123,9 +123,6 @@ async function updateApplicationStatus(jobId: string, formData: FormData) {
   } = await supabase.auth.getUser();
   if (!user) return;
 
-  // Diagnostic log — confirms the form reached the action. If you never see
-  // this line in the terminal when changing the dropdown, the form isn't
-  // submitting at all.
   console.log("[updateApplicationStatus] called:", {
     applicationId,
     newStatus,
@@ -133,9 +130,6 @@ async function updateApplicationStatus(jobId: string, formData: FormData) {
     userId: user.id,
   });
 
-  // Update the status. RLS enforces that the employer owns the job this
-  // application belongs to. The select returns the joined user + job so we
-  // can build the email without a second round-trip.
   const { data: updatedApp, error } = await supabase
     .from("applications")
     .update({ status: newStatus } as never)
@@ -161,14 +155,11 @@ async function updateApplicationStatus(jobId: string, formData: FormData) {
     return;
   }
 
-  // Deep embeds collapse to `never` in TS — cast to the shape we selected.
   const app = updatedApp as unknown as {
     users: { email: string };
     jobs: { title: string; companies: { company_name: string } };
   };
 
-  // Only email on "notification-worthy" transitions. Don't email when
-  // reverting to PENDING — that's the employer undoing a mistake.
   if (["REVIEWED", "SHORTLISTED", "REJECTED"].includes(newStatus)) {
     const statusLabel =
       newStatus === "REVIEWED"
@@ -215,8 +206,6 @@ async function updateApplicationStatus(jobId: string, formData: FormData) {
         `,
       });
     } catch (err) {
-      // Email failure should not fail the status update — the DB write is
-      // already committed. Just log it.
       console.error("[updateApplicationStatus] email send failed:", err);
     }
   }
@@ -267,16 +256,18 @@ export default async function EmployerJobDetailPage({
   const typedApplications = (applications ?? []) as ApplicationWithSeeker[];
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-4 sm:space-y-6">
       {/* ─── Payment banners ─── */}
       {searchParams.payment === "success" && (
-        <div className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3.5 shadow-sm">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-            <CheckCircle2 className="h-4 w-4" />
+        <div className="flex items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 p-3 shadow-sm sm:gap-3 sm:px-4 sm:py-3.5">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 sm:h-8 sm:w-8">
+            <CheckCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           </div>
-          <div>
-            <p className="font-semibold text-emerald-900">Payment received</p>
-            <p className="mt-0.5 text-sm text-emerald-800">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-emerald-900 sm:text-base">
+              Payment received
+            </p>
+            <p className="mt-0.5 text-xs leading-snug text-emerald-800 sm:text-sm">
               We&apos;re confirming with PayHere now. If the status below still
               shows <strong>Draft</strong>, refresh in a few seconds — the
               webhook activates the job automatically.
@@ -285,13 +276,15 @@ export default async function EmployerJobDetailPage({
         </div>
       )}
       {searchParams.payment === "cancelled" && (
-        <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3.5 shadow-sm">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600">
-            <AlertCircle className="h-4 w-4" />
+        <div className="flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 p-3 shadow-sm sm:gap-3 sm:px-4 sm:py-3.5">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600 sm:h-8 sm:w-8">
+            <AlertCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           </div>
-          <div>
-            <p className="font-semibold text-amber-900">Payment cancelled</p>
-            <p className="mt-0.5 text-sm text-amber-800">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-amber-900 sm:text-base">
+              Payment cancelled
+            </p>
+            <p className="mt-0.5 text-xs leading-snug text-amber-800 sm:text-sm">
               You can try again below whenever you&apos;re ready.
             </p>
           </div>
@@ -299,23 +292,23 @@ export default async function EmployerJobDetailPage({
       )}
 
       {/* ─── Header card ─── */}
-      <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-card sm:p-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="w-full rounded-xl border border-gray-200 bg-white p-3.5 shadow-card sm:rounded-2xl sm:p-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
           <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-balance text-xl font-bold tracking-tight text-gray-900 sm:text-2xl lg:text-3xl">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <h1 className="text-balance text-lg font-bold tracking-tight text-gray-900 sm:text-2xl lg:text-3xl">
                 {typedJob.title}
               </h1>
               <StatusBadge status={typedJob.status} />
             </div>
 
-            <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-gray-600">
-              <span className="inline-flex items-center gap-1.5">
-                <MapPin className="h-4 w-4 text-gray-400" />
+            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-gray-600 sm:mt-3 sm:gap-x-5 sm:gap-y-2 sm:text-sm">
+              <span className="inline-flex items-center gap-1">
+                <MapPin className="h-3.5 w-3.5 text-gray-400 sm:h-4 sm:w-4" />
                 {typedJob.location}
               </span>
-              <span className="inline-flex items-center gap-1.5">
-                <Banknote className="h-4 w-4 text-gray-400" />
+              <span className="inline-flex items-center gap-1">
+                <Banknote className="h-3.5 w-3.5 text-gray-400 sm:h-4 sm:w-4" />
                 {formatSalary(typedJob.salary_min, typedJob.salary_max)}
               </span>
               <Badge tone="blue">
@@ -329,14 +322,14 @@ export default async function EmployerJobDetailPage({
               )}
             </div>
 
-            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+            <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] sm:mt-3 sm:gap-x-4 sm:text-xs">
               <span className="inline-flex items-center gap-1 text-gray-400">
-                <Calendar className="h-3.5 w-3.5" />
+                <Calendar className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                 Posted {formatDate(typedJob.created_at)}
               </span>
               {typedJob.last_verified_at && (
                 <span className="inline-flex items-center gap-1 text-gray-400">
-                  <Clock className="h-3.5 w-3.5" />
+                  <Clock className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                   Last verified {timeAgo(typedJob.last_verified_at)}
                 </span>
               )}
@@ -346,14 +339,14 @@ export default async function EmployerJobDetailPage({
             </div>
           </div>
 
-          <Link
-            href={`/dashboard/employer/jobs/${typedJob.id}/edit`}
-            className="shrink-0"
-          >
-            <Button variant="secondary" icon={<Edit3 className="h-4 w-4" />}>
-              Edit
-            </Button>
-          </Link>
+          {/* Edit Button - Full width on mobile */}
+          <div className="w-full sm:w-auto sm:shrink-0">
+            <Link href={`/dashboard/employer/jobs/${typedJob.id}/edit`} className="block w-full">
+              <Button variant="secondary" icon={<Edit3 className="h-4 w-4" />} className="w-full justify-center sm:w-auto">
+                Edit
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -369,18 +362,18 @@ export default async function EmployerJobDetailPage({
 
       {/* ─── DRAFT payment banner ─── */}
       {typedJob.status === "DRAFT" && (
-        <div className="relative overflow-hidden rounded-2xl border border-indigo-200 bg-gradient-to-br from-indigo-50 via-white to-violet-50 p-6 shadow-card">
+        <div className="relative w-full overflow-hidden rounded-xl border border-indigo-200 bg-gradient-to-br from-indigo-50 via-white to-violet-50 p-4 shadow-card sm:rounded-2xl sm:p-6">
           <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-indigo-200/30 blur-2xl" />
           <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-sm">
-                <CreditCard className="h-5 w-5" />
+            <div className="flex items-start gap-2.5 sm:gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-sm sm:h-11 sm:w-11 sm:rounded-xl">
+                <CreditCard className="h-4 w-4 sm:h-5 sm:w-5" />
               </div>
-              <div>
-                <h3 className="text-lg font-semibold tracking-tight text-gray-900">
+              <div className="min-w-0">
+                <h3 className="text-base font-semibold tracking-tight text-gray-900 sm:text-lg">
                   Ready to publish?
                 </h3>
-                <p className="mt-1 text-sm text-gray-600">
+                <p className="mt-1 text-xs leading-relaxed text-gray-600 sm:text-sm">
                   Pay the{" "}
                   <strong className="text-gray-900">
                     LKR {typedJob.price_lkr.toLocaleString("en-LK")}
@@ -408,7 +401,7 @@ export default async function EmployerJobDetailPage({
           icon={<FileText className="h-4 w-4" />}
         />
         <CardBody>
-          <p className="whitespace-pre-line text-sm leading-relaxed text-gray-700">
+          <p className="whitespace-pre-line text-xs leading-relaxed text-gray-700 sm:text-sm">
             {typedJob.description}
           </p>
         </CardBody>
@@ -427,15 +420,15 @@ export default async function EmployerJobDetailPage({
         />
         <CardBody className="p-0">
           {!typedApplications.length ? (
-            <div className="flex flex-col items-center justify-center gap-3 px-6 py-14 text-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-gray-400">
-                <Inbox className="h-6 w-6" />
+            <div className="flex flex-col items-center justify-center gap-3 px-4 py-10 text-center sm:px-6 sm:py-14">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-400 sm:h-12 sm:w-12">
+                <Inbox className="h-5 w-5 sm:h-6 sm:w-6" />
               </div>
               <div>
-                <p className="font-medium text-gray-900">
+                <p className="text-sm font-medium text-gray-900 sm:text-base">
                   No applications yet
                 </p>
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-0.5 text-xs text-gray-500 sm:mt-1 sm:text-sm">
                   Applications will appear here as soon as candidates apply.
                 </p>
               </div>
@@ -445,22 +438,22 @@ export default async function EmployerJobDetailPage({
               {typedApplications.map((a) => (
                 <li
                   key={a.id}
-                  className="flex flex-col gap-3 px-4 py-4 transition hover:bg-gray-50/60 sm:flex-row sm:items-center sm:justify-between sm:px-6"
+                  className="flex flex-col gap-2.5 px-3 py-3.5 transition hover:bg-gray-50/60 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-6 sm:py-4"
                 >
-                  <div className="flex min-w-0 items-center gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-100 to-violet-100 text-sm font-semibold text-indigo-700">
+                  <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-100 to-violet-100 text-xs font-semibold text-indigo-700 sm:h-10 sm:w-10 sm:text-sm">
                       {a.users.email.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <p className="truncate font-medium text-gray-900">
+                      <p className="truncate text-sm font-medium text-gray-900 sm:text-base">
                         {a.users.email}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-[10px] text-gray-500 sm:text-xs">
                         Applied {timeAgo(a.applied_at)}
                       </p>
                     </div>
                   </div>
-                  <div className="flex flex-wrap items-center gap-2 sm:shrink-0 sm:gap-3">
+                  <div className="flex w-full flex-wrap items-center gap-2 pl-10 sm:w-auto sm:shrink-0 sm:gap-3 sm:pl-0">
                     <ApplicationStatusSelect
                       applicationId={a.id}
                       currentStatus={a.status}

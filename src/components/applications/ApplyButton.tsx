@@ -21,9 +21,6 @@ export function ApplyButton({ jobId }: Props) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Resolve auth + resume + application status entirely client-side.
-  // On a static page, the server can't know the user — this runs after
-  // hydration and drives the button to its final state.
   useEffect(() => {
     (async () => {
       const supabase = createClient();
@@ -101,7 +98,6 @@ export function ApplyButton({ jobId }: Props) {
         } as never);
 
       if (insertErr) {
-        // Unique constraint violation → user already applied.
         if (insertErr.code === "23505") {
           setState({ kind: "already-applied" });
           return;
@@ -121,7 +117,7 @@ export function ApplyButton({ jobId }: Props) {
 
   if (state.kind === "loading") {
     return (
-      <Button disabled className="w-full sm:w-auto">
+      <Button disabled className="w-full justify-center sm:w-auto">
         Checking…
       </Button>
     );
@@ -129,15 +125,15 @@ export function ApplyButton({ jobId }: Props) {
 
   if (state.kind === "unauth") {
     return (
-      <Link href={`/login?next=/jobs/${jobId}`}>
-        <Button className="w-full sm:w-auto">Sign in to apply</Button>
+      <Link href={`/login?next=/jobs/${jobId}`} className="block w-full sm:w-auto">
+        <Button className="w-full justify-center sm:w-auto">Sign in to apply</Button>
       </Link>
     );
   }
 
   if (state.kind === "employer") {
     return (
-      <Button disabled className="w-full sm:w-auto">
+      <Button disabled className="w-full justify-center sm:w-auto">
         Employers cannot apply
       </Button>
     );
@@ -145,7 +141,7 @@ export function ApplyButton({ jobId }: Props) {
 
   if (state.kind === "already-applied") {
     return (
-      <Button disabled className="w-full sm:w-auto">
+      <Button disabled className="w-full justify-center sm:w-auto">
         Application submitted ✓
       </Button>
     );
@@ -153,27 +149,27 @@ export function ApplyButton({ jobId }: Props) {
 
   if (state.kind === "no-resume") {
     return (
-      <div className="space-y-3">
-        <p className="text-xs text-gray-600">
+      <div className="w-full space-y-2 sm:w-auto sm:space-y-3">
+        <p className="text-[11px] leading-relaxed text-gray-600 sm:text-xs">
           You need a resume on file before applying.
         </p>
-        <Link href="/dashboard/seeker/profile">
-          <Button className="w-full sm:w-auto">Upload resume</Button>
+        <Link href="/dashboard/seeker/profile" className="block w-full sm:w-auto">
+          <Button className="w-full justify-center sm:w-auto">Upload resume</Button>
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="space-y-2">
+    <div className="w-full space-y-1.5 sm:w-auto sm:space-y-2">
       <Button
         onClick={handleApply}
         disabled={pending}
-        className="w-full sm:w-auto"
+        className="w-full justify-center sm:w-auto"
       >
         {pending ? "Submitting…" : "Apply now"}
       </Button>
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      {error && <p className="text-[11px] text-red-600 sm:text-xs">{error}</p>}
     </div>
   );
 }

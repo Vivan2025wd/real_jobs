@@ -25,12 +25,6 @@ function formatBytes(bytes: number): string {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
-/**
- * Produce a clean display filename from an S3 key like
- * "resumes/<uuid>/1793083848074-<uuid>.pdf".
- * The underlying key leaks user IDs and timestamps — showing "Resume.pdf"
- * is more professional and just as informative.
- */
 function displayFilename(key: string): string {
   const last = key.split("/").pop() ?? "";
   const ext = last.includes(".") ? last.split(".").pop() : "pdf";
@@ -92,7 +86,6 @@ export function ResumeUpload({ initialUrl }: { initialUrl: string | null }) {
     setSuccess(false);
 
     try {
-      // ─── 1. Ask the server for a pre-signed URL ───
       const presignRes = await fetch("/api/s3/presigned-url", {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -113,7 +106,6 @@ export function ResumeUpload({ initialUrl }: { initialUrl: string | null }) {
         key: string;
       };
 
-      // ─── 2. Upload directly to S3 ───
       const putRes = await fetch(uploadUrl, {
         method: "PUT",
         headers: { "content-type": file.type },
@@ -130,7 +122,6 @@ export function ResumeUpload({ initialUrl }: { initialUrl: string | null }) {
         throw new Error(`Upload to storage failed (${putRes.status})`);
       }
 
-      // ─── 3. Persist the key on the user row ───
       const supabase = createClient();
       const {
         data: { user },
@@ -167,38 +158,38 @@ export function ResumeUpload({ initialUrl }: { initialUrl: string | null }) {
   const hasResume = !!currentUrl;
 
   return (
-    <div className="space-y-4">
+    <div className="w-full space-y-3 sm:space-y-4">
       {/* ─── Status card ─── */}
       {hasResume ? (
-        <div className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50/60 px-4 py-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-emerald-600 shadow-sm ring-1 ring-emerald-200">
-            <FileText className="h-4 w-4" />
+        <div className="flex w-full items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50/60 p-3 sm:gap-3 sm:px-4 sm:py-3.5">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-emerald-600 shadow-sm ring-1 ring-emerald-200 sm:h-10 sm:w-10">
+            <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5">
-              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
-              <p className="text-sm font-semibold text-emerald-900">
+              <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-600 sm:h-4 sm:w-4" />
+              <p className="text-xs font-semibold text-emerald-900 sm:text-sm">
                 Resume on file
               </p>
             </div>
-            <p className="mt-0.5 truncate text-xs font-medium text-emerald-800">
+            <p className="mt-0.5 truncate text-[11px] font-medium text-emerald-800 sm:text-xs">
               {displayFilename(currentUrl!)}
             </p>
-            <p className="mt-0.5 text-[11px] text-emerald-700/80">
+            <p className="mt-0.5 text-[10px] leading-relaxed text-emerald-700/80 sm:text-[11px]">
               Auto-attached to every application you submit.
             </p>
           </div>
         </div>
       ) : (
-        <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50/70 px-4 py-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-amber-600 shadow-sm ring-1 ring-amber-200">
-            <AlertCircle className="h-4 w-4" />
+        <div className="flex w-full items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50/70 p-3 sm:gap-3 sm:px-4 sm:py-3.5">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-amber-600 shadow-sm ring-1 ring-amber-200 sm:h-10 sm:w-10">
+            <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5" />
           </div>
-          <div>
-            <p className="text-sm font-semibold text-amber-900">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-amber-900 sm:text-sm">
               No resume on file
             </p>
-            <p className="mt-0.5 text-xs text-amber-800">
+            <p className="mt-0.5 text-[10px] leading-relaxed text-amber-800 sm:text-xs">
               You&apos;ll need to upload one before applying to jobs.
             </p>
           </div>
@@ -209,16 +200,16 @@ export function ResumeUpload({ initialUrl }: { initialUrl: string | null }) {
       {!file && (
         <label
           htmlFor="resume-input"
-          className="group flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50/60 px-4 py-6 text-center transition hover:border-indigo-300 hover:bg-indigo-50/40"
+          className="group flex w-full cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50/60 px-3 py-5 text-center transition hover:border-indigo-300 hover:bg-indigo-50/40 sm:gap-2 sm:px-4 sm:py-6"
         >
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-gray-400 shadow-sm ring-1 ring-gray-200 transition group-hover:text-indigo-600 group-hover:ring-indigo-200">
-            <Upload className="h-4 w-4" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-gray-400 shadow-sm ring-1 ring-gray-200 transition group-hover:text-indigo-600 group-hover:ring-indigo-200 sm:h-10 sm:w-10 sm:rounded-xl">
+            <Upload className="h-4 w-4 sm:h-5 sm:w-5" />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-900">
+            <p className="text-xs font-medium text-gray-900 sm:text-sm">
               {hasResume ? "Replace resume" : "Upload resume"}
             </p>
-            <p className="mt-0.5 text-xs text-gray-500">
+            <p className="mt-0.5 text-[10px] text-gray-500 sm:text-xs">
               Click to browse · PDF only · max {MAX_SIZE_MB} MB
             </p>
           </div>
@@ -235,15 +226,15 @@ export function ResumeUpload({ initialUrl }: { initialUrl: string | null }) {
 
       {/* ─── Selected file row ─── */}
       {file && (
-        <div className="flex items-center gap-3 rounded-xl border border-indigo-200 bg-indigo-50/40 px-3 py-2.5">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-indigo-600 shadow-sm ring-1 ring-indigo-100">
-            <FileText className="h-4 w-4" />
+        <div className="flex w-full items-center gap-2.5 rounded-xl border border-indigo-200 bg-indigo-50/40 p-2.5 sm:gap-3 sm:px-3 sm:py-2.5">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-indigo-600 shadow-sm ring-1 ring-indigo-100 sm:h-9 sm:w-9">
+            <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-gray-900">
+            <p className="truncate text-xs font-medium text-gray-900 sm:text-sm">
               {file.name}
             </p>
-            <p className="text-xs text-gray-500">
+            <p className="text-[10px] text-gray-500 sm:text-xs">
               {formatBytes(file.size)} · ready to upload
             </p>
           </div>
@@ -251,22 +242,24 @@ export function ResumeUpload({ initialUrl }: { initialUrl: string | null }) {
             type="button"
             onClick={clearFile}
             disabled={pending}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-gray-400 transition hover:bg-white hover:text-gray-700 disabled:opacity-50 sm:h-7 sm:w-7"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-white hover:text-gray-700 disabled:opacity-50 sm:h-7 sm:w-7"
             aria-label="Remove file"
           >
-            <X className="h-4 w-4" />
+            <X className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
           </button>
         </div>
       )}
 
       {/* ─── Error banner ─── */}
       {error && (
-        <div className="flex items-start gap-2.5 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2.5">
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-rose-500" />
+        <div className="flex w-full items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-2.5 sm:gap-2.5 sm:px-3 sm:py-2.5">
+          <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-rose-500 sm:h-4 sm:w-4" />
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-rose-900">{error}</p>
+            <p className="text-xs font-medium text-rose-900 sm:text-sm">{error}</p>
             {errorHint && (
-              <p className="mt-0.5 text-xs text-rose-700">{errorHint}</p>
+              <p className="mt-0.5 break-words text-[10px] leading-snug text-rose-700 sm:text-xs">
+                {errorHint}
+              </p>
             )}
           </div>
         </div>
@@ -274,21 +267,22 @@ export function ResumeUpload({ initialUrl }: { initialUrl: string | null }) {
 
       {/* ─── Success banner ─── */}
       {success && (
-        <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2">
-          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
-          <p className="text-sm font-medium text-emerald-800">
+        <div className="flex w-full items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-2.5 py-2 sm:px-3 sm:py-2.5">
+          <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-600 sm:h-4 sm:w-4" />
+          <p className="text-xs font-medium text-emerald-800 sm:text-sm">
             Resume uploaded successfully.
           </p>
         </div>
       )}
 
       {/* ─── Actions ─── */}
-      <div className="flex flex-wrap items-center gap-2">
+      {/* මොබයිල් එකේදී බටන්ස් එකින් එක පහළින් (flex-col), ඩෙස්ක්ටොප් එකේදී පැත්තට පැත්ත (sm:flex-row) */}
+      <div className="flex w-full flex-col items-center gap-2 sm:flex-row">
         <Button
           type="button"
           onClick={handleUpload}
           disabled={!file || pending}
-          className="w-full sm:w-auto"
+          className="w-full justify-center sm:w-auto"
           icon={
             pending ? (
               <RefreshCw className="h-4 w-4 animate-spin" />
@@ -309,7 +303,7 @@ export function ResumeUpload({ initialUrl }: { initialUrl: string | null }) {
             type="button"
             variant="ghost"
             onClick={clearFile}
-            className="w-full sm:w-auto"
+            className="w-full justify-center sm:w-auto"
           >
             Cancel
           </Button>

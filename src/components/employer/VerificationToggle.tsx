@@ -16,13 +16,6 @@ import { timeAgo } from "@/lib/utils/format";
 
 // ---------------------------------------------------------------------------
 // Verification freshness states.
-//
-// The platform re-verifies every 14 days. We surface that cycle visually:
-//   • <  7 days since last verification → "Fresh"    (emerald)
-//   • 7–13 days                        → "Aging"    (amber)
-//   • 14+ days or never verified       → "Overdue"  (rose)
-//
-// This makes the toggle informative, not just a pair of buttons.
 // ---------------------------------------------------------------------------
 type Freshness = "fresh" | "aging" | "overdue";
 
@@ -102,28 +95,29 @@ export function VerificationToggle({
   const StatusIcon = meta.icon;
 
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-card">
-      <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-start sm:justify-between">
+    <div className="w-full overflow-hidden rounded-xl border border-gray-200 bg-white shadow-card">
+      <div className="flex flex-col gap-3.5 p-3.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4 sm:p-5">
+        
         {/* ─── Left: status ─── */}
-        <div className="flex items-start gap-3">
+        <div className="flex min-w-0 items-start gap-2.5 sm:gap-3">
           <div
-            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${meta.toneBg} ${meta.tone} ring-1 ${meta.toneRing}`}
+            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${meta.toneBg} ${meta.tone} ring-1 ${meta.toneRing} sm:h-10 sm:w-10 sm:rounded-xl`}
           >
-            <StatusIcon className="h-5 w-5" />
+            <StatusIcon className="h-4 w-4 sm:h-5 sm:w-5" />
           </div>
           <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
               <p className="text-sm font-semibold tracking-tight text-gray-900">
                 Verification
               </p>
               <span
-                className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ring-1 ${meta.toneBg} ${meta.toneText} ${meta.toneRing}`}
+                className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider ring-1 sm:px-2 sm:text-[10px] ${meta.toneBg} ${meta.toneText} ${meta.toneRing}`}
               >
                 {meta.label}
               </span>
             </div>
-            <p className="mt-1 flex items-center gap-1.5 text-xs text-gray-500">
-              <Clock className="h-3 w-3 text-gray-400" />
+            <p className="mt-1 flex flex-wrap items-center gap-1 text-[11px] leading-tight text-gray-500 sm:gap-1.5 sm:text-xs">
+              <Clock className="h-3 w-3 shrink-0 text-gray-400" />
               {lastVerifiedAt
                 ? `Last verified ${timeAgo(lastVerifiedAt)}${
                     daysSince !== null && daysSince > 0
@@ -132,12 +126,14 @@ export function VerificationToggle({
                   }`
                 : "Never verified — confirm to keep this listing visible"}
             </p>
-            <p className="mt-1 text-xs text-gray-500">{meta.hint}</p>
+            <p className="mt-1 text-[11px] leading-relaxed text-gray-500 sm:text-xs">
+              {meta.hint}
+            </p>
           </div>
         </div>
 
         {/* ─── Right: actions ─── */}
-        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:shrink-0">
+        <div className="flex w-full flex-col gap-2 pl-[2.875rem] sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:pl-0 sm:shrink-0">
           <form
             action={(fd) => {
               fd.set("jobId", jobId);
@@ -145,11 +141,12 @@ export function VerificationToggle({
                 await onConfirm(fd);
               });
             }}
+            className="w-full sm:w-auto"
           >
             <Button
               type="submit"
               size="sm"
-              className="w-full sm:w-auto"
+              className="w-full justify-center sm:w-auto"
               disabled={pendingConfirm}
               icon={
                 pendingConfirm ? (
@@ -170,12 +167,13 @@ export function VerificationToggle({
                 await onMarkFilled(fd);
               });
             }}
+            className="w-full sm:w-auto"
           >
             <Button
               type="submit"
               size="sm"
               variant="secondary"
-              className="w-full sm:w-auto"
+              className="w-full justify-center sm:w-auto"
               disabled={pendingFill}
               icon={
                 pendingFill ? (
@@ -192,9 +190,9 @@ export function VerificationToggle({
       </div>
 
       {/* ─── Bottom info strip ─── */}
-      <div className="flex items-start gap-2 border-t border-gray-100 bg-gray-50/60 px-5 py-2.5 text-xs text-gray-500">
-        <Info className="mt-0.5 h-3 w-3 shrink-0 text-gray-400" />
-        <p>
+      <div className="flex w-full items-start gap-2 border-t border-gray-100 bg-gray-50/60 p-2.5 text-[10px] leading-relaxed text-gray-500 sm:px-5 sm:py-2.5 sm:text-xs">
+        <Info className="mt-0.5 h-3 w-3 shrink-0 text-gray-400 sm:h-3.5 sm:w-3.5" />
+        <p className="min-w-0">
           RealJobs re-verifies every listing every{" "}
           <strong className="font-medium text-gray-700">14 days</strong>.
           Confirming now resets the timer. If no response is received, the

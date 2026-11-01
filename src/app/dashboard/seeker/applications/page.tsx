@@ -80,50 +80,53 @@ export default async function SeekerApplicationsPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-5 sm:space-y-6">
       {/* ─── Header ─── */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl text-balance">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+        <div className="min-w-0">
+          <h1 className="text-balance text-xl font-bold tracking-tight text-gray-900 sm:text-3xl">
             My applications
           </h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-xs text-gray-500 sm:text-sm">
             Every role you&apos;ve applied to, tracked in one place.
           </p>
         </div>
-        <Link href="/jobs" className="shrink-0">
-          <Button
-            variant="secondary"
-            iconRight={<ArrowRight className="h-4 w-4" />}
-          >
-            Browse jobs
-          </Button>
-        </Link>
+        <div className="w-full sm:w-auto sm:shrink-0">
+          <Link href="/jobs" className="block w-full">
+            <Button
+              variant="secondary"
+              iconRight={<ArrowRight className="h-4 w-4" />}
+              className="w-full justify-center sm:w-auto"
+            >
+              Browse jobs
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* ─── Stats bar (only when there's data) ─── */}
       {total > 0 && (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
           {stats.map((s) => {
             const tone = STAT_TONES[s.tone];
             return (
               <div
                 key={s.label}
-                className={`relative overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br ${tone.bg} p-4 shadow-card`}
+                className={`relative overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br ${tone.bg} p-3 shadow-card sm:p-4`}
               >
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between gap-1.5">
                   <div
-                    className={`flex h-8 w-8 items-center justify-center rounded-lg border bg-white shadow-sm ${tone.icon}`}
+                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md border bg-white shadow-sm sm:h-8 sm:w-8 sm:rounded-lg ${tone.icon}`}
                   >
-                    <s.icon className="h-4 w-4" />
+                    <s.icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   </div>
                   <span
-                    className={`rounded-full bg-white/70 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-gray-500 ring-1 ${tone.ring}`}
+                    className={`truncate rounded-full bg-white/70 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider text-gray-500 ring-1 sm:px-2 sm:text-[10px] ${tone.ring}`}
                   >
                     {s.label}
                   </span>
                 </div>
-                <p className="mt-3 text-2xl font-bold tracking-tight text-gray-900">
+                <p className="mt-2 text-xl font-bold tracking-tight text-gray-900 sm:mt-3 sm:text-2xl">
                   {s.value}
                 </p>
               </div>
@@ -134,35 +137,38 @@ export default async function SeekerApplicationsPage() {
 
       {/* ─── Applications list ─── */}
       {!applicationRows?.length ? (
-        <div className="relative overflow-hidden rounded-2xl border border-dashed border-gray-300 bg-white p-12 text-center shadow-card">
+        <div className="relative overflow-hidden rounded-xl border border-dashed border-gray-300 bg-white p-6 text-center shadow-card sm:rounded-2xl sm:p-12">
           <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-indigo-100/40 blur-3xl" />
           <div className="pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-violet-100/30 blur-3xl" />
 
-          <div className="relative flex flex-col items-center gap-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-100 to-violet-100 text-indigo-600">
-              <Inbox className="h-7 w-7" />
+          <div className="relative flex flex-col items-center gap-3 sm:gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-100 to-violet-100 text-indigo-600 sm:h-16 sm:w-16 sm:rounded-2xl">
+              <Inbox className="h-5 w-5 sm:h-7 sm:w-7" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold tracking-tight text-gray-900">
+              <h2 className="text-base font-semibold tracking-tight text-gray-900 sm:text-xl">
                 No applications yet
               </h2>
-              <p className="mx-auto mt-2 max-w-sm text-balance text-sm text-gray-500">
+              <p className="mx-auto mt-1 max-w-[260px] text-balance text-xs text-gray-500 sm:mt-2 sm:max-w-sm sm:text-sm">
                 When you apply to a role, it will show up here with its current
                 status.
               </p>
             </div>
-            <Link href="/jobs">
-              <Button
-                icon={<Sparkles className="h-4 w-4" />}
-                iconRight={<ArrowRight className="h-4 w-4" />}
-              >
-                Find your first role
-              </Button>
-            </Link>
+            <div className="mt-1 w-full sm:w-auto">
+              <Link href="/jobs" className="block w-full">
+                <Button
+                  icon={<Sparkles className="h-4 w-4" />}
+                  iconRight={<ArrowRight className="h-4 w-4" />}
+                  className="w-full justify-center sm:w-auto"
+                >
+                  Find your first role
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-2.5 sm:space-y-3">
           {applicationRows.map((a) => {
             const job = a.jobs;
             return (

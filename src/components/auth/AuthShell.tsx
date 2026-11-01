@@ -13,8 +13,9 @@ const BENEFITS = [
 
 export function AuthShell({ children }: { children: ReactNode }) {
   return (
-    <div className="grid min-h-screen lg:grid-cols-2">
+    <div className="grid min-h-screen w-full lg:grid-cols-2">
       {/* ═══ Left: brand panel (desktop only) ═══ */}
+      {/* මේක මොබයිල් එකේදී හැංගිලා තියෙන නිසා, ඩෙස්ක්ටොප් එකට විතරක් ගැලපෙන විදියට තියමු */}
       <div className="relative hidden overflow-hidden bg-gradient-to-br from-indigo-600 via-violet-600 to-indigo-800 p-12 lg:flex lg:flex-col lg:justify-between">
         {/* Decorative orbs */}
         <div className="pointer-events-none absolute -right-20 -top-20 h-96 w-96 rounded-full bg-white/10 blur-3xl" />
@@ -25,27 +26,24 @@ export function AuthShell({ children }: { children: ReactNode }) {
           href="/"
           className="relative inline-flex items-center gap-2.5 text-white transition hover:opacity-90"
         >
-          {/* ලෝගෝ එක සුදු පසුබිමක දාලා තියෙනවා. 
-              මෙතනට overflow-hidden දැම්මා, එතකොට scale කරද්දී එළියට පනින්නේ නෑ. */}
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white shadow-sm overflow-hidden relative">
+          <span className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-white shadow-sm">
             <Image
               src="/logo.jpg"
               alt="RealJobs Logo"
-              width={36}
-              height={36}
-              // මෙන්න මෙතන scale-[3] දැම්මා
+              width={40}
+              height={40}
               className="object-contain scale-[1.0]" 
             />
           </span>
-          <span className="text-lg font-bold tracking-tight">RealJobs</span>
+          <span className="text-xl font-bold tracking-tight">RealJobs</span>
         </Link>
 
         {/* Middle content */}
         <div className="relative max-w-md">
-          <h1 className="text-balance text-4xl font-bold leading-tight text-white">
+          <h1 className="text-balance text-3xl font-bold leading-tight text-white lg:text-4xl">
             Job listings that stay actually open.
           </h1>
-          <p className="mt-4 text-balance text-lg leading-relaxed text-white/80">
+          <p className="mt-4 text-balance text-base leading-relaxed text-white/80 lg:text-lg">
             Every listing on RealJobs has a fixed lifespan — 7, 14, or 30
             days. When it ends, the job archives itself. No stale posts. No
             dead applications.
@@ -55,9 +53,9 @@ export function AuthShell({ children }: { children: ReactNode }) {
             {BENEFITS.map((item) => (
               <li
                 key={item}
-                className="flex items-start gap-3 text-sm text-white/90"
+                className="flex items-start gap-2.5 text-sm text-white/90"
               >
-                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" />
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300 lg:h-5 lg:w-5" />
                 <span>{item}</span>
               </li>
             ))}
@@ -71,14 +69,14 @@ export function AuthShell({ children }: { children: ReactNode }) {
       </div>
 
       {/* ═══ Right: form panel ═══ */}
-      <div className="flex flex-col bg-white">
-        {/* Mobile brand bar */}
-        <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3.5 sm:px-6 lg:hidden">
+      <div className="flex w-full flex-col bg-white">
+        {/* Mobile brand bar - මොබයිල් එකේදී විතරක් පේනවා */}
+        <div className="flex h-14 items-center justify-between border-b border-gray-100 px-3 sm:px-6 lg:hidden">
           <Logo size="sm" />
         </div>
 
-        {/* Centered content */}
-        <div className="flex flex-1 items-center justify-center px-4 py-8 sm:px-10">
+        {/* Centered content - මෙතන තමයි ප්‍රධාන වෙනස කළේ */}
+        <div className="flex flex-1 items-center justify-center px-3 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-12">
           <div className="w-full max-w-md">{children}</div>
         </div>
       </div>

@@ -35,20 +35,38 @@
     font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1;
   }
 
-  /* 16px inputs on mobile prevents iOS auto-zoom on focus */
-  @media (max-width: 640px) {
+  /* 
+    MOBILE-FIRST INPUTS: 
+    මොබයිල් එකේදී 16px තියෙන්න ඕනේ (iOS auto-zoom නවත්තන්න).
+    ඩෙස්ක්ටොප් එකේදී පොඩි කරන්න පුළුවන්.
+  */
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  @media (min-width: 640px) {
     input,
     select,
     textarea {
-      font-size: 16px !important;
+      font-size: 14px; /* ඩෙස්ක්ටොප් එකේදී ටිකක් පොඩි කරමු */
     }
   }
 
-  /* Minimum tap target for interactive elements */
-  @media (max-width: 640px) {
+  /* 
+    MOBILE-FIRST TAP TARGETS:
+    මොබයිල් එකේදී බටන් එකක අවම උස 44px වෙන්න ඕනේ.
+  */
+  button,
+  [role="button"] {
+    min-height: 44px;
+  }
+
+  @media (min-width: 640px) {
     button,
     [role="button"] {
-      min-height: 44px;
+      min-height: auto; /* ඩෙස්ක්ටොප් එකේදී මවුස් එකෙන් ඔබන නිසා ලොකු උසක් ඕන නෑ */
     }
   }
 

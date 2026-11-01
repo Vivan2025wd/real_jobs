@@ -72,46 +72,46 @@ export default async function AdminOverview() {
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5 sm:space-y-8">
       {/* ─── Page Header ─── */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+          <h1 className="text-xl font-bold tracking-tight text-gray-900 sm:text-2xl">
             Platform Overview
           </h1>
-          <p className="text-sm text-gray-500">
+          <p className="text-xs text-gray-500 sm:text-sm">
             A quick snapshot of everything happening on RealJobs.
           </p>
         </div>
       </div>
 
       {/* ─── Stat Grid ─── */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
         {stats.map((s) => (
           <div
             key={s.label}
-            className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-gray-300 hover:shadow-md sm:p-6"
+            className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-gray-300 hover:shadow-md sm:rounded-2xl sm:p-5"
           >
             {/* Decorative background gradient */}
-            <div className={`absolute -right-6 -top-6 h-24 w-24 rounded-full ${s.bg} opacity-50 blur-2xl transition-opacity group-hover:opacity-100`} />
+            <div className={`absolute -right-6 -top-6 h-20 w-20 rounded-full ${s.bg} opacity-50 blur-2xl transition-opacity group-hover:opacity-100 sm:h-24 sm:w-24`} />
             
             <div className="relative">
               {/* Icon */}
               <div
-                className={`inline-flex h-10 w-10 items-center justify-center rounded-xl ${s.bg} ${s.color} ring-1 ring-inset ring-black/5`}
+                className={`inline-flex h-9 w-9 items-center justify-center rounded-lg ${s.bg} ${s.color} ring-1 ring-inset ring-black/5 sm:h-10 sm:w-10 sm:rounded-xl`}
               >
-                <s.icon className="h-5 w-5" />
+                <s.icon className="h-4 w-4 sm:h-5 sm:w-5" />
               </div>
 
               {/* Data */}
-              <div className="mt-4">
-                <p className="text-3xl font-bold tracking-tight text-gray-900">
+              <div className="mt-3 sm:mt-4">
+                <p className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
                   {s.value ?? 0}
                 </p>
-                <p className="mt-1 text-sm font-medium text-gray-900">
+                <p className="mt-0.5 text-sm font-medium text-gray-900 sm:mt-1">
                   {s.label}
                 </p>
-                <p className="mt-0.5 text-xs text-gray-500">{s.hint}</p>
+                <p className="mt-0.5 text-[11px] text-gray-500 sm:text-xs">{s.hint}</p>
               </div>
             </div>
           </div>

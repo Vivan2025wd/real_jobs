@@ -62,33 +62,33 @@ export default async function AdminJobs() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 sm:space-y-6">
       {/* ─── Page Header ─── */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+          <h1 className="text-xl font-bold tracking-tight text-gray-900 sm:text-2xl">
             Jobs & Applications
           </h1>
-          <p className="text-sm text-gray-500">
+          <p className="mt-0.5 text-xs text-gray-500 sm:mt-0 sm:text-sm">
             Manage all job listings across the platform.
           </p>
         </div>
-        <div className="inline-flex items-center gap-2 self-start rounded-full bg-indigo-50 px-3 py-1 text-sm font-medium text-indigo-700 ring-1 ring-indigo-200 sm:self-auto">
-          <Briefcase className="h-4 w-4" />
+        <div className="inline-flex items-center gap-1.5 self-start rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700 ring-1 ring-indigo-200 sm:gap-2 sm:self-auto sm:px-3 sm:py-1 sm:text-sm">
+          <Briefcase className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           {jobs?.length || 0} Total Jobs
         </div>
       </div>
 
       {/* ─── Empty State ─── */}
       {!jobs?.length ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white p-12 text-center shadow-sm">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gray-50 text-gray-400">
-            <Inbox className="h-6 w-6" />
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white p-8 text-center shadow-sm sm:p-12">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-50 text-gray-400 sm:h-14 sm:w-14">
+            <Inbox className="h-5 w-5 sm:h-6 sm:w-6" />
           </div>
-          <h3 className="mt-4 text-lg font-semibold text-gray-900">
+          <h3 className="mt-3 text-base font-semibold text-gray-900 sm:mt-4 sm:text-lg">
             No jobs found
           </h3>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 max-w-xs text-xs text-gray-500 sm:max-w-sm sm:text-sm">
             No jobs have been posted on the platform yet.
           </p>
         </div>
@@ -101,21 +101,21 @@ export default async function AdminJobs() {
             return (
               <div
                 key={job.id}
-                className="group flex flex-col gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all hover:border-gray-300 sm:flex-row sm:items-center sm:justify-between sm:p-5"
+                className="group flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-3.5 shadow-sm transition-all hover:border-gray-300 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:p-5"
               >
                 {/* ─── Left: Job Info ─── */}
-                <div className="flex min-w-0 items-start gap-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
-                    <Briefcase className="h-5 w-5" />
+                <div className="flex min-w-0 items-start gap-3 sm:gap-4">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 sm:h-10 sm:w-10 sm:rounded-xl">
+                    <Briefcase className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
                   
                   <div className="min-w-0 flex-1">
                     <h3 className="truncate text-sm font-semibold text-gray-900 sm:text-base">
                       {job.title}
                     </h3>
-                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
+                    <div className="mt-0.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] text-gray-500 sm:mt-1 sm:gap-x-3 sm:text-xs">
                       <span className="inline-flex items-center gap-1 truncate">
-                        <Building2 className="h-3.5 w-3.5 shrink-0 text-gray-400" />
+                        <Building2 className="h-3 w-3 shrink-0 text-gray-400 sm:h-3.5 sm:w-3.5" />
                         {job.companies?.company_name || "Unknown Company"}
                       </span>
                       <span className="hidden text-gray-300 sm:inline">·</span>
@@ -129,28 +129,28 @@ export default async function AdminJobs() {
                 </div>
 
                 {/* ─── Right: Status, Apps, Delete ─── */}
-                <div className="flex flex-wrap items-center justify-between gap-3 pl-14 sm:justify-end sm:pl-0 sm:shrink-0">
+                <div className="flex w-full flex-wrap items-center justify-between gap-2 pl-12 sm:w-auto sm:shrink-0 sm:flex-nowrap sm:justify-end sm:gap-3 sm:pl-0">
                   
                   <span
-                    className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] sm:text-xs font-semibold uppercase tracking-wider ring-1 ${getStatusStyle(job.status)}`}
+                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider ring-1 sm:px-2.5 sm:py-1 sm:text-[10px] ${getStatusStyle(job.status)}`}
                   >
                     {job.status}
                   </span>
 
                   <Link
                     href={`/admin/jobs/${job.id}`}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"
+                    className="inline-flex items-center gap-1 rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-[11px] font-medium text-gray-700 shadow-sm transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 sm:gap-1.5 sm:rounded-lg sm:px-3 sm:text-xs"
                   >
-                    <Users className="h-3.5 w-3.5 text-gray-400" />
+                    <Users className="h-3 w-3 text-gray-400 sm:h-3.5 sm:w-3.5" />
                     {appCount} Applied
-                    <ArrowRight className="h-3.5 w-3.5 text-gray-400" />
+                    <ArrowRight className="h-3 w-3 text-gray-400 sm:h-3.5 sm:w-3.5" />
                   </Link>
 
                   <form action={deleteJob} className="flex items-center">
                     <input type="hidden" name="jobId" value={job.id} />
                     <button
                       type="submit"
-                      className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-rose-50 hover:text-rose-600"
+                      className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 transition hover:bg-rose-50 hover:text-rose-600 sm:h-8 sm:w-8"
                       title="Delete Job"
                     >
                       <Trash2 className="h-4 w-4" />

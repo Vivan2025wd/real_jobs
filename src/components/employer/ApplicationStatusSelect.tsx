@@ -29,7 +29,7 @@ export function ApplicationStatusSelect({
           await onUpdate(fd);
         });
       }}
-      className="flex items-center gap-1.5"
+      className="flex w-full items-center gap-2 sm:w-auto sm:gap-1.5"
     >
       {/* Hidden submit button — required for requestSubmit() to work
           reliably across all browsers when using React Server Actions */}
@@ -37,9 +37,6 @@ export function ApplicationStatusSelect({
 
       <select
         name="status"
-        // Using key ensures React fully remounts the select when the server
-        // re-renders with a new currentStatus. Without this, a failed action
-        // leaves the select in an inconsistent state until a hard refresh.
         key={currentStatus}
         defaultValue={currentStatus}
         onChange={(e) => {
@@ -48,7 +45,8 @@ export function ApplicationStatusSelect({
           }
         }}
         disabled={pending}
-        className="rounded-md border border-gray-200 bg-white px-2 py-1 text-xs font-medium text-gray-700 shadow-sm transition hover:border-gray-300 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:cursor-wait disabled:opacity-60"
+        // මොබයිල් එකේදී ලොකුවට (py-2 text-sm), ඩෙස්ක්ටොප් එකේදී පොඩියට (sm:py-1 sm:text-xs)
+        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:border-gray-300 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:cursor-wait disabled:opacity-60 sm:w-auto sm:rounded-md sm:px-2 sm:py-1 sm:text-xs"
       >
         {STATUS_OPTIONS.map((opt) => (
           <option key={opt.value} value={opt.value}>
@@ -56,8 +54,9 @@ export function ApplicationStatusSelect({
           </option>
         ))}
       </select>
+      
       {pending && (
-        <Loader2 className="h-3.5 w-3.5 animate-spin text-indigo-600" />
+        <Loader2 className="h-4 w-4 shrink-0 animate-spin text-indigo-600 sm:h-3.5 sm:w-3.5" />
       )}
     </form>
   );

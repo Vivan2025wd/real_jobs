@@ -1,6 +1,6 @@
 // src/app/layout.tsx
 import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next"; // 1. මේක අලුතෙන් එකතු කළා
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Inter } from "next/font/google";
@@ -102,10 +102,15 @@ export default function RootLayout({
 }: Readonly<{ children: ReactNode }>) {
   return (
     <html lang="en" className={inter.variable}>
-      <body className="min-h-screen bg-white pb-[env(safe-area-inset-bottom)] font-sans text-gray-900 antialiased selection:bg-indigo-100 selection:text-indigo-900">
+      {/* 
+        Mobile-First Defensive Classes:
+        - w-full max-w-[100vw]: තිරයේ පළල 100% ට වඩා වැඩි නොවීමට
+        - overflow-x-hidden: ස්ක්‍රීන් එක දෙපැත්තට ඇදෙන එක (Horizontal Scroll) සම්පූර්ණයෙන්ම නැවැත්වීමට
+      */}
+      <body className="min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-white pb-[env(safe-area-inset-bottom)] font-sans text-gray-900 antialiased selection:bg-indigo-100 selection:text-indigo-900">
         {children}
-        <Analytics /> {/* දැනටමත් තියෙනවා */}
-        <SpeedInsights /> {/* 2. මේක අලුතෙන් එකතු කළා */}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

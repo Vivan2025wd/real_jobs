@@ -21,13 +21,19 @@ export default async function DashboardLayout({
       : "JOB_SEEKER";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+    <div className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-white to-slate-50">
       {/* Mobile topbar offset (h-14) — pushed down on small screens */}
       <div className="flex pt-14 md:pt-0">
         <Sidebar role={role} email={user.email ?? ""} />
 
-        <main className="min-w-0 flex-1">
-          <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+        {/* min-w-0 prevents flex items from overflowing horizontally */}
+        <main className="min-w-0 w-full flex-1">
+          {/* 
+            Reduced mobile padding to maximize screen real estate:
+            - px-3 (mobile) -> sm:px-6 (tablet) -> lg:px-8 (desktop)
+            - py-4 (mobile) -> sm:py-6 -> lg:py-8
+          */}
+          <div className="mx-auto w-full max-w-6xl px-3 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
             {children}
           </div>
         </main>

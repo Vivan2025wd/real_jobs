@@ -35,9 +35,6 @@ const UUID_V4_RE =
 
 const FORTY_EIGHT_HOURS_MS = 48 * 60 * 60 * 1000;
 
-// `users` is reached through `companies` — there is no direct FK from
-// jobs → users. Two-level embeds collapse the row type to `never` in
-// Supabase's select-string inference, so the email is fetched separately.
 type JobForVerification = {
   id: string;
   title: string;
@@ -125,19 +122,19 @@ export default async function VerifyJobPage({
       <Shell>
         <ResultCard
           tone="success"
-          icon={<CheckCircle2 className="h-7 w-7" />}
+          icon={<CheckCircle2 className="h-6 w-6 sm:h-7 sm:w-7" />}
           eyebrow="Listing confirmed"
           title="Thanks — your listing is still active"
           description="We've re-verified this job. It will stay live on RealJobs for another 14 days before we check in again."
         >
-          <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
-            <Link href="/dashboard/employer/jobs">
-              <Button icon={<ArrowRight className="h-4 w-4" />}>
+          <div className="flex w-full flex-col gap-2.5 sm:flex-row sm:justify-center sm:gap-3">
+            <Link href="/dashboard/employer/jobs" className="w-full sm:w-auto">
+              <Button icon={<ArrowRight className="h-4 w-4" />} className="w-full justify-center sm:w-auto">
                 Go to my jobs
               </Button>
             </Link>
-            <Link href="/jobs">
-              <Button variant="secondary">Browse jobs</Button>
+            <Link href="/jobs" className="w-full sm:w-auto">
+              <Button variant="secondary" className="w-full justify-center sm:w-auto">Browse jobs</Button>
             </Link>
           </div>
         </ResultCard>
@@ -150,17 +147,17 @@ export default async function VerifyJobPage({
       <Shell>
         <ResultCard
           tone="success"
-          icon={<CheckCircle2 className="h-7 w-7" />}
+          icon={<CheckCircle2 className="h-6 w-6 sm:h-7 sm:w-7" />}
           eyebrow="Listing archived"
           title="Listing marked as filled"
           description="Thanks for confirming. This role is now removed from the public job board, and job seekers can no longer apply."
         >
-          <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
-            <Link href="/dashboard/employer/jobs/new">
-              <Button>Post another job</Button>
+          <div className="flex w-full flex-col gap-2.5 sm:flex-row sm:justify-center sm:gap-3">
+            <Link href="/dashboard/employer/jobs/new" className="w-full sm:w-auto">
+              <Button className="w-full justify-center sm:w-auto">Post another job</Button>
             </Link>
-            <Link href="/dashboard/employer">
-              <Button variant="secondary">Back to dashboard</Button>
+            <Link href="/dashboard/employer" className="w-full sm:w-auto">
+              <Button variant="secondary" className="w-full justify-center sm:w-auto">Back to dashboard</Button>
             </Link>
           </div>
         </ResultCard>
@@ -173,13 +170,13 @@ export default async function VerifyJobPage({
       <Shell>
         <ResultCard
           tone="error"
-          icon={<AlertCircle className="h-7 w-7" />}
+          icon={<AlertCircle className="h-6 w-6 sm:h-7 sm:w-7" />}
           eyebrow="Link expired"
           title="This link is no longer valid"
           description="The listing may have already been confirmed, or the verification window has closed. You can manage your jobs from the dashboard."
         >
-          <Link href="/dashboard/employer/jobs">
-            <Button>Go to my jobs</Button>
+          <Link href="/dashboard/employer/jobs" className="w-full sm:w-auto">
+            <Button className="w-full justify-center sm:w-auto">Go to my jobs</Button>
           </Link>
         </ResultCard>
       </Shell>
@@ -192,7 +189,7 @@ export default async function VerifyJobPage({
       <Shell>
         <ResultCard
           tone="error"
-          icon={<AlertCircle className="h-7 w-7" />}
+          icon={<AlertCircle className="h-6 w-6 sm:h-7 sm:w-7" />}
           eyebrow="Invalid link"
           title="Invalid verification link"
           description="The link in your email appears to be malformed. Please check your inbox for the original message."
@@ -220,13 +217,13 @@ export default async function VerifyJobPage({
       <Shell>
         <ResultCard
           tone="error"
-          icon={<AlertCircle className="h-7 w-7" />}
+          icon={<AlertCircle className="h-6 w-6 sm:h-7 sm:w-7" />}
           eyebrow="Already used"
           title="Link already used or expired"
           description="This verification link has already been used, or the listing it referred to is no longer active. You can manage your jobs from the dashboard."
         >
-          <Link href="/dashboard/employer/jobs">
-            <Button>Go to my jobs</Button>
+          <Link href="/dashboard/employer/jobs" className="w-full sm:w-auto">
+            <Button className="w-full justify-center sm:w-auto">Go to my jobs</Button>
           </Link>
         </ResultCard>
       </Shell>
@@ -249,13 +246,13 @@ export default async function VerifyJobPage({
       <Shell>
         <ResultCard
           tone="info"
-          icon={<Info className="h-7 w-7" />}
+          icon={<Info className="h-6 w-6 sm:h-7 sm:w-7" />}
           eyebrow="Already resolved"
           title={`This listing is already ${job.status.toLowerCase()}`}
           description={`"${job.title}" at ${job.companies.company_name} has been marked as ${job.status.toLowerCase()}. No further action is needed.`}
         >
-          <Link href="/dashboard/employer/jobs">
-            <Button>Go to my jobs</Button>
+          <Link href="/dashboard/employer/jobs" className="w-full sm:w-auto">
+            <Button className="w-full justify-center sm:w-auto">Go to my jobs</Button>
           </Link>
         </ResultCard>
       </Shell>
@@ -276,16 +273,16 @@ export default async function VerifyJobPage({
     <Shell wide>
       {/* ─── Hero ─── */}
       <div className="text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-md">
-          <MessageSquare className="h-8 w-8" />
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-md sm:h-16 sm:w-16 sm:rounded-2xl">
+          <MessageSquare className="h-6 w-6 sm:h-8 sm:w-8" />
         </div>
-        <p className="mt-5 text-sm font-medium text-indigo-600">
+        <p className="mt-3 text-xs font-medium text-indigo-600 sm:mt-5 sm:text-sm">
           {job.companies.company_name}
         </p>
-        <h1 className="mt-1 text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
+        <h1 className="mt-1 text-balance text-xl font-bold tracking-tight text-gray-900 sm:text-3xl">
           Is this role still open?
         </h1>
-        <p className="mx-auto mt-3 max-w-lg text-balance text-sm text-gray-600">
+        <p className="mx-auto mt-2 max-w-lg text-balance text-xs text-gray-600 sm:mt-3 sm:text-sm">
           Let us know if you&apos;re still hiring for{" "}
           <strong className="text-gray-900">{job.title}</strong>. This keeps the
           RealJobs job board accurate and saves job seekers from applying to
@@ -294,31 +291,31 @@ export default async function VerifyJobPage({
       </div>
 
       {/* ─── Job summary card ─── */}
-      <dl className="mt-8 grid grid-cols-1 gap-4 rounded-xl border border-gray-200 bg-gray-50/70 p-4 text-sm sm:grid-cols-2 sm:p-5">
+      <dl className="mt-5 grid grid-cols-1 gap-3 rounded-xl border border-gray-200 bg-gray-50/70 p-3.5 text-xs sm:mt-8 sm:grid-cols-2 sm:gap-4 sm:p-5 sm:text-sm">
         <div>
-          <dt className="flex items-center gap-1.5 text-xs text-gray-500">
-            <Building2 className="h-3.5 w-3.5" />
+          <dt className="flex items-center gap-1.5 text-[10px] text-gray-500 sm:text-xs">
+            <Building2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
             Company
           </dt>
-          <dd className="mt-1 font-medium text-gray-900">
+          <dd className="mt-0.5 text-sm font-medium text-gray-900 sm:mt-1 sm:text-base">
             {job.companies.company_name}
           </dd>
         </div>
         <div>
-          <dt className="flex items-center gap-1.5 text-xs text-gray-500">
-            <Calendar className="h-3.5 w-3.5" />
+          <dt className="flex items-center gap-1.5 text-[10px] text-gray-500 sm:text-xs">
+            <Calendar className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
             Posted
           </dt>
-          <dd className="mt-1 font-medium text-gray-900">
+          <dd className="mt-0.5 text-sm font-medium text-gray-900 sm:mt-1 sm:text-base">
             {formatDate(job.created_at)}
           </dd>
         </div>
         <div className="sm:col-span-2">
-          <dt className="flex items-center gap-1.5 text-xs text-gray-500">
-            <ShieldCheck className="h-3.5 w-3.5" />
+          <dt className="flex items-center gap-1.5 text-[10px] text-gray-500 sm:text-xs">
+            <ShieldCheck className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
             Last verified
           </dt>
-          <dd className="mt-1 font-medium text-gray-900">
+          <dd className="mt-0.5 text-sm font-medium text-gray-900 sm:mt-1 sm:text-base">
             {job.last_verified_at ? timeAgo(job.last_verified_at) : "Never"}
           </dd>
         </div>
@@ -326,15 +323,15 @@ export default async function VerifyJobPage({
 
       {/* ─── Window status banner ─── */}
       {isPastWindow ? (
-        <div className="mt-4 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3.5">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600">
-            <AlertCircle className="h-4 w-4" />
+        <div className="mt-3.5 flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 p-3 sm:mt-4 sm:gap-3 sm:px-4 sm:py-3.5">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600 sm:h-8 sm:w-8">
+            <AlertCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           </div>
-          <div>
-            <p className="font-semibold text-amber-900">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-amber-900 sm:text-base">
               Verification window closed
             </p>
-            <p className="mt-0.5 text-sm text-amber-800">
+            <p className="mt-0.5 text-xs leading-snug text-amber-800 sm:text-sm">
               The 48-hour window has elapsed. If you take action below, your
               response will still be honoured — but the listing may have already
               been archived on the public board.
@@ -342,15 +339,15 @@ export default async function VerifyJobPage({
           </div>
         </div>
       ) : (
-        <div className="mt-4 flex items-start gap-3 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3.5">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
-            <Clock className="h-4 w-4" />
+        <div className="mt-3.5 flex items-start gap-2.5 rounded-xl border border-indigo-200 bg-indigo-50 p-3 sm:mt-4 sm:gap-3 sm:px-4 sm:py-3.5">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 sm:h-8 sm:w-8">
+            <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           </div>
-          <div>
-            <p className="font-semibold text-indigo-900">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-indigo-900 sm:text-base">
               {hoursRemaining} hour{hoursRemaining === 1 ? "" : "s"} remaining
             </p>
-            <p className="mt-0.5 text-sm text-indigo-800">
+            <p className="mt-0.5 text-xs leading-snug text-indigo-800 sm:text-sm">
               After the window closes, the listing is automatically archived.
             </p>
           </div>
@@ -358,25 +355,25 @@ export default async function VerifyJobPage({
       )}
 
       {/* ─── Action buttons ─── */}
-      <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-        <form action={confirmStillHiringAction} className="flex-1">
+      <div className="mt-5 flex flex-col gap-2.5 sm:mt-6 sm:flex-row sm:gap-3">
+        <form action={confirmStillHiringAction} className="w-full flex-1">
           <input type="hidden" name="token" value={params.token} />
           <Button
             type="submit"
             size="lg"
-            className="w-full"
-            icon={<CheckCircle2 className="h-5 w-5" />}
+            className="w-full justify-center"
+            icon={<CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5" />}
           >
             Yes, still hiring
           </Button>
         </form>
-        <form action={markAsFilledAction} className="flex-1">
+        <form action={markAsFilledAction} className="w-full flex-1">
           <input type="hidden" name="token" value={params.token} />
           <Button
             type="submit"
             size="lg"
             variant="secondary"
-            className="w-full"
+            className="w-full justify-center"
           >
             No, position filled
           </Button>
@@ -384,9 +381,9 @@ export default async function VerifyJobPage({
       </div>
 
       {/* ─── Email footer ─── */}
-      <div className="mt-6 flex items-start gap-2 rounded-lg border border-gray-100 bg-gray-50/60 px-3 py-2.5 text-xs text-gray-500">
-        <Mail className="mt-0.5 h-3.5 w-3.5 shrink-0 text-gray-400" />
-        <p>
+      <div className="mt-5 flex items-start gap-2 rounded-lg border border-gray-100 bg-gray-50/60 p-2.5 text-[10px] text-gray-500 sm:mt-6 sm:px-3 sm:py-2.5 sm:text-xs">
+        <Mail className="mt-0.5 h-3 w-3 shrink-0 text-gray-400 sm:h-3.5 sm:w-3.5" />
+        <p className="min-w-0 leading-relaxed">
           This verification was sent to{" "}
           <span className="break-all font-medium text-gray-700">
             {employerEmail ?? "the registered employer"}
@@ -410,16 +407,16 @@ function Shell({
   wide?: boolean;
 }) {
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-slate-50 via-white to-indigo-50/40 px-4 py-12">
+    <div className="relative flex min-h-screen w-full items-center justify-center overflow-x-hidden bg-gradient-to-br from-slate-50 via-white to-indigo-50/40 px-3 py-8 sm:px-4 sm:py-12">
       {/* Background orbs */}
       <div className="pointer-events-none absolute -top-32 -left-32 h-96 w-96 rounded-full bg-indigo-200/30 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-40 -right-32 h-96 w-96 rounded-full bg-violet-200/30 blur-3xl" />
 
       <div
-        className={`relative w-full ${wide ? "max-w-2xl" : "max-w-md"} rounded-2xl border border-gray-200 bg-white p-6 shadow-card sm:p-10`}
+        className={`relative w-full ${wide ? "max-w-2xl" : "max-w-md"} rounded-xl border border-gray-200 bg-white p-5 shadow-card sm:rounded-2xl sm:p-10`}
       >
         {/* Brand mark */}
-        <div className="mb-8 text-center">
+        <div className="mb-5 text-center sm:mb-8">
           <Logo size="sm" />
         </div>
 
@@ -471,24 +468,24 @@ function ResultCard({
   return (
     <div className="text-center">
       <div
-        className={`mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br ${tones.bg} ${tones.text} shadow-sm ring-1 ${tones.ring}`}
+        className={`mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${tones.bg} ${tones.text} shadow-sm ring-1 ${tones.ring} sm:h-16 sm:w-16 sm:rounded-2xl`}
       >
         {icon}
       </div>
 
       <p
-        className={`mt-5 text-xs font-semibold uppercase tracking-wider ${tones.eyebrow}`}
+        className={`mt-3 text-[10px] font-semibold uppercase tracking-wider sm:mt-5 sm:text-xs ${tones.eyebrow}`}
       >
         {eyebrow}
       </p>
-      <h1 className="mt-1.5 text-xl font-bold tracking-tight text-gray-900 sm:text-2xl text-balance">
+      <h1 className="mt-1 text-balance text-lg font-bold tracking-tight text-gray-900 sm:mt-1.5 sm:text-2xl">
         {title}
       </h1>
-      <p className="mx-auto mt-3 max-w-sm text-balance text-sm text-gray-600">
+      <p className="mx-auto mt-2 max-w-sm text-balance text-xs text-gray-600 sm:mt-3 sm:text-sm">
         {description}
       </p>
 
-      {children && <div className="mt-8">{children}</div>}
+      {children && <div className="mt-5 sm:mt-8">{children}</div>}
     </div>
   );
 }

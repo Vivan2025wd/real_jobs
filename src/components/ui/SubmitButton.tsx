@@ -20,15 +20,6 @@ type Props = {
 /**
  * SubmitButton — a `<Button type="submit">` that reads the parent form's
  * pending state via `useFormStatus`.
- *
- * Uses `<Button>` under the hood so it inherits the full design system:
- * indigo palette, focus-visible rings, active-scale micro-interaction,
- * disabled opacity, icon support. Nothing is styled locally.
- *
- * While pending:
- *   • The provided `icon` swaps to a spinning `RefreshCw`
- *   • The label swaps to `pendingText` (or "Working…")
- *   • The button is disabled
  */
 export function SubmitButton({
   children,
@@ -42,6 +33,9 @@ export function SubmitButton({
 }: Props) {
   const { pending } = useFormStatus();
 
+  // මොබයිල් එකේදී බටන් එක හැමවෙලේම ලස්සනට මැදට එන්න justify-center දැම්මා
+  const widthClass = fullWidth ? "w-full justify-center" : "";
+
   return (
     <Button
       type="submit"
@@ -49,10 +43,14 @@ export function SubmitButton({
       size={size}
       disabled={pending}
       icon={
-        pending ? <RefreshCw className="h-4 w-4 animate-spin" /> : icon
+        pending ? (
+          <RefreshCw className="h-3.5 w-3.5 animate-spin sm:h-4 sm:w-4" />
+        ) : (
+          icon
+        )
       }
       iconRight={pending ? undefined : iconRight}
-      className={`${fullWidth ? "w-full" : ""} ${className}`.trim()}
+      className={`${widthClass} ${className}`.trim()}
     >
       {pending ? (pendingText ?? "Working…") : children}
     </Button>

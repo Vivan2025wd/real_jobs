@@ -9,12 +9,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
-// ---------------------------------------------------------------------------
-// The PayHere checkout object is a mix of string fields (params from the
-// server) and one boolean (`sandbox`). Using Record<string, string> for the
-// whole thing would force `sandbox` to be a string — instead, define the
-// exact accepted shape as a union-index record.
-// ---------------------------------------------------------------------------
 type PayHereParams = Record<string, string>;
 
 type PayHereWindow = Window & {
@@ -83,12 +77,14 @@ export function PayHereButton({
   }
 
   return (
-    <div className="space-y-2.5">
+    // Wrapper එකට w-full දැම්මා, space-y-2.5 මොබයිල් එකට ගැලපෙන විදියට ටිකක් අඩු කළා
+    <div className="w-full space-y-2 sm:space-y-2.5">
       <Button
         onClick={startPayment}
         disabled={pending}
         size="lg"
-        className="w-full sm:w-auto"
+        // justify-center දැම්මා, එතකොට බටන් එකේ අකුරු හරියටම මැදට එනවා
+        className="w-full justify-center sm:w-auto"
         icon={
           pending ? (
             <RefreshCw className="h-4 w-4 animate-spin" />
@@ -102,26 +98,26 @@ export function PayHereButton({
           : `Pay LKR ${amount.toLocaleString("en-LK")} & publish`}
       </Button>
 
-      {/* Trust line — a lock icon is the universal "safe" signal */}
-      <p className="flex items-center justify-center gap-1.5 text-[11px] text-gray-500 sm:justify-start">
-        <Lock className="h-2.5 w-2.5 text-gray-400" />
+      {/* Trust line - මොබයිල් එකේදී අකුරු ටිකක් පොඩියට (text-[10px]) කළා */}
+      <p className="flex items-center justify-center gap-1.5 text-[10px] text-gray-500 sm:justify-start sm:text-[11px]">
+        <Lock className="h-2.5 w-2.5 text-gray-400 sm:h-3 sm:w-3" />
         Secured by PayHere
       </p>
 
-      {/* Error state */}
+      {/* Error state - පැඩින් සහ අකුරු මොබයිල් එකට හරියටම හැඩගැහුවා */}
       {error && (
-        <div className="flex items-start gap-2.5 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2.5">
-          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-600">
-            <AlertCircle className="h-3.5 w-3.5" />
+        <div className="flex w-full items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-2.5 sm:gap-2.5 sm:px-3 sm:py-3">
+          <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-600 sm:h-6 sm:w-6">
+            <AlertCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold text-rose-900">
+            <p className="text-[11px] font-semibold text-rose-900 sm:text-xs">
               Payment didn&apos;t start
             </p>
-            <p className="mt-0.5 break-words text-[11px] leading-relaxed text-rose-700">
+            <p className="mt-0.5 break-words text-[10px] leading-relaxed text-rose-700 sm:text-[11px]">
               {error}
             </p>
-            <p className="mt-1 text-[11px] text-rose-500">
+            <p className="mt-1 text-[10px] text-rose-500 sm:text-[11px]">
               Click the button to retry.
             </p>
           </div>

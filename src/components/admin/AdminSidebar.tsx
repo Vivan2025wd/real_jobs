@@ -33,7 +33,7 @@ export function AdminSidebar() {
 
   // Common Nav List rendering
   const NavLinks = ({ onNavigate }: { onNavigate?: () => void }) => (
-    <nav className="flex-1 space-y-1 p-4">
+    <nav className="flex-1 space-y-1 p-3 sm:p-4">
       {NAV_ITEMS.map((item) => {
         const active = isActive(item.href);
         return (
@@ -41,7 +41,7 @@ export function AdminSidebar() {
             key={item.href}
             href={item.href}
             onClick={onNavigate}
-            className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+            className={`flex min-h-[44px] items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors sm:gap-3 ${
               active
                 ? "bg-indigo-50 text-indigo-700"
                 : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
@@ -78,17 +78,18 @@ export function AdminSidebar() {
       </aside>
 
       {/* ═══════════════ Mobile Topbar ═══════════════ */}
-      <div className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between border-b border-gray-200 bg-white px-4 md:hidden">
+      <div className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between border-b border-gray-200 bg-white/90 px-3 backdrop-blur sm:px-4 md:hidden">
         <Link
           href="/admin"
-          className="flex items-center gap-2 font-bold text-indigo-700"
+          className="flex items-center gap-2 text-base font-bold text-indigo-700"
         >
           <ShieldCheck className="h-5 w-5" /> Admin
         </Link>
         <button
           type="button"
           onClick={() => setMobileOpen(true)}
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100"
+          className="flex h-10 w-10 items-center justify-center rounded-lg text-gray-600 transition hover:bg-gray-100"
+          aria-label="Open menu"
         >
           <Menu className="h-5 w-5" />
         </button>
@@ -102,28 +103,32 @@ export function AdminSidebar() {
             onClick={() => setMobileOpen(false)}
           />
           <div className="fixed inset-y-0 right-0 z-50 flex w-72 max-w-[85vw] flex-col bg-white shadow-xl md:hidden">
-            <div className="flex h-16 items-center justify-between border-b border-gray-100 px-5">
-              <span className="flex items-center gap-2 font-bold text-indigo-700">
-                <ShieldCheck className="h-5 w-5" /> Menu
+            {/* Drawer Header */}
+            <div className="flex h-14 items-center justify-between border-b border-gray-100 px-3">
+              <span className="flex items-center gap-2 text-sm font-bold text-indigo-700">
+                <ShieldCheck className="h-4 w-4" /> Menu
               </span>
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}
-                className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100"
+                className="flex h-10 w-10 items-center justify-center rounded-lg text-gray-600 transition hover:bg-gray-100"
+                aria-label="Close menu"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
             
+            {/* Nav Links */}
             <div className="flex-1 overflow-y-auto">
               <NavLinks onNavigate={() => setMobileOpen(false)} />
             </div>
             
-            <div className="border-t border-gray-100 p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)]">
+            {/* Drawer Footer */}
+            <div className="border-t border-gray-100 p-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
               <Link
                 href="/dashboard"
                 onClick={() => setMobileOpen(false)}
-                className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-indigo-600"
+                className="flex min-h-[44px] items-center gap-2 rounded-lg px-3 text-sm font-medium text-gray-500 transition hover:bg-gray-50 hover:text-indigo-600"
               >
                 <ArrowLeft className="h-4 w-4" /> Back to App
               </Link>

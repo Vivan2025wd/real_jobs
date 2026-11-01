@@ -38,11 +38,14 @@ export function Badge({
 }) {
   const t = tones[tone];
   return (
+    // මොබයිල් එකේදී px-2 py-0.5 text-[10px], ඩෙස්ක්ටොප් එකේදී sm:px-2.5 sm:py-1 sm:text-xs
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${t.bg} ${t.text}`}
+      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium sm:gap-1.5 sm:px-2.5 sm:py-1 sm:text-xs ${t.bg} ${t.text}`}
     >
       {dot && (
-        <span className={`inline-block h-1.5 w-1.5 rounded-full ${t.dot}`} />
+        <span
+          className={`inline-block h-1 w-1 shrink-0 rounded-full sm:h-1.5 sm:w-1.5 ${t.dot}`}
+        />
       )}
       {children}
     </span>

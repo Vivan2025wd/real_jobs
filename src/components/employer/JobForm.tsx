@@ -52,10 +52,6 @@ const CATEGORY_OPTIONS = [
   { value: "OTHER", label: "Other" },
 ];
 
-// Pricing mirrors src/lib/utils/constants.ts — keep in sync if you change
-// one, change the other. (Alternatively, import from there — this static
-// list exists so the form doesn't need a client-side import of the constant
-// module, which would pull server-only code into the client bundle.)
 const DURATION_OPTIONS = [
   { value: 7, label: "7 days", hint: "Fast hire", price: 2499 },
   { value: 14, label: "14 days", hint: "Standard", price: 4499 },
@@ -71,7 +67,7 @@ function Submit({ children }: { children: string }) {
     <Button
       type="submit"
       size="lg"
-      className="w-full sm:w-auto"
+      className="w-full justify-center sm:w-auto"
       disabled={pending}
       icon={
         pending ? (
@@ -101,19 +97,19 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className="space-y-5">
-      <div className="flex items-start gap-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
-          <Icon className="h-4 w-4" />
+    <div className="space-y-3.5 sm:space-y-5">
+      <div className="flex items-start gap-2.5 sm:gap-3">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 sm:h-9 sm:w-9">
+          <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
         </div>
-        <div>
-          <h3 className="text-sm font-semibold tracking-tight text-gray-900">
+        <div className="min-w-0">
+          <h3 className="text-sm font-semibold tracking-tight text-gray-900 sm:text-base">
             {title}
           </h3>
-          <p className="mt-0.5 text-xs text-gray-500">{description}</p>
+          <p className="mt-0.5 text-[11px] text-gray-500 sm:text-xs">{description}</p>
         </div>
       </div>
-      <div className="space-y-4">{children}</div>
+      <div className="space-y-3.5 sm:space-y-4">{children}</div>
     </div>
   );
 }
@@ -143,10 +139,10 @@ function Textarea({
   hint?: string;
 }) {
   return (
-    <div>
+    <div className="w-full">
       <label
         htmlFor={id}
-        className="block text-sm font-medium text-gray-700"
+        className="block text-xs font-medium text-gray-700 sm:text-sm"
       >
         {label}
       </label>
@@ -158,9 +154,9 @@ function Textarea({
         rows={rows}
         defaultValue={defaultValue}
         placeholder={placeholder}
-        className="mt-1.5 block w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-base sm:text-sm shadow-sm transition placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+        className="mt-1.5 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-base shadow-sm transition placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 sm:px-3.5 sm:text-sm"
       />
-      {hint && <p className="mt-1.5 text-xs text-gray-500">{hint}</p>}
+      {hint && <p className="mt-1.5 text-[11px] text-gray-500 sm:text-xs">{hint}</p>}
     </div>
   );
 }
@@ -185,18 +181,18 @@ export function JobForm({
   );
 
   return (
-    <form action={action} className="space-y-8">
+    <form action={action} className="w-full space-y-6 sm:space-y-8">
       {/* ─── Error banner ─── */}
       {error && (
-        <div className="flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-600">
-            <AlertCircle className="h-4 w-4" />
+        <div className="flex w-full items-start gap-2.5 rounded-xl border border-rose-200 bg-rose-50 p-3 sm:gap-3 sm:px-4 sm:py-3.5">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-600 sm:h-8 sm:w-8">
+            <AlertCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           </div>
-          <div>
-            <p className="text-sm font-semibold text-rose-900">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-rose-900 sm:text-base">
               Couldn&apos;t save the job
             </p>
-            <p className="mt-0.5 text-sm text-rose-800">{error}</p>
+            <p className="mt-0.5 text-xs leading-snug text-rose-800 sm:text-sm">{error}</p>
           </div>
         </div>
       )}
@@ -225,7 +221,7 @@ export function JobForm({
           name="description"
           required
           minLength={30}
-          rows={8}
+          rows={6} // මොබයිල් එකේදී පොඩ්ඩක් අඩු කළා
           defaultValue={defaults.description}
           placeholder="Describe the role, responsibilities, and requirements…"
           label="Description"
@@ -242,7 +238,7 @@ export function JobForm({
         title="Location & work type"
         description="Where the job is based and how it's worked."
       >
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
           <Input
             label="Location"
             name="location"
@@ -271,8 +267,8 @@ export function JobForm({
           placeholder="Uncategorised"
           defaultValue={defaults.category ?? ""}
         />
-        <p className="-mt-2 flex items-center gap-1.5 text-xs text-gray-500">
-          <Tag className="h-3 w-3 text-gray-400" />
+        <p className="-mt-1.5 flex items-center gap-1.5 text-[11px] text-gray-500 sm:-mt-2 sm:text-xs">
+          <Tag className="h-3 w-3 shrink-0 text-gray-400" />
           Powers the public category pages and search filters.
         </p>
       </Section>
@@ -286,7 +282,7 @@ export function JobForm({
         title="Compensation"
         description="Optional — leave blank if negotiable."
       >
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
           <Input
             label="Minimum salary (LKR)"
             name="salary_min"
@@ -310,7 +306,7 @@ export function JobForm({
             icon={<Banknote className="h-4 w-4" />}
           />
         </div>
-        <p className="-mt-2 text-xs text-gray-500">
+        <p className="-mt-1.5 text-[11px] leading-relaxed text-gray-500 sm:-mt-2 sm:text-xs">
           Listing a range builds trust — candidates skip roles with no salary
           info.
         </p>
@@ -325,13 +321,13 @@ export function JobForm({
         title="Posting duration"
         description="How long the listing stays live before auto-archiving."
       >
-        <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3 sm:gap-3">
           {DURATION_OPTIONS.map((opt) => {
             const isSelected = selectedDuration === opt.value;
             return (
               <label
                 key={opt.value}
-                className="group relative flex cursor-pointer flex-col gap-1 rounded-xl border border-gray-200 bg-white p-3 transition has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50/50 has-[:checked]:ring-1 has-[:checked]:ring-indigo-200 hover:border-gray-300"
+                className="group relative flex cursor-pointer flex-col gap-1 rounded-xl border border-gray-200 bg-white p-2.5 transition has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50/50 has-[:checked]:ring-1 has-[:checked]:ring-indigo-200 hover:border-gray-300 sm:p-3"
               >
                 <input
                   type="radio"
@@ -345,7 +341,7 @@ export function JobForm({
                     <p className="text-sm font-semibold text-gray-900">
                       {opt.label}
                     </p>
-                    <p className="text-xs text-gray-500">{opt.hint}</p>
+                    <p className="text-[11px] text-gray-500 sm:text-xs">{opt.hint}</p>
                   </div>
                   {opt.value === 14 && (
                     <span className="shrink-0 rounded-full bg-emerald-50 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-emerald-700 ring-1 ring-emerald-200">
@@ -353,7 +349,7 @@ export function JobForm({
                     </span>
                   )}
                 </div>
-                <p className="mt-1 text-sm font-semibold text-indigo-600">
+                <p className="mt-1 text-xs font-semibold text-indigo-600 sm:text-sm">
                   LKR {opt.price.toLocaleString("en-LK")}
                 </p>
               </label>
@@ -361,7 +357,7 @@ export function JobForm({
           })}
         </div>
 
-        <div className="flex items-start gap-2 rounded-lg border border-indigo-100 bg-indigo-50/60 px-3 py-2.5 text-xs text-indigo-900">
+        <div className="flex items-start gap-2 rounded-lg border border-indigo-100 bg-indigo-50/60 p-2.5 text-[11px] leading-relaxed text-indigo-900 sm:px-3 sm:py-2.5 sm:text-xs">
           <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-indigo-600" />
           <p>
             You&apos;ll be charged{" "}
@@ -373,19 +369,22 @@ export function JobForm({
           </p>
         </div>
 
-        <p className="-mt-2 text-xs text-gray-500">
+        <p className="-mt-1.5 text-[11px] leading-relaxed text-gray-500 sm:-mt-2 sm:text-xs">
           Jobs auto-archive when the duration ends. You can mark a role as
           filled earlier from the job detail page.
         </p>
       </Section>
 
       {/* ─── Submit row ─── */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-6">
-        <p className="flex items-center gap-1.5 text-xs text-gray-400">
-          <FileText className="h-3 w-3" />
+      {/* මොබයිල් එකේදී බටන් එක උඩට එන්න flex-col-reverse දැම්මා */}
+      <div className="flex flex-col-reverse items-stretch gap-3 border-t border-gray-100 pt-5 sm:flex-row sm:items-center sm:justify-between sm:pt-6">
+        <p className="flex items-center justify-center gap-1.5 text-center text-[10px] text-gray-400 sm:justify-start sm:text-left sm:text-xs">
+          <FileText className="h-3 w-3 shrink-0" />
           You can edit everything later — nothing is final until you publish.
         </p>
-        <Submit>{submitLabel}</Submit>
+        <div className="w-full sm:w-auto">
+          <Submit>{submitLabel}</Submit>
+        </div>
       </div>
     </form>
   );

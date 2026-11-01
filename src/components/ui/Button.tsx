@@ -21,9 +21,14 @@ const variants: Record<Variant, string> = {
 };
 
 const sizes: Record<Size, string> = {
-  sm: "min-h-[44px] px-3.5 text-sm gap-1.5 sm:min-h-0 sm:h-9",
+  // sm: මොබයිල් එකේදී පොඩි ඉඩක් (px-3), අකුරු පොඩියට (text-xs)
+  sm: "min-h-[44px] px-3 text-xs gap-1.5 sm:min-h-0 sm:h-9 sm:px-3.5 sm:text-sm",
+  
+  // md: මොබයිල් එකේදී මධ්‍යම ඉඩක් (px-4), අකුරු text-sm
   md: "min-h-[44px] px-4 text-sm gap-2 sm:min-h-0 sm:h-10",
-  lg: "min-h-[44px] px-6 text-base gap-2 sm:h-11",
+  
+  // lg: ප්‍රධාන CTA එකකට. මොබයිල් එකේදී උස 48px (ඔබන්න ලේසි වෙන්න), පැඩින් px-5
+  lg: "min-h-[48px] px-5 text-sm gap-2 sm:min-h-0 sm:h-11 sm:px-6 sm:text-base",
 };
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -48,7 +53,8 @@ export const Button = forwardRef<HTMLButtonElement, Props>(
   ) => (
     <button
       ref={ref}
-      className={`inline-flex items-center justify-center rounded-lg font-medium transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 ${variants[variant]} ${sizes[size]} ${className}`}
+      // whitespace-nowrap දැම්මා අකුරු දිග වැඩි වුණත් බටන් එක ඇතුලේ අකුරු දෙපේළියකට කැඩෙන්නේ නැතුව තියෙන්න
+      className={`inline-flex items-center justify-center whitespace-nowrap rounded-lg font-medium transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 ${variants[variant]} ${sizes[size]} ${className}`}
       {...props}
     >
       {icon && <span className="shrink-0">{icon}</span>}

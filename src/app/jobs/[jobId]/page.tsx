@@ -20,14 +20,6 @@ type MetadataRow = {
   companies: { company_name: string };
 };
 
-// ---------------------------------------------------------------------------
-// Cookie-free anon client.
-//
-// The page MUST NOT call cookies() anywhere (including generateMetadata),
-// otherwise Next.js forces the route dynamic and ISR caching is defeated.
-// `createClient` from @supabase/supabase-js uses only the anon key and RLS —
-// no session, no cookies, no dynamic opt-out.
-// ---------------------------------------------------------------------------
 const supabase = createAnonClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -120,27 +112,33 @@ export default async function JobDetailPage({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+    // min-h-screen සහ overflow-x-hidden දැම්මා horizontal scroll එක නවත්තන්න
+    <div className="min-h-screen w-full overflow-x-hidden bg-gradient-to-br from-slate-50 via-white to-slate-50">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
       {/* ─── Sticky glass header ─── */}
-      <header className="sticky top-0 z-40 border-b border-gray-200/60 glass">
-        <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
-          <Logo />
+      <header className="sticky top-0 z-40 border-b border-gray-200/60 bg-white/80 backdrop-blur-md">
+        <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-3 sm:h-16 sm:px-4">
+          <Logo size="sm" />
           <Link
             href="/jobs"
-            className="group inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"
+            className="group inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-medium text-gray-600 transition hover:bg-gray-100 hover:text-gray-900 sm:gap-1.5 sm:px-3 sm:py-2 sm:text-sm"
           >
-            <ArrowLeft className="h-4 w-4 transition group-hover:-translate-x-0.5" />
+            <ArrowLeft className="h-3.5 w-3.5 transition group-hover:-translate-x-0.5 sm:h-4 sm:w-4" />
             All jobs
           </Link>
         </div>
       </header>
 
-      <div className="mx-auto max-w-5xl px-4 py-8 sm:py-12">
+      {/* 
+        ප්‍රධාන කන්ටේනර් එකේ පැඩින් මොබයිල් එකට අඩු කළා:
+        px-3 (mobile) -> sm:px-4
+        py-6 (mobile) -> sm:py-12
+      */}
+      <div className="mx-auto w-full max-w-5xl px-3 py-6 sm:px-4 sm:py-12">
         <JobDetail job={job} />
       </div>
     </div>
