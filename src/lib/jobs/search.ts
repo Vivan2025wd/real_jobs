@@ -22,7 +22,7 @@ const FILTER_KEYS = [
 ] as const;
 
 const JOB_CARD_SELECT =
-  "id, title, location, work_type, category, salary_min, salary_max, created_at, companies!inner(company_name, logo_url)";
+  "id, title, location, work_type, category, salary_min, salary_max, created_at, companies!inner(company_name, logo_url, total_applications_90d, responded_applications_90d, avg_response_hours, response_rate_cached_at)";
 
 function getValue(params: SearchParamsInput, key: string): string | undefined {
   if (params instanceof URLSearchParams) return params.get(key) ?? undefined;

@@ -11,6 +11,7 @@ import {
   FileText,
 } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
+import { ResponseRateBadge } from "@/components/employer/ResponseRateBadge";
 import { formatSalary, formatDate, timeAgo } from "@/lib/utils/format";
 import type { PublicJobDetail } from "@/types/job";
 
@@ -88,6 +89,14 @@ export function JobDetail({ job }: Props) {
                     Verified
                   </span>
                 )}
+                <ResponseRateBadge
+                  totalApplications90d={company.total_applications_90d}
+                  respondedApplications90d={
+                    company.responded_applications_90d
+                  }
+                  averageResponseHours={company.avg_response_hours}
+                  variant="full"
+                />
               </p>
             </div>
           </div>

@@ -51,6 +51,7 @@ export type Database = {
       applications: {
         Row: {
           applied_at: string
+          first_responded_at: string | null
           id: string
           job_id: string
           resume_url: string
@@ -59,6 +60,7 @@ export type Database = {
         }
         Insert: {
           applied_at?: string
+          first_responded_at?: string | null
           id?: string
           job_id: string
           resume_url: string
@@ -67,6 +69,7 @@ export type Database = {
         }
         Update: {
           applied_at?: string
+          first_responded_at?: string | null
           id?: string
           job_id?: string
           resume_url?: string
@@ -99,6 +102,10 @@ export type Database = {
           id: string
           is_verified: boolean
           logo_url: string | null
+          total_applications_90d: number
+          responded_applications_90d: number
+          avg_response_hours: number | null
+          response_rate_cached_at: string | null
         }
         Insert: {
           company_name: string
@@ -108,6 +115,10 @@ export type Database = {
           id?: string
           is_verified?: boolean
           logo_url?: string | null
+          total_applications_90d?: number
+          responded_applications_90d?: number
+          avg_response_hours?: number | null
+          response_rate_cached_at?: string | null
         }
         Update: {
           company_name?: string
@@ -117,6 +128,10 @@ export type Database = {
           id?: string
           is_verified?: boolean
           logo_url?: string | null
+          total_applications_90d?: number
+          responded_applications_90d?: number
+          avg_response_hours?: number | null
+          response_rate_cached_at?: string | null
         }
         Relationships: [
           {
@@ -321,6 +336,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_employer_response_rates: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       get_application_notification_details: {
         Args: {
           p_application_id: string

@@ -17,7 +17,8 @@ export type ApplicationStatus =
   | "PENDING"
   | "REVIEWED"
   | "SHORTLISTED"
-  | "REJECTED";
+  | "REJECTED"
+  | "WITHDRAWN";
 export type JobCategory =
   | "ENGINEERING"
   | "DESIGN"
@@ -44,6 +45,10 @@ export type PublicJobCard = {
   companies: {
     company_name: string;
     logo_url: string | null;
+    total_applications_90d: number;
+    responded_applications_90d: number;
+    avg_response_hours: number | null;
+    response_rate_cached_at: string | null;
   };
 };
 
@@ -58,6 +63,9 @@ export type PublicJobDetail = PublicJobCard & {
     logo_url: string | null;
     description: string | null;
     is_verified: boolean;
+    total_applications_90d: number;
+    responded_applications_90d: number;
+    avg_response_hours: number | null;
   };
 };
 
@@ -161,6 +169,7 @@ export const APPLICATION_STATUS_LABELS: Record<ApplicationStatus, string> = {
   REVIEWED: "Reviewed",
   SHORTLISTED: "Shortlisted",
   REJECTED: "Rejected",
+  WITHDRAWN: "Withdrawn",
 };
 
 export const CATEGORY_LABELS: Record<JobCategory, string> = {

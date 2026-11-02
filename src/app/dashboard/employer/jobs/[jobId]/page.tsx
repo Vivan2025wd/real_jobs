@@ -16,14 +16,14 @@ import {
   Timer,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { sendEmail } from "@/lib/email/send";
+import { sendApplicationStatusEmails } from "@/lib/email/application-status";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge, Badge } from "@/components/ui/Badge";
 import { PayHereButton } from "@/components/payment/PayHereButton";
 import { VerificationToggle } from "@/components/employer/VerificationToggle";
-import { ViewResumeButton } from "@/components/employer/ViewResumeButton";
-import { ApplicationStatusSelect } from "@/components/employer/ApplicationStatusSelect";
+import { ApplicationListManager } from "@/components/employer/ApplicationListManager";
+import { PendingApplicationsNotice } from "@/components/employer/PendingApplicationsNotice";
 import { formatSalary, formatDate, timeAgo } from "@/lib/utils/format";
 import type { ApplicationWithSeeker, JobRow } from "@/types/job";
 
@@ -39,19 +39,6 @@ const WORK_TYPE_LABEL: Record<string, string> = {
   ONSITE: "On-site",
   HYBRID: "Hybrid",
 };
-
-function escapeHtml(value: string): string {
-  return value.replace(/[&<>"']/g, (character) => {
-    const entities: Record<string, string> = {
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;",
-    };
-    return entities[character];
-  });
-}
 
 // ---------------------------------------------------------------------------
 // Expiry countdown
@@ -176,57 +163,21 @@ async function updateApplicationStatus(jobId: string, formData: FormData) {
     jobs: { title: string; companies: { company_name: string } };
   };
 
-  if (["REVIEWED", "SHORTLISTED", "REJECTED"].includes(newStatus)) {
-    const statusLabel =
-      newStatus === "REVIEWED"
-        ? "Under Review"
-        : newStatus === "SHORTLISTED"
-          ? "Shortlisted"
-          : "Not Selected";
-
-    const statusColor =
-      newStatus === "SHORTLISTED"
-        ? "#059669" // emerald-600
-        : newStatus === "REJECTED"
-          ? "#e11d48" // rose-600
-          : "#4f46e5"; // indigo-600
-
-    const escapedJobTitle = escapeHtml(app.jobs.title);
-    const escapedCompanyName = escapeHtml(app.jobs.companies.company_name);
-
-    try {
-      await sendEmail({
-        to: app.users.email,
-        subject: `Update on your application for ${app.jobs.title}`,
-        html: `
-          <div style="font-family: -apple-system, Segoe UI, Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 16px;">
-            <div style="text-align: center; margin-bottom: 24px;">
-              <span style="display: inline-block; width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; font-weight: 700; line-height: 32px;">R</span>
-            </div>
-            <h1 style="font-size: 22px; color: #111827; margin: 0 0 8px;">Application update</h1>
-            <p style="color: #374151; line-height: 1.6; font-size: 15px;">
-              Your application for <strong>${escapedJobTitle}</strong> at
-              <strong>${escapedCompanyName}</strong> has been updated.
-            </p>
-            <div style="background: #f9fafb; border-left: 3px solid ${statusColor}; padding: 12px 16px; margin: 20px 0; border-radius: 4px;">
-              <p style="margin: 0; font-size: 13px; color: #6b7280;">New status</p>
-              <p style="margin: 4px 0 0; font-size: 16px; font-weight: 600; color: ${statusColor};">${statusLabel}</p>
-            </div>
-            <div style="text-align: center; margin-top: 28px;">
-              <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/seeker/applications"
-                 style="display: inline-block; background: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px;">
-                View application
-              </a>
-            </div>
-            <p style="color: #9ca3af; font-size: 12px; text-align: center; margin-top: 32px;">
-              You're receiving this because you applied via RealJobs.
-            </p>
-          </div>
-        `,
-      });
-    } catch (err) {
-      console.error("[updateApplicationStatus] email send failed:", err);
-    }
+  if (
+    newStatus === "REVIEWED" ||
+    newStatus === "SHORTLISTED" ||
+    newStatus === "REJECTED"
+  ) {
+    await sendApplicationStatusEmails(
+      [
+        {
+          email: app.users.email,
+          jobTitle: app.jobs.title,
+          companyName: app.jobs.companies.company_name,
+        },
+      ],
+      newStatus
+    );
   }
 
   revalidatePath(`/dashboard/employer/jobs/${jobId}`);
@@ -273,6 +224,12 @@ export default async function EmployerJobDetailPage({
   }
 
   const typedApplications = (applications ?? []) as ApplicationWithSeeker[];
+  const stalePendingCount = typedApplications.filter(
+    (application) =>
+      application.status === "PENDING" &&
+      Date.now() - new Date(application.applied_at).getTime() >=
+        7 * 24 * 60 * 60 * 1000
+  ).length;
 
   return (
     <div className="w-full space-y-4 sm:space-y-6">
@@ -427,6 +384,12 @@ export default async function EmployerJobDetailPage({
       </Card>
 
       {/* ─── Applications ─── */}
+      {stalePendingCount > 0 && (
+        <PendingApplicationsNotice
+          jobId={typedJob.id}
+          count={stalePendingCount}
+        />
+      )}
       <Card>
         <CardHeader
           title={`Applications (${typedApplications.length})`}
@@ -453,36 +416,11 @@ export default async function EmployerJobDetailPage({
               </div>
             </div>
           ) : (
-            <ul className="divide-y divide-gray-100">
-              {typedApplications.map((a) => (
-                <li
-                  key={a.id}
-                  className="flex flex-col gap-2.5 px-3 py-3.5 transition hover:bg-gray-50/60 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-6 sm:py-4"
-                >
-                  <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-100 to-violet-100 text-xs font-semibold text-indigo-700 sm:h-10 sm:w-10 sm:text-sm">
-                      {a.users.email.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-gray-900 sm:text-base">
-                        {a.users.email}
-                      </p>
-                      <p className="text-[10px] text-gray-500 sm:text-xs">
-                        Applied {timeAgo(a.applied_at)}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex w-full flex-wrap items-center gap-2 pl-10 sm:w-auto sm:shrink-0 sm:gap-3 sm:pl-0">
-                    <ApplicationStatusSelect
-                      applicationId={a.id}
-                      currentStatus={a.status}
-                      onUpdate={updateApplicationStatus.bind(null, typedJob.id)}
-                    />
-                    <ViewResumeButton applicationId={a.id} />
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <ApplicationListManager
+              jobId={typedJob.id}
+              applications={typedApplications}
+              onUpdateStatus={updateApplicationStatus.bind(null, typedJob.id)}
+            />
           )}
         </CardBody>
       </Card>
