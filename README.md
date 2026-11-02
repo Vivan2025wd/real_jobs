@@ -74,7 +74,7 @@ flowchart LR
     Next -->|Verification and lifecycle email| Email
 ```
 
-The browser communicates with the Next.js application for authenticated actions, but uploads resume files directly to S3 using short-lived presigned URLs. PayHere sends payment notifications to a server-side route, and Vercel Cron triggers scheduled job-verification and expiration work.
+The browser communicates with the Next.js application for authenticated actions, but uploads resume files directly to S3 using short-lived presigned URLs. PayHere sends payment notifications to a server-side route, and Vercel Cron triggers scheduled job-verification, expiration, and saved-search alert delivery. Saved searches are managed with the user's RLS-scoped session; the alert cron uses the admin client only to find due searches, send grouped emails, and process one-click unsubscribe requests.
 
 ## Tech Stack
 

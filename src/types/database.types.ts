@@ -6,6 +6,15 @@
   | { [key: string]: Json | undefined }
   | Json[]
 
+export type SavedSearchFilters = {
+  q?: string;
+  location?: string;
+  category?: string;
+  work_type?: string;
+  salary_min?: number;
+  sort?: string;
+};
+
 export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
@@ -133,6 +142,7 @@ export type Database = {
           notified_10_applicants_at: string | null
           notified_expiring_at: string | null
           notified_stale_at: string | null
+          published_at: string | null
           price_lkr: number
           salary_max: number | null
           salary_min: number | null
@@ -155,6 +165,7 @@ export type Database = {
           notified_10_applicants_at?: string | null
           notified_expiring_at?: string | null
           notified_stale_at?: string | null
+          published_at?: string | null
           price_lkr: number
           salary_max?: number | null
           salary_min?: number | null
@@ -177,6 +188,7 @@ export type Database = {
           notified_10_applicants_at?: string | null
           notified_expiring_at?: string | null
           notified_stale_at?: string | null
+          published_at?: string | null
           price_lkr?: number
           salary_max?: number | null
           salary_min?: number | null
@@ -247,6 +259,36 @@ export type Database = {
           },
         ]
       }
+      saved_searches: {
+        Row: {
+          alert_frequency: string
+          created_at: string
+          filters: SavedSearchFilters
+          id: string
+          last_alerted_at: string
+          unsubscribe_token: string
+          user_id: string
+        }
+        Insert: {
+          alert_frequency?: string
+          created_at?: string
+          filters: SavedSearchFilters
+          id?: string
+          last_alerted_at?: string
+          unsubscribe_token?: string
+          user_id: string
+        }
+        Update: {
+          alert_frequency?: string
+          created_at?: string
+          filters?: SavedSearchFilters
+          id?: string
+          last_alerted_at?: string
+          unsubscribe_token?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           created_at: string
@@ -289,6 +331,20 @@ export type Database = {
           job_title: string
           seeker_email: string | null
         }[]
+      }
+      save_saved_search: {
+        Args: {
+          p_alert_frequency: string
+          p_filters: Json
+        }
+        Returns: string
+      }
+      set_saved_search_alert: {
+        Args: {
+          p_alert_frequency: string
+          p_id: string
+        }
+        Returns: boolean
       }
     }
     Enums: {

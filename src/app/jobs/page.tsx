@@ -16,6 +16,12 @@ import { JobList } from "@/components/jobs/JobList";
 import { Button } from "@/components/ui/Button";
 import type { PublicJobCard } from "@/types/job";
 import { Logo } from "@/components/ui/Logo";
+import { createClient as createServerClient } from "@/lib/supabase/server";
+import {
+  buildJobsSearchQuery,
+  parseJobSearchFilters,
+} from "@/lib/jobs/search";
+import { SaveSearchButton } from "@/components/jobs/SaveSearchButton";
 
 export const metadata: Metadata = {
   title: "Browse jobs",
@@ -23,8 +29,8 @@ export const metadata: Metadata = {
     "Browse verified, up-to-date jobs across engineering, design, marketing, and more.",
 };
 
-// Public search depends on URL params, so it remains dynamic without reading
-// the user's session.
+// Public results depend on URL params; the signed-in user is checked only for
+// the optional save-search control.
 export const dynamic = "force-dynamic";
 
 const supabase = createAnonClient(
@@ -59,47 +65,22 @@ export default async function JobsPage({
 }: {
   searchParams: SearchParams;
 }) {
+  const filters = parseJobSearchFilters(searchParams);
   const page = Math.max(1, parseInt(searchParams.page ?? "1", 10) || 1);
   const from = (page - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
-
-  let query = supabase
-    .from("jobs")
-    .select(
-      "id, title, location, work_type, category, salary_min, salary_max, created_at, companies!inner(company_name, logo_url)",
-      { count: "exact" }
-    )
-    .eq("status", "ACTIVE");
-
-  if (searchParams.q) {
-    query = query.ilike("title", `%${searchParams.q}%`);
-  }
-  if (searchParams.location) {
-    query = query.ilike("location", `%${searchParams.location}%`);
-  }
-  if (searchParams.category) {
-    query = query.eq("category", searchParams.category);
-  }
-  if (searchParams.work_type) {
-    query = query.eq("work_type", searchParams.work_type);
-  }
-  if (searchParams.salary_min) {
-    const min = parseInt(searchParams.salary_min, 10);
-    if (!Number.isNaN(min)) {
-      query = query.gte("salary_max", min);
-    }
-  }
-
-  if (searchParams.sort === "salary") {
-    query = query.order("salary_max", { ascending: false, nullsFirst: false });
-  } else {
-    query = query.order("created_at", { ascending: false });
-  }
-
-  const { data: jobs, count } = await query
+  const { data: jobs, count } = await buildJobsSearchQuery(
+    supabase,
+    filters,
+    { count: "exact" }
+  )
     .range(from, to)
     .returns<PublicJobCard[]>();
 
+  const sessionClient = await createServerClient();
+  const {
+    data: { user },
+  } = await sessionClient.auth.getUser();
   const total = count ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const activeFilterCount = FILTER_KEYS.filter((k) => searchParams[k]).length;
@@ -194,13 +175,24 @@ export default async function JobsPage({
                 )}
               </p>
               {hasFilters && (
-                <Link
-                  href="/jobs"
-                  className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-[11px] font-medium text-gray-500 transition hover:bg-gray-100 hover:text-gray-900 sm:px-2 sm:text-xs"
-                >
-                  <X className="h-3 w-3" />
-                  Clear all
-                </Link>
+                <div className="flex items-center gap-2">
+                  <SaveSearchButton
+                    filters={filters}
+                    authenticated={Boolean(user)}
+                    returnTo={`/jobs?${new URLSearchParams(
+                      Object.entries(searchParams).flatMap(([key, value]) =>
+                        value ? [[key, value]] : []
+                      )
+                    ).toString()}`}
+                  />
+                  <Link
+                    href="/jobs"
+                    className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-[11px] font-medium text-gray-500 transition hover:bg-gray-100 hover:text-gray-900 sm:px-2 sm:text-xs"
+                  >
+                    <X className="h-3 w-3" />
+                    Clear all
+                  </Link>
+                </div>
               )}
             </div>
 

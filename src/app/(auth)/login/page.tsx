@@ -13,16 +13,23 @@ type SearchParams = {
   next?: string;
 };
 
+function safeNextPath(next: string): string {
+  return next.startsWith("/") && !next.startsWith("//") ? next : "";
+}
+
 async function signInWithPassword(formData: FormData) {
   "use server";
 
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
-  const next = String(formData.get("next") ?? "");
+  const next = safeNextPath(String(formData.get("next") ?? ""));
+  const nextParam = next ? `&next=${encodeURIComponent(next)}` : "";
 
   if (!email || !password) {
     redirect(
-      "/login?error=" + encodeURIComponent("Email and password are required.")
+      `/login?error=${encodeURIComponent(
+        "Email and password are required."
+      )}${nextParam}`
     );
   }
 
@@ -33,14 +40,13 @@ async function signInWithPassword(formData: FormData) {
   });
 
   if (error) {
-    redirect("/login?error=" + encodeURIComponent(error.message));
+    redirect(`/login?error=${encodeURIComponent(error.message)}${nextParam}`);
   }
 
   const role = (data.user.user_metadata?.role ?? "JOB_SEEKER").toUpperCase();
   const defaultDashboard =
     role === "EMPLOYER" ? "/dashboard/employer" : "/dashboard/seeker";
-  const target =
-    next.startsWith("/") && !next.startsWith("//") ? next : defaultDashboard;
+  const target = next || defaultDashboard;
 
   revalidatePath("/", "layout");
   redirect(target);
@@ -50,9 +56,13 @@ async function signInWithMagicLink(formData: FormData) {
   "use server";
 
   const email = String(formData.get("email") ?? "").trim();
+  const next = safeNextPath(String(formData.get("next") ?? ""));
+  const nextParam = next ? `&next=${encodeURIComponent(next)}` : "";
 
   if (!email) {
-    redirect("/login?error=" + encodeURIComponent("Email is required."));
+    redirect(
+      `/login?error=${encodeURIComponent("Email is required.")}${nextParam}`
+    );
   }
 
   const supabase = await createClient();
@@ -60,17 +70,20 @@ async function signInWithMagicLink(formData: FormData) {
     email,
     options: {
       shouldCreateUser: false,
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/callback`,
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/callback${
+        next ? `?next=${encodeURIComponent(next)}` : ""
+      }`,
     },
   });
 
   if (error) {
-    redirect("/login?error=" + encodeURIComponent(error.message));
+    redirect(`/login?error=${encodeURIComponent(error.message)}${nextParam}`);
   }
 
   redirect(
-    "/login?message=" +
-      encodeURIComponent("Check your inbox for the sign-in link.")
+    `/login?message=${encodeURIComponent(
+      "Check your inbox for the sign-in link."
+    )}${nextParam}`
   );
 }
 
@@ -165,6 +178,7 @@ export default async function LoginPage({
 
       {/* Magic link */}
       <form action={signInWithMagicLink} className="w-full space-y-3">
+        {next && <input type="hidden" name="next" value={next} />}
         <div className="relative w-full">
           <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <input

@@ -11,6 +11,10 @@ import {
   Building2,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { SavedSearchesSection } from "@/components/seeker/SavedSearchesSection";
+import { parseJobSearchFilters } from "@/lib/jobs/search";
+import type { AlertFrequency } from "@/app/actions/saved-searches";
+import type { Database } from "@/types/database.types";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/Badge";
@@ -48,6 +52,25 @@ export default async function SeekerOverview() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  const { data: savedSearchRows, error: savedSearchError } = await supabase
+    .from("saved_searches")
+    .select("id, filters, alert_frequency")
+    .order("created_at", { ascending: false })
+    .returns<
+      Pick<
+        Database["public"]["Tables"]["saved_searches"]["Row"],
+        "id" | "filters" | "alert_frequency"
+      >[]
+    >();
+  if (savedSearchError) {
+    throw new Error(`Failed to load saved searches: ${savedSearchError.message}`);
+  }
+  const savedSearches = (savedSearchRows ?? []).map((search) => ({
+    id: search.id,
+    filters: parseJobSearchFilters(search.filters),
+    alert_frequency: search.alert_frequency as AlertFrequency,
+  }));
 
   // ─── Stats (parallel) ───
   const [
@@ -195,6 +218,8 @@ export default async function SeekerOverview() {
           );
         })}
       </div>
+
+      <SavedSearchesSection initialSearches={savedSearches} />
 
       {/* ─── Recent applications ─── */}
       <Card>

@@ -1,7 +1,4 @@
-# Supabase CLI local artifacts
+# Supabase
 .branches
 .temp
-
-# Local database dump / backup files
-*.dump
-*.sql.gz
+.env
