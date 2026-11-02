@@ -32,15 +32,19 @@ export async function GET(req: NextRequest) {
     ["stale", notifyStaleJobs],
   ] as const) {
     try {
-      results[name] = await fn();
+      const result = await fn();
+      results[name] = result;
+      if ("failed" in result && result.failed > 0) {
+        errors[name] = `${result.failed} lifecycle item(s) failed`;
+      }
     } catch (err) {
       errors[name] = err instanceof Error ? err.message : "Unknown";
     }
   }
 
-  return NextResponse.json({
-    ok: Object.keys(errors).length === 0,
-    results,
-    errors,
-  });
+  const hasErrors = Object.keys(errors).length > 0;
+  return NextResponse.json(
+    { ok: !hasErrors, results, errors },
+    { status: hasErrors ? 500 : 200 }
+  );
 }

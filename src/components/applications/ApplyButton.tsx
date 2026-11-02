@@ -88,14 +88,17 @@ export function ApplyButton({ jobId }: Props) {
         ?.resume_url;
       if (!resumeUrl) throw new Error("No resume on file");
 
-      const { error: insertErr } = await supabase
+      const { data: applicationData, error: insertErr } = await supabase
         .from("applications")
         .insert({
           job_id: jobId,
           seeker_id: user.id,
           resume_url: resumeUrl,
           status: "PENDING",
-        } as never);
+        } as never)
+        .select("id")
+        .single();
+      const application = applicationData as unknown as { id: string } | null;
 
       if (insertErr) {
         if (insertErr.code === "23505") {
@@ -103,6 +106,24 @@ export function ApplyButton({ jobId }: Props) {
           return;
         }
         throw new Error(insertErr.message);
+      }
+      if (!application) {
+        throw new Error("Application was submitted but could not be loaded");
+      }
+
+      try {
+        const notifyResponse = await fetch("/api/applications/notify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ applicationId: application.id }),
+        });
+        if (!notifyResponse.ok) {
+          console.error(
+            `[applications/notify] request failed with status ${notifyResponse.status}`
+          );
+        }
+      } catch (notifyError) {
+        console.error("[applications/notify] request failed:", notifyError);
       }
 
       setState({ kind: "already-applied" });

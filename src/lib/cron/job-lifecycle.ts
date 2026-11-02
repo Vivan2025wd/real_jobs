@@ -55,8 +55,24 @@ export async function dispatchVerificationEmails(): Promise<{
   for (const job of jobs) {
     const token = randomUUID();
     const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL}/verify-job/${token}`;
+    let tokenSaved = false;
 
     try {
+      const { data: updatedJob, error: updateError } = await supabase
+        .from("jobs")
+        .update({
+          verification_token: token,
+          verification_sent_at: new Date().toISOString(),
+        } as never)
+        .eq("id", job.id)
+        .is("verification_token", null)
+        .select("id")
+        .maybeSingle();
+
+      if (updateError) throw new Error(`verification token update failed: ${updateError.message}`);
+      if (!updatedJob) continue;
+      tokenSaved = true;
+
       await sendEmail({
         to: job.companies.users.email,
         subject: `Still hiring for "${job.title}"?`,
@@ -66,16 +82,22 @@ export async function dispatchVerificationEmails(): Promise<{
           verifyUrl,
         }),
       });
-      await supabase
-        .from("jobs")
-        .update({
-          verification_token: token,
-          verification_sent_at: new Date().toISOString(),
-        } as never)
-        .eq("id", job.id);
       sent++;
     } catch (err) {
       console.error(`[cron:verify] ${job.id} failed:`, err);
+      if (tokenSaved) {
+        const { error: clearError } = await supabase
+          .from("jobs")
+          .update({
+            verification_token: null,
+            verification_sent_at: null,
+          } as never)
+          .eq("id", job.id)
+          .eq("verification_token", token);
+        if (clearError) {
+          console.error(`[cron:verify] ${job.id} token cleanup failed:`, clearError);
+        }
+      }
       failed++;
     }
   }
@@ -144,14 +166,31 @@ export async function notifyHotJobs(): Promise<{ processed: number; sent: number
   let failed = 0;
 
   for (const job of jobs) {
-    const { count } = await supabase
-      .from("applications")
-      .select("id", { count: "exact", head: true })
-      .eq("job_id", job.id);
-
-    if (!count || count < HOT_THRESHOLD) continue;
+    let notifiedAt: string | null = null;
+    let markerClaimed = false;
 
     try {
+      const { count, error: countError } = await supabase
+        .from("applications")
+        .select("id", { count: "exact", head: true })
+        .eq("job_id", job.id);
+
+      if (countError) throw new Error(`applicant count failed: ${countError.message}`);
+      if (!count || count < HOT_THRESHOLD) continue;
+
+      notifiedAt = new Date().toISOString();
+      const { data: claimedJob, error: markerError } = await supabase
+        .from("jobs")
+        .update({ notified_10_applicants_at: notifiedAt } as never)
+        .eq("id", job.id)
+        .is("notified_10_applicants_at", null)
+        .select("id")
+        .maybeSingle();
+
+      if (markerError) throw new Error(`hot notification marker update failed: ${markerError.message}`);
+      if (!claimedJob) continue;
+      markerClaimed = true;
+
       await sendEmail({
         to: job.companies.users.email,
         subject: `🔥 ${count} candidates applied to "${job.title}"`,
@@ -162,13 +201,19 @@ export async function notifyHotJobs(): Promise<{ processed: number; sent: number
           dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/employer/jobs/${job.id}`,
         }),
       });
-      await supabase
-        .from("jobs")
-        .update({ notified_10_applicants_at: new Date().toISOString() } as never)
-        .eq("id", job.id);
       sent++;
     } catch (err) {
       console.error(`[cron:hot] ${job.id} failed:`, err);
+      if (markerClaimed && notifiedAt) {
+        const { error: cleanupError } = await supabase
+          .from("jobs")
+          .update({ notified_10_applicants_at: null } as never)
+          .eq("id", job.id)
+          .eq("notified_10_applicants_at", notifiedAt);
+        if (cleanupError) {
+          console.error(`[cron:hot] ${job.id} marker cleanup failed:`, cleanupError);
+        }
+      }
       failed++;
     }
   }
@@ -213,19 +258,35 @@ export async function notifyStaleJobs(): Promise<{ processed: number; sent: numb
   let failed = 0;
 
   for (const job of jobs) {
-    const { count } = await supabase
-      .from("applications")
-      .select("id", { count: "exact", head: true })
-      .eq("job_id", job.id);
-
-    if (count && count > 0) continue; // Already has applicants
-
-    const suggestions = await buildSuggestions(supabase, job);
-    const daysLive = Math.floor(
-      (Date.now() - new Date(job.created_at).getTime()) / 86_400_000
-    );
+    let notifiedAt: string | null = null;
+    let markerClaimed = false;
 
     try {
+      const { count, error: countError } = await supabase
+        .from("applications")
+        .select("id", { count: "exact", head: true })
+        .eq("job_id", job.id);
+
+      if (countError) throw new Error(`applicant count failed: ${countError.message}`);
+      if (count && count > 0) continue; // Already has applicants
+
+      const suggestions = await buildSuggestions(supabase, job);
+      const daysLive = Math.floor(
+        (Date.now() - new Date(job.created_at).getTime()) / 86_400_000
+      );
+      notifiedAt = new Date().toISOString();
+      const { data: claimedJob, error: markerError } = await supabase
+        .from("jobs")
+        .update({ notified_stale_at: notifiedAt } as never)
+        .eq("id", job.id)
+        .is("notified_stale_at", null)
+        .select("id")
+        .maybeSingle();
+
+      if (markerError) throw new Error(`stale notification marker update failed: ${markerError.message}`);
+      if (!claimedJob) continue;
+      markerClaimed = true;
+
       await sendEmail({
         to: job.companies.users.email,
         subject: `"${job.title}" has 0 applicants after ${daysLive} days`,
@@ -237,13 +298,19 @@ export async function notifyStaleJobs(): Promise<{ processed: number; sent: numb
           editUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/employer/jobs/${job.id}/edit`,
         }),
       });
-      await supabase
-        .from("jobs")
-        .update({ notified_stale_at: new Date().toISOString() } as never)
-        .eq("id", job.id);
       sent++;
     } catch (err) {
       console.error(`[cron:stale] ${job.id} failed:`, err);
+      if (markerClaimed && notifiedAt) {
+        const { error: cleanupError } = await supabase
+          .from("jobs")
+          .update({ notified_stale_at: null } as never)
+          .eq("id", job.id)
+          .eq("notified_stale_at", notifiedAt);
+        if (cleanupError) {
+          console.error(`[cron:stale] ${job.id} marker cleanup failed:`, cleanupError);
+        }
+      }
       failed++;
     }
   }
@@ -269,13 +336,15 @@ async function buildSuggestions(
 
   // 2. Salary comparison vs category
   if (job.category && (job.salary_min || job.salary_max)) {
-    const { data: peers } = await supabase
+    const { data: peers, error } = await supabase
       .from("jobs")
       .select("salary_min, salary_max")
       .eq("category", job.category)
       .eq("status", "ACTIVE")
       .neq("id", job.id)
       .not("salary_max", "is", null);
+
+    if (error) throw new Error(`salary comparison load failed: ${error.message}`);
 
     if (peers && peers.length >= 3) {
       const avgMax =
