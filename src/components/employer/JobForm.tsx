@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useFormStatus } from "react-dom";
 import {
   Briefcase,
@@ -15,10 +16,12 @@ import {
   Building2,
   Link2,
   Mail,
+  ImageIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
+import { JobImageUploader } from "@/components/employer/JobImageUploader";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -32,6 +35,8 @@ type DefaultValues = {
   salary_min?: number | null;
   salary_max?: number | null;
   duration_days?: number;
+  job_image_url?: string | null;
+  publish_immediately?: boolean;
 };
 
 // ---------------------------------------------------------------------------
@@ -173,13 +178,18 @@ export function JobForm({
   submitLabel,
   error,
   isAdmin = false,
+  isSourcedJob = false,
 }: {
   action: (formData: FormData) => void | Promise<void>;
   defaults?: DefaultValues;
   submitLabel: string;
   error?: string;
   isAdmin?: boolean;
+  isSourcedJob?: boolean;
 }) {
+  const [jobImageUrl, setJobImageUrl] = useState<string | null>(
+    defaults.job_image_url ?? null
+  );
   const selectedDuration = defaults.duration_days ?? 14;
   const selectedOption = DURATION_OPTIONS.find(
     (o) => o.value === selectedDuration
@@ -201,6 +211,7 @@ export function JobForm({
           </div>
         </div>
       )}
+      <input type="hidden" name="job_image_url" value={jobImageUrl ?? ""} />
 
       {/* ─── Section 1: The role ─── */}
       <Section
@@ -234,7 +245,7 @@ export function JobForm({
         />
       </Section>
 
-      {isAdmin && (
+      {isSourcedJob && (
         <>
           <div className="border-t border-gray-100" />
           <Section
@@ -362,6 +373,23 @@ export function JobForm({
       {/* ─── Divider ─── */}
       <div className="border-t border-gray-100" />
 
+      {/* ─── Job poster ─── */}
+      {!isSourcedJob && (
+        <Section
+          icon={ImageIcon}
+          title="Job Poster (Optional)"
+          description="Add a wide image to make the public listing stand out."
+        >
+          <JobImageUploader
+            initialUrl={jobImageUrl}
+            onUrlChange={setJobImageUrl}
+          />
+        </Section>
+      )}
+
+      {/* ─── Divider ─── */}
+      <div className="border-t border-gray-100" />
+
       {/* ─── Section 4: Posting duration + price ─── */}
       {!isAdmin && <Section
         icon={Clock}
@@ -421,6 +449,31 @@ export function JobForm({
           filled earlier from the job detail page.
         </p>
       </Section>}
+
+      {isAdmin && !isSourcedJob && (
+        <Section
+          icon={Clock}
+          title="Publishing"
+          description="Admin-created listings can go live without payment."
+        >
+          <label className="flex items-start gap-3 rounded-xl border border-indigo-100 bg-indigo-50/60 p-3 sm:p-4">
+            <input
+              type="checkbox"
+              name="publish_immediately"
+              defaultChecked={defaults.publish_immediately ?? false}
+              className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+            />
+            <span>
+              <span className="block text-sm font-medium text-gray-900">
+                Publish Immediately
+              </span>
+              <span className="mt-0.5 block text-xs text-gray-600">
+                If unchecked, the listing is saved as a draft.
+              </span>
+            </span>
+          </label>
+        </Section>
+      )}
 
       {/* ─── Submit row ─── */}
       {/* මොබයිල් එකේදී බටන් එක උඩට එන්න flex-col-reverse දැම්මා */}

@@ -11,11 +11,13 @@ import { s3, BUCKETS, type UploadPurpose } from "./client";
 const ALLOWED_TYPES: Record<UploadPurpose, string[]> = {
   RESUME: ["application/pdf"],
   COMPANY_LOGO: ["image/png", "image/jpeg", "image/webp"],
+  JOB_IMAGE: ["image/jpeg", "image/png", "image/webp"],
 };
 
 const MAX_SIZE_BYTES: Record<UploadPurpose, number> = {
   RESUME: 5 * 1024 * 1024, // 5 MB
   COMPANY_LOGO: 2 * 1024 * 1024, // 2 MB
+  JOB_IMAGE: 5 * 1024 * 1024, // 5 MB
 };
 
 const EXT_FOR_TYPE: Record<string, string> = {
@@ -31,7 +33,7 @@ const EXT_FOR_TYPE: Record<string, string> = {
 export type PresignedUpload = {
   uploadUrl: string;
   key: string;
-  /** Set only for public assets (logos); null for private (resumes). */
+  /** Set only for public assets (logos and job posters); null for resumes. */
   publicUrl: string | null;
   expiresIn: number;
 };
@@ -104,7 +106,12 @@ export async function buildPresignedUpload({
 
   // ─── Build the S3 key ───
   const ext = EXT_FOR_TYPE[contentType];
-  const prefix = purpose === "RESUME" ? "resumes" : "logos";
+  const prefix =
+    purpose === "RESUME"
+      ? "resumes"
+      : purpose === "COMPANY_LOGO"
+        ? "logos"
+        : "job-images";
   const key = `${prefix}/${ownerId}/${Date.now()}-${randomUUID()}.${ext}`;
   const bucket = purpose === "RESUME" ? BUCKETS.resumes : BUCKETS.assets;
 
@@ -118,9 +125,9 @@ export async function buildPresignedUpload({
 
   const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 300 });
 
-  // ─── Compute the public URL (logos only) ───
+  // ─── Compute the public URL for assets ───
   const publicUrl =
-    purpose === "COMPANY_LOGO" ? resolvePublicUrl(bucket, key) : null;
+    purpose === "RESUME" ? null : resolvePublicUrl(bucket, key);
 
   return { uploadUrl, key, publicUrl, expiresIn: 300 };
 }

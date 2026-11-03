@@ -199,13 +199,14 @@ export function ApplyButton({ jobId, externalUnclaimed }: Props) {
 
             <div>
               <label htmlFor="cover-letter" className="block text-sm font-medium text-gray-700">
-                Cover letter <span className="font-normal text-gray-500">(optional)</span>
+                Cover Letter <span className="font-normal text-gray-500">(Optional)</span>
               </label>
               <textarea
                 id="cover-letter"
                 value={coverLetter}
                 maxLength={3000}
                 rows={5}
+                placeholder="Add a short note about your interest in this role…"
                 onChange={(event) => setCoverLetter(event.target.value)}
                 className="mt-1.5 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
               />

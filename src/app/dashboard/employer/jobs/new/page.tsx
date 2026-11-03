@@ -9,6 +9,7 @@ import {
   Info,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { JobForm } from "@/components/employer/JobForm";
 import { jobSchema } from "@/lib/validators/job";
 import { priceForDuration } from "@/lib/utils/constants";
@@ -25,6 +26,7 @@ async function createJob(formData: FormData) {
     salary_min: formData.get("salary_min") || null,
     salary_max: formData.get("salary_max") || null,
     duration_days: formData.get("duration_days") || 14,
+    job_image_url: formData.get("job_image_url") || null,
   });
 
   if (!parsed.success) {
@@ -38,11 +40,14 @@ async function createJob(formData: FormData) {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  const isAdmin =
+    !!process.env.ADMIN_EMAIL &&
+    user.email?.toLowerCase() === process.env.ADMIN_EMAIL.toLowerCase();
   const { data: company, error: companyError } = await supabase
     .from("companies")
     .select("id")
     .eq("employer_id", user.id)
-    .eq("is_system", false)
+    .eq("is_system", isAdmin)
     .limit(1)
     .maybeSingle();
 
@@ -50,43 +55,75 @@ async function createJob(formData: FormData) {
     console.error("[new job] failed to load company:", companyError);
   }
 
-  const companyId = (company as { id: string } | null)?.id;
+  let companyId = (company as { id: string } | null)?.id;
+  if (!companyId && isAdmin) {
+    const { data: createdCompany, error: createCompanyError } =
+      await createAdminClient()
+        .from("companies")
+        .insert({
+          employer_id: user.id,
+          company_name: "RealJobs",
+          is_system: true,
+        })
+        .select("id")
+        .single();
+
+    if (createCompanyError) {
+      console.error("[new job] failed to create admin company:", createCompanyError);
+      redirect(
+        `/dashboard/employer/jobs/new?error=${encodeURIComponent("Could not prepare the admin company profile.")}`
+      );
+    }
+    companyId = createdCompany.id;
+  }
   if (!companyId) redirect("/dashboard/employer/company");
 
   // ─── Lock the price at creation time ───
-  const priceLkr = priceForDuration(parsed.data.duration_days);
+  const priceLkr = isAdmin ? 0 : priceForDuration(parsed.data.duration_days);
+  const publishImmediately =
+    isAdmin && formData.get("publish_immediately") === "on";
   const now = new Date();
   const expiresAt = new Date(
     now.getTime() + parsed.data.duration_days * 86_400_000
   );
 
-  const { data: job, error } = await supabase
-    .from("jobs")
-    .insert({
-      company_id: companyId,
-      title: parsed.data.title,
-      description: parsed.data.description,
-      location: parsed.data.location,
-      work_type: parsed.data.work_type,
-      category: parsed.data.category ?? null,
-      salary_min: parsed.data.salary_min ?? null,
-      salary_max: parsed.data.salary_max ?? null,
-      duration_days: parsed.data.duration_days,
-      price_lkr: priceLkr,
-      expires_at: expiresAt.toISOString(),
-      status: "DRAFT",
-    } as never)
-    .select("id")
-    .single();
+  const jobValues = {
+    company_id: companyId,
+    title: parsed.data.title,
+    description: parsed.data.description,
+    location: parsed.data.location,
+    work_type: parsed.data.work_type,
+    category: parsed.data.category ?? null,
+    salary_min: parsed.data.salary_min ?? null,
+    salary_max: parsed.data.salary_max ?? null,
+    job_image_url: parsed.data.job_image_url ?? null,
+    duration_days: parsed.data.duration_days,
+    price_lkr: priceLkr,
+    expires_at: expiresAt.toISOString(),
+    status: publishImmediately ? "ACTIVE" : "DRAFT",
+  };
+  const insertResult = isAdmin
+    ? await createAdminClient()
+        .from("jobs")
+        .insert(jobValues as never)
+        .select("id")
+        .single()
+    : await supabase
+        .from("jobs")
+        .insert(jobValues as never)
+        .select("id")
+        .single();
 
-  if (error) {
+  if (insertResult.error || !insertResult.data) {
     redirect(
-      `/dashboard/employer/jobs/new?error=${encodeURIComponent(error.message)}`
+      `/dashboard/employer/jobs/new?error=${encodeURIComponent(insertResult.error?.message ?? "Could not create the job.")}`
     );
   }
 
   revalidatePath("/dashboard/employer/jobs");
-  redirect(`/dashboard/employer/jobs/${(job as { id: string }).id}`);
+  const jobId = insertResult.data.id;
+  if (publishImmediately) revalidatePath(`/jobs/${jobId}`);
+  redirect(`/dashboard/employer/jobs/${jobId}`);
 }
 
 export default async function NewJobPage({
@@ -94,6 +131,15 @@ export default async function NewJobPage({
 }: {
   searchParams: { error?: string };
 }) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  const isAdmin =
+    !!process.env.ADMIN_EMAIL &&
+    user.email?.toLowerCase() === process.env.ADMIN_EMAIL.toLowerCase();
+
   return (
     <div className="mx-auto w-full max-w-3xl space-y-4 sm:space-y-6">
       {/* ─── Back link ─── */}
@@ -117,8 +163,10 @@ export default async function NewJobPage({
               Post a new job
             </h1>
             <p className="mt-0.5 text-xs text-gray-500 sm:mt-1 sm:text-sm">
-              Save as a draft first — then pay to publish. Plans start at{" "}
-              <strong className="text-gray-700">LKR 2,499</strong> for 7 days.
+              {isAdmin
+                ? "Create a job listing and choose whether to publish it immediately."
+                : <>Save as a draft first — then pay to publish. Plans start at{" "}
+                  <strong className="text-gray-700">LKR 2,499</strong> for 7 days.</>}
             </p>
           </div>
         </div>
@@ -142,13 +190,13 @@ export default async function NewJobPage({
       )}
 
       {/* ─── Info callout ─── */}
-      <div className="flex items-start gap-2.5 rounded-xl border border-indigo-100 bg-indigo-50/60 p-3 sm:gap-3 sm:px-4 sm:py-3.5">
+      {!isAdmin && <div className="flex items-start gap-2.5 rounded-xl border border-indigo-100 bg-indigo-50/60 p-3 sm:gap-3 sm:px-4 sm:py-3.5">
         <Info className="mt-0.5 h-4 w-4 shrink-0 text-indigo-600" />
         <p className="text-xs leading-relaxed text-indigo-900 sm:text-sm">
           Drafts are private — only you can see them. You&apos;ll be prompted to
           pay before the listing goes live on the public board.
         </p>
-      </div>
+      </div>}
 
       {/* ─── Form card ─── */}
       <div className="rounded-xl border border-gray-200 bg-white shadow-card sm:rounded-2xl">
@@ -168,8 +216,9 @@ export default async function NewJobPage({
         <div className="p-3.5 sm:p-6">
           <JobForm
             action={createJob}
-            submitLabel="Save as draft"
+            submitLabel={isAdmin ? "Save job" : "Save as draft"}
             error={undefined}
+            isAdmin={isAdmin}
           />
         </div>
       </div>

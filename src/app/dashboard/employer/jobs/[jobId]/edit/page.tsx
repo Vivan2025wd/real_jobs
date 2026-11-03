@@ -10,6 +10,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { JobForm } from "@/components/employer/JobForm";
 import { jobSchema } from "@/lib/validators/job";
 import { priceForDuration } from "@/lib/utils/constants";
@@ -26,6 +27,7 @@ async function updateJob(jobId: string, formData: FormData) {
     salary_min: formData.get("salary_min") || null,
     salary_max: formData.get("salary_max") || null,
     duration_days: formData.get("duration_days") || 14,
+    job_image_url: formData.get("job_image_url") || null,
   });
 
   if (!parsed.success) {
@@ -36,54 +38,75 @@ async function updateJob(jobId: string, formData: FormData) {
   }
 
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  const isAdmin =
+    !!process.env.ADMIN_EMAIL &&
+    user.email?.toLowerCase() === process.env.ADMIN_EMAIL.toLowerCase();
 
   // ─── Read the job to get its original created_at (for expires_at) ───
   type ExistingJob = {
     id: string;
     created_at: string;
     status: "DRAFT" | "ACTIVE" | "FILLED" | "EXPIRED" | "ARCHIVED";
+    companies: { employer_id: string };
   };
 
   const { data: existing } = await supabase
     .from("jobs")
-    .select("id, created_at, status")
+    .select("id, created_at, status, companies!inner(employer_id)")
     .eq("id", jobId)
     .maybeSingle();
 
   const existingJob = existing as unknown as ExistingJob | null;
-  if (!existingJob) notFound();
+  if (!existingJob || existingJob.companies.employer_id !== user.id) notFound();
 
   // ─── Recompute price + expiry from the new duration ───
-  const newPriceLkr = priceForDuration(parsed.data.duration_days);
+  const newPriceLkr = isAdmin ? 0 : priceForDuration(parsed.data.duration_days);
+  const publishImmediately =
+    isAdmin && formData.get("publish_immediately") === "on";
   const newExpiresAt = new Date(
     new Date(existingJob.created_at).getTime() +
       parsed.data.duration_days * 86_400_000
   );
 
-  const { error } = await supabase
-    .from("jobs")
-    .update({
-      title: parsed.data.title,
-      description: parsed.data.description,
-      location: parsed.data.location,
-      work_type: parsed.data.work_type,
-      category: parsed.data.category ?? null,
-      salary_min: parsed.data.salary_min ?? null,
-      salary_max: parsed.data.salary_max ?? null,
-      duration_days: parsed.data.duration_days,
-      price_lkr: newPriceLkr,
-      expires_at: newExpiresAt.toISOString(),
-    } as never)
-    .eq("id", jobId);
+  const jobValues = {
+    title: parsed.data.title,
+    description: parsed.data.description,
+    location: parsed.data.location,
+    work_type: parsed.data.work_type,
+    category: parsed.data.category ?? null,
+    salary_min: parsed.data.salary_min ?? null,
+    salary_max: parsed.data.salary_max ?? null,
+    job_image_url: parsed.data.job_image_url ?? null,
+    duration_days: parsed.data.duration_days,
+    price_lkr: newPriceLkr,
+    expires_at: newExpiresAt.toISOString(),
+    ...(isAdmin
+      ? { status: publishImmediately ? "ACTIVE" : "DRAFT" }
+      : {}),
+  };
+  const updateResult = isAdmin
+    ? await createAdminClient()
+        .from("jobs")
+        .update(jobValues as never)
+        .eq("id", jobId)
+    : await supabase
+        .from("jobs")
+        .update(jobValues as never)
+        .eq("id", jobId);
 
-  if (error) {
+  if (updateResult.error) {
     redirect(
-      `/dashboard/employer/jobs/${jobId}/edit?error=${encodeURIComponent(error.message)}`
+      `/dashboard/employer/jobs/${jobId}/edit?error=${encodeURIComponent(updateResult.error.message)}`
     );
   }
 
   revalidatePath(`/dashboard/employer/jobs/${jobId}`);
   revalidatePath("/dashboard/employer/jobs");
+  revalidatePath(`/jobs/${jobId}`);
   redirect(`/dashboard/employer/jobs/${jobId}`);
 }
 
@@ -104,6 +127,7 @@ type JobRow = {
   created_at: string;
   duration_days: number;
   price_lkr: number;
+  job_image_url: string | null;
 };
 
 export default async function EditJobPage({
@@ -119,6 +143,9 @@ export default async function EditJobPage({
   } = await supabase.auth.getUser();
 
   if (!user) notFound();
+  const isAdmin =
+    !!process.env.ADMIN_EMAIL &&
+    user.email?.toLowerCase() === process.env.ADMIN_EMAIL.toLowerCase();
 
   const { data } = await supabase
     .from("jobs")
@@ -182,7 +209,13 @@ export default async function EditJobPage({
       <div className="flex items-start gap-2.5 rounded-xl border border-indigo-100 bg-indigo-50/60 p-3 sm:gap-3 sm:px-4 sm:py-3.5">
         <Info className="mt-0.5 h-4 w-4 shrink-0 text-indigo-600" />
         <p className="text-xs leading-relaxed text-indigo-900 sm:text-sm">
-          {job.status === "DRAFT" ? (
+          {isAdmin ? (
+            job.status === "DRAFT" ? (
+              <>This admin listing is saved as a draft. Select Publish Immediately when it is ready to go live.</>
+            ) : (
+              <>This job is <strong>live</strong>. Changes appear on the public board shortly.</>
+            )
+          ) : job.status === "DRAFT" ? (
             <>
               This job is still a <strong>draft</strong>. Changes save
               immediately, but the listing won&apos;t appear publicly until you
@@ -228,7 +261,10 @@ export default async function EditJobPage({
               salary_min: job.salary_min,
               salary_max: job.salary_max,
               duration_days: job.duration_days,
+              job_image_url: job.job_image_url,
+              publish_immediately: job.status === "ACTIVE",
             }}
+            isAdmin={isAdmin}
           />
         </div>
       </div>

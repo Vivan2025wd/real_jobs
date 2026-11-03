@@ -52,6 +52,7 @@ export default async function NewSourcedJobPage({
         <JobForm
           action={createSourcedJob}
           isAdmin
+          isSourcedJob
           submitLabel="Publish sourced listing"
         />
       </div>

@@ -28,4 +28,4 @@ export const BUCKETS = {
   assets: process.env.S3_PUBLIC_BUCKET!,
 } as const;
 
-export type UploadPurpose = "RESUME" | "COMPANY_LOGO";
+export type UploadPurpose = "RESUME" | "COMPANY_LOGO" | "JOB_IMAGE";

@@ -199,6 +199,9 @@ export default async function EmployerJobDetailPage({
   } = await supabase.auth.getUser();
 
   if (!user) notFound();
+  const isAdmin =
+    !!process.env.ADMIN_EMAIL &&
+    user.email?.toLowerCase() === process.env.ADMIN_EMAIL.toLowerCase();
 
   const { data: job } = await supabase
     .from("jobs")
@@ -212,7 +215,7 @@ export default async function EmployerJobDetailPage({
 
   const { data: applications, error: applicationsError } = await supabase
     .from("applications")
-    .select("id, status, applied_at, resume_url, cover_letter, users!inner(email)")
+    .select("id, status, applied_at, resume_url, cover_letter, users!inner(email, full_name)")
     .eq("job_id", typedJob.id)
     .order("applied_at", { ascending: false });
 
@@ -350,22 +353,26 @@ export default async function EmployerJobDetailPage({
                   Ready to publish?
                 </h3>
                 <p className="mt-1 text-xs leading-relaxed text-gray-600 sm:text-sm">
-                  Pay the{" "}
-                  <strong className="text-gray-900">
-                    LKR {typedJob.price_lkr.toLocaleString("en-LK")}
-                  </strong>{" "}
-                  listing fee to activate this{" "}
-                  <strong>{typedJob.duration_days}-day</strong> job. PayHere
-                  handles the transaction — no card details touch our servers.
+                  {isAdmin
+                    ? "This admin listing is saved as a draft. Edit it and select Publish Immediately when it is ready to go live."
+                    : <>Pay the{" "}
+                      <strong className="text-gray-900">
+                        LKR {typedJob.price_lkr.toLocaleString("en-LK")}
+                      </strong>{" "}
+                      listing fee to activate this{" "}
+                      <strong>{typedJob.duration_days}-day</strong> job. PayHere
+                      handles the transaction — no card details touch our servers.</>}
                 </p>
               </div>
             </div>
-            <div className="w-full sm:w-auto sm:shrink-0">
-              <PayHereButton
-                jobId={typedJob.id}
-                amount={typedJob.price_lkr}
-              />
-            </div>
+            {!isAdmin && (
+              <div className="w-full sm:w-auto sm:shrink-0">
+                <PayHereButton
+                  jobId={typedJob.id}
+                  amount={typedJob.price_lkr}
+                />
+              </div>
+            )}
           </div>
         </div>
       )}

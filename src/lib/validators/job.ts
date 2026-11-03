@@ -22,6 +22,12 @@ export const jobSchema = z.object({
   category: z.enum(JOB_CATEGORIES).nullable().optional(),
   salary_min: z.coerce.number().int().nonnegative().nullable().optional(),
   salary_max: z.coerce.number().int().nonnegative().nullable().optional(),
+  job_image_url: z
+    .string()
+    .url("Job poster URL must be a valid HTTPS URL")
+    .refine((value) => value.startsWith("https://"), "Job poster URL must use HTTPS")
+    .nullable()
+    .optional(),
   duration_days: z.coerce
     .number()
     .int()

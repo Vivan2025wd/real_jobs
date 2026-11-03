@@ -149,6 +149,17 @@ export function JobDetail({ job }: Props) {
           </div>
         </div>
 
+        {job.job_image_url && (
+          <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={job.job_image_url}
+              alt={`${job.title} job poster`}
+              className="aspect-video w-full rounded-xl object-cover"
+            />
+          </div>
+        )}
+
         {/* ─── Description ─── */}
         <section className="w-full rounded-xl border border-gray-200 bg-white p-3.5 shadow-card sm:rounded-2xl sm:p-6 lg:p-8">
           <div className="flex items-center gap-1.5 sm:gap-2">

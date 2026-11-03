@@ -5,7 +5,7 @@ import {
   PresignedError,
 } from "@/lib/s3/presigned";
 
-type UploadPurpose = "RESUME" | "COMPANY_LOGO";
+type UploadPurpose = "RESUME" | "COMPANY_LOGO" | "JOB_IMAGE";
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
@@ -30,9 +30,13 @@ export async function POST(req: NextRequest) {
   }
 
   const purpose = body.purpose;
-  if (purpose !== "RESUME" && purpose !== "COMPANY_LOGO") {
+  if (
+    purpose !== "RESUME" &&
+    purpose !== "COMPANY_LOGO" &&
+    purpose !== "JOB_IMAGE"
+  ) {
     return NextResponse.json(
-      { error: 'purpose must be "RESUME" or "COMPANY_LOGO"' },
+      { error: 'purpose must be "RESUME", "COMPANY_LOGO", or "JOB_IMAGE"' },
       { status: 400 }
     );
   }
@@ -71,6 +75,19 @@ export async function POST(req: NextRequest) {
     if (!company) {
       return NextResponse.json(
         { error: "Create a company profile first" },
+        { status: 403 }
+      );
+    }
+  }
+
+  if (purpose === "JOB_IMAGE") {
+    const role = (user.user_metadata?.role as string | undefined)?.toUpperCase();
+    const isAdmin =
+      !!process.env.ADMIN_EMAIL &&
+      user.email?.toLowerCase() === process.env.ADMIN_EMAIL.toLowerCase();
+    if (role !== "EMPLOYER" && !isAdmin) {
+      return NextResponse.json(
+        { error: "Only employers and admins can upload job posters" },
         { status: 403 }
       );
     }

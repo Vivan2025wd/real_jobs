@@ -183,15 +183,17 @@ export function ApplicationListManager({
                 checked={selectedIds.includes(application.id)}
                 onChange={() => toggleApplication(application.id)}
                 disabled={working || application.status === "WITHDRAWN"}
-                aria-label={`Select application from ${application.users.email}`}
+                aria-label={`Select application from ${application.users.full_name?.trim() || application.users.email}`}
                 className="h-4 w-4 shrink-0 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
               />
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-100 to-violet-100 text-xs font-semibold text-indigo-700 sm:h-10 sm:w-10 sm:text-sm">
-                {application.users.email.charAt(0).toUpperCase()}
+                {(application.users.full_name?.trim() || application.users.email)
+                  .charAt(0)
+                  .toUpperCase()}
               </div>
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium text-gray-900 sm:text-base">
-                  {application.users.email}
+                  {application.users.full_name?.trim() || application.users.email}
                 </p>
                 <p className="text-[10px] text-gray-500 sm:text-xs">
                   Applied {timeAgo(application.applied_at)}

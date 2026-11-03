@@ -18,6 +18,7 @@ type SearchParams = {
 async function register(formData: FormData) {
   "use server";
 
+  const fullName = String(formData.get("full_name") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const confirmPassword = String(formData.get("confirmPassword") ?? "");
@@ -26,9 +27,14 @@ async function register(formData: FormData) {
     roleRaw === "EMPLOYER" ? "EMPLOYER" : "JOB_SEEKER";
   const next = safeNextPath(String(formData.get("next") ?? ""));
 
-  if (!email || !password) {
+  if (!fullName || !email || !password) {
     redirect(
       "/register?error=" + encodeURIComponent("All fields are required.")
+    );
+  }
+  if (fullName.length > 160) {
+    redirect(
+      "/register?error=" + encodeURIComponent("Full name must be 160 characters or fewer.")
     );
   }
   if (password.length < 8) {
@@ -46,7 +52,7 @@ async function register(formData: FormData) {
     email,
     password,
     options: {
-      data: { role },
+      data: { full_name: fullName, role },
       emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/callback${
         next ? `?next=${encodeURIComponent(next)}` : ""
       }`,
@@ -156,6 +162,26 @@ export default async function RegisterPage({
             })}
           </div>
         </fieldset>
+
+        {/* Full name */}
+        <div className="w-full">
+          <label
+            htmlFor="full_name"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Full Name
+          </label>
+          <input
+            id="full_name"
+            name="full_name"
+            type="text"
+            autoComplete="name"
+            maxLength={160}
+            required
+            className="mt-1.5 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-base shadow-sm transition placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 sm:px-3.5 sm:text-sm"
+            placeholder="Your full name"
+          />
+        </div>
 
         {/* Email */}
         <div className="w-full">

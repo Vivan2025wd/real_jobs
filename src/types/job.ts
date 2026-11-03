@@ -79,6 +79,7 @@ export function publicCompanyName(job: {
 // ---------------------------------------------------------------------------
 export type PublicJobDetail = PublicJobCard & {
   description: string;
+  job_image_url: string | null;
   last_verified_at: string | null;
   companies: {
     company_name: string;
@@ -103,6 +104,7 @@ export type JobRow = {
   company_id: string;
   title: string;
   description: string;
+  job_image_url: string | null;
   location: string;
   work_type: WorkType;
   category: string | null;
@@ -162,6 +164,7 @@ export type ApplicationWithSeeker = {
   cover_letter: string | null;
   users: {
     email: string;
+    full_name: string | null;
   };
 };
 
