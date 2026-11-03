@@ -51,6 +51,8 @@ export type Database = {
       applications: {
         Row: {
           applied_at: string
+          consent_at: string | null
+          cover_letter: string | null
           first_responded_at: string | null
           id: string
           job_id: string
@@ -60,6 +62,8 @@ export type Database = {
         }
         Insert: {
           applied_at?: string
+          consent_at?: string | null
+          cover_letter?: string | null
           first_responded_at?: string | null
           id?: string
           job_id: string
@@ -69,6 +73,8 @@ export type Database = {
         }
         Update: {
           applied_at?: string
+          consent_at?: string | null
+          cover_letter?: string | null
           first_responded_at?: string | null
           id?: string
           job_id?: string
@@ -101,6 +107,7 @@ export type Database = {
           employer_id: string
           id: string
           is_verified: boolean
+          is_system: boolean
           logo_url: string | null
           total_applications_90d: number
           responded_applications_90d: number
@@ -114,6 +121,7 @@ export type Database = {
           employer_id: string
           id?: string
           is_verified?: boolean
+          is_system?: boolean
           logo_url?: string | null
           total_applications_90d?: number
           responded_applications_90d?: number
@@ -127,6 +135,7 @@ export type Database = {
           employer_id?: string
           id?: string
           is_verified?: boolean
+          is_system?: boolean
           logo_url?: string | null
           total_applications_90d?: number
           responded_applications_90d?: number
@@ -137,7 +146,7 @@ export type Database = {
           {
             foreignKeyName: "companies_employer_id_fkey"
             columns: ["employer_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -146,10 +155,12 @@ export type Database = {
       jobs: {
         Row: {
           category: string | null
+          claimed_at: string | null
           company_id: string
           created_at: string
           description: string
           duration_days: number
+          external_company_name: string | null
           expires_at: string
           id: string
           last_verified_at: string | null
@@ -159,6 +170,8 @@ export type Database = {
           notified_stale_at: string | null
           published_at: string | null
           price_lkr: number
+          source: string
+          source_url: string | null
           salary_max: number | null
           salary_min: number | null
           status: string
@@ -169,10 +182,12 @@ export type Database = {
         }
         Insert: {
           category?: string | null
+          claimed_at?: string | null
           company_id: string
           created_at?: string
           description: string
           duration_days?: number
+          external_company_name?: string | null
           expires_at: string
           id?: string
           last_verified_at?: string | null
@@ -182,6 +197,8 @@ export type Database = {
           notified_stale_at?: string | null
           published_at?: string | null
           price_lkr: number
+          source?: string
+          source_url?: string | null
           salary_max?: number | null
           salary_min?: number | null
           status?: string
@@ -192,10 +209,12 @@ export type Database = {
         }
         Update: {
           category?: string | null
+          claimed_at?: string | null
           company_id?: string
           created_at?: string
           description?: string
           duration_days?: number
+          external_company_name?: string | null
           expires_at?: string
           id?: string
           last_verified_at?: string | null
@@ -205,6 +224,8 @@ export type Database = {
           notified_stale_at?: string | null
           published_at?: string | null
           price_lkr?: number
+          source?: string
+          source_url?: string | null
           salary_max?: number | null
           salary_min?: number | null
           status?: string
@@ -274,6 +295,77 @@ export type Database = {
           },
         ]
       }
+      job_external_contacts: {
+        Row: {
+          claim_token_expires_at: string | null
+          claim_token_hash: string | null
+          contact_email: string
+          job_id: string
+          last_notified_at: string | null
+          notify_count: number
+        }
+        Insert: {
+          claim_token_expires_at?: string | null
+          claim_token_hash?: string | null
+          contact_email: string
+          job_id: string
+          last_notified_at?: string | null
+          notify_count?: number
+        }
+        Update: {
+          claim_token_expires_at?: string | null
+          claim_token_hash?: string | null
+          contact_email?: string
+          job_id?: string
+          last_notified_at?: string | null
+          notify_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_external_contacts_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: true
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_suppressions: {
+        Row: {
+          created_at: string
+          email: string
+          reason: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          reason?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          reason?: string | null
+        }
+        Relationships: []
+      }
+      email_unsubscribe_tokens: {
+        Row: {
+          email: string
+          expires_at: string
+          token_hash: string
+        }
+        Insert: {
+          email: string
+          expires_at: string
+          token_hash: string
+        }
+        Update: {
+          email?: string
+          expires_at?: string
+          token_hash?: string
+        }
+        Relationships: []
+      }
       saved_searches: {
         Row: {
           alert_frequency: string
@@ -340,6 +432,43 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      claim_external_job: {
+        Args: {
+          p_employer_id: string
+          p_token_hash: string
+        }
+        Returns: string
+      }
+      create_sourced_job: {
+        Args: {
+          p_admin_id: string
+          p_category: string | null
+          p_claim_token_hash: string
+          p_contact_email: string
+          p_description: string
+          p_external_company_name: string
+          p_location: string
+          p_salary_max: number | null
+          p_salary_min: number | null
+          p_source_url: string
+          p_title: string
+          p_work_type: string
+        }
+        Returns: string
+      }
+      get_external_jobs_to_notify: {
+        Args: {
+          p_limit: number
+        }
+        Returns: {
+          applicant_count: number
+          contact_email: string
+          external_company_name: string | null
+          job_id: string
+          notify_count: number
+          title: string
+        }[]
+      }
       get_application_notification_details: {
         Args: {
           p_application_id: string
@@ -355,6 +484,15 @@ export type Database = {
         Args: {
           p_alert_frequency: string
           p_filters: Json
+        }
+        Returns: string
+      }
+      submit_application: {
+        Args: {
+          p_consent: boolean
+          p_cover_letter: string | null
+          p_job_id: string
+          p_seeker_id: string
         }
         Returns: string
       }

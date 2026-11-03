@@ -6,16 +6,13 @@ import { AlertCircle, CheckCircle2, Mail } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { SubmitButton } from "@/components/ui/SubmitButton";
+import { safeNextPath } from "@/lib/auth/redirect";
 
 type SearchParams = {
   error?: string;
   message?: string;
   next?: string;
 };
-
-function safeNextPath(next: string): string {
-  return next.startsWith("/") && !next.startsWith("//") ? next : "";
-}
 
 async function signInWithPassword(formData: FormData) {
   "use server";

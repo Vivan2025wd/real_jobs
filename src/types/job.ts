@@ -36,6 +36,10 @@ export type JobCategory =
 export type PublicJobCard = {
   id: string;
   title: string;
+  source: "NATIVE" | "EXTERNAL";
+  source_url: string | null;
+  external_company_name: string | null;
+  claimed_at: string | null;
   location: string;
   work_type: WorkType;
   category: string | null;
@@ -50,6 +54,24 @@ export type PublicJobCard = {
     avg_response_hours: number | null;
     response_rate_cached_at: string | null;
   };
+};
+
+export function isExternalUnclaimed(job: {
+  source?: string;
+  claimed_at?: string | null;
+}): boolean {
+  return job.source === "EXTERNAL" && !job.claimed_at;
+}
+
+export function publicCompanyName(job: {
+  source?: string;
+  claimed_at?: string | null;
+  external_company_name?: string | null;
+  companies: { company_name: string };
+}): string {
+  return isExternalUnclaimed(job)
+    ? job.external_company_name || job.companies.company_name
+    : job.companies.company_name;
 };
 
 // ---------------------------------------------------------------------------
@@ -74,6 +96,10 @@ export type PublicJobDetail = PublicJobCard & {
 // ---------------------------------------------------------------------------
 export type JobRow = {
   id: string;
+  source: "NATIVE" | "EXTERNAL";
+  source_url: string | null;
+  external_company_name: string | null;
+  claimed_at: string | null;
   company_id: string;
   title: string;
   description: string;
@@ -123,6 +149,8 @@ export type ApplicationRow = {
   resume_url: string;
   status: ApplicationStatus;
   applied_at: string;
+  cover_letter: string | null;
+  consent_at: string | null;
 };
 
 // What the employer's job detail page selects.
@@ -131,6 +159,7 @@ export type ApplicationWithSeeker = {
   status: ApplicationStatus;
   applied_at: string;
   resume_url: string;
+  cover_letter: string | null;
   users: {
     email: string;
   };
@@ -143,6 +172,9 @@ export type ApplicationWithJob = {
   applied_at: string;
   jobs: {
     title: string;
+    source: "NATIVE" | "EXTERNAL";
+    external_company_name: string | null;
+    claimed_at: string | null;
     companies: { company_name: string };
   };
 };

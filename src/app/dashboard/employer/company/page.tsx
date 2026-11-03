@@ -30,20 +30,59 @@ async function saveCompany(formData: FormData) {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  // Single atomic upsert — cannot create duplicates, and cannot fail on a
-  // double-submit: the second insert hits the unique constraint and updates
-  // the existing row instead. Requires the companies_employer_id_key
-  // constraint from migration 20261028170000.
-  const { error } = await supabase
+  const { data: existingCompany, error: loadError } = await supabase
     .from("companies")
-    .upsert(
-      {
+    .select("id")
+    .eq("employer_id", user.id)
+    .eq("is_system", false)
+    .maybeSingle();
+  const existingCompanyId = (
+    existingCompany as unknown as { id: string } | null
+  )?.id;
+
+  if (loadError) {
+    console.error("[company page] failed to load company before save:", loadError);
+    redirect(
+      "/dashboard/employer/company?error=" +
+        encodeURIComponent("Could not load your company profile.")
+    );
+  }
+
+  let { error } = existingCompanyId
+    ? await supabase
+        .from("companies")
+        .update({ company_name: name, description } as never)
+        .eq("id", existingCompanyId)
+        .eq("employer_id", user.id)
+        .eq("is_system", false)
+    : await supabase.from("companies").insert({
         employer_id: user.id,
         company_name: name,
         description,
-      } as never,
-      { onConflict: "employer_id" }
-    );
+        is_system: false,
+      } as never);
+
+  if (error?.code === "23505" && !existingCompanyId) {
+    const { data: racedCompany, error: raceLoadError } = await supabase
+      .from("companies")
+      .select("id")
+      .eq("employer_id", user.id)
+      .eq("is_system", false)
+      .maybeSingle();
+    const racedCompanyId = (
+      racedCompany as unknown as { id: string } | null
+    )?.id;
+    if (raceLoadError) {
+      console.error("[company page] failed to load concurrently-created company:", raceLoadError);
+    } else if (racedCompanyId) {
+      ({ error } = await supabase
+        .from("companies")
+        .update({ company_name: name, description } as never)
+        .eq("id", racedCompanyId)
+        .eq("employer_id", user.id)
+        .eq("is_system", false));
+    }
+  }
 
   if (error) {
     redirect(
@@ -70,6 +109,7 @@ export default async function CompanySettingsPage({
     .from("companies")
     .select("company_name, description, logo_url")
     .eq("employer_id", user!.id)
+    .eq("is_system", false)
     .limit(1)
     .maybeSingle();
 

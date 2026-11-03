@@ -157,7 +157,8 @@ export function CompanyLogoUploader({
       const { error: saveErr } = await supabase
         .from("companies")
         .update({ logo_url: publicUrl } as never)
-        .eq("employer_id", user.id);
+        .eq("employer_id", user.id)
+        .eq("is_system", false);
 
       if (saveErr) throw new Error(saveErr.message);
 

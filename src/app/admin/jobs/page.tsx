@@ -1,7 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { Trash2, ArrowRight, Briefcase, Building2, Users, Inbox } from "lucide-react";
+import { Trash2, ArrowRight, Briefcase, Building2, Users, Inbox, Plus } from "lucide-react";
 import Link from "next/link";
 
 // ---------------------------------------------------------------------------
@@ -79,9 +79,18 @@ export default async function AdminJobs() {
             Manage all job listings across the platform.
           </p>
         </div>
-        <div className="inline-flex items-center gap-1.5 self-start rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700 ring-1 ring-indigo-200 sm:gap-2 sm:self-auto sm:px-3 sm:py-1 sm:text-sm">
-          <Briefcase className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-          {jobs?.length || 0} Total Jobs
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admin/jobs/new"
+            className="inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-indigo-600 px-3 text-xs font-semibold text-white hover:bg-indigo-700 sm:text-sm"
+          >
+            <Plus className="h-4 w-4" />
+            Sourced job
+          </Link>
+          <div className="inline-flex items-center gap-1.5 self-start rounded-full bg-indigo-50 px-2.5 py-2 text-xs font-medium text-indigo-700 ring-1 ring-indigo-200 sm:gap-2 sm:self-auto sm:px-3 sm:text-sm">
+            <Briefcase className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            {jobs?.length || 0} Total Jobs
+          </div>
         </div>
       </div>
 

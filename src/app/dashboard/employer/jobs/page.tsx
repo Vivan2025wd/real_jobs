@@ -76,6 +76,7 @@ export default async function EmployerJobsPage() {
     .from("companies")
     .select("id")
     .eq("employer_id", user!.id)
+    .eq("is_system", false)
     .limit(1)
     .returns<CompanyId>()
     .maybeSingle();

@@ -60,6 +60,7 @@ export default async function EmployerOverview() {
     .from("companies")
     .select("id, company_name")
     .eq("employer_id", user!.id)
+    .eq("is_system", false)
     .limit(1)
     .maybeSingle();
 

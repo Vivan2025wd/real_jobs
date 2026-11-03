@@ -60,6 +60,7 @@ export async function POST(req: NextRequest) {
       .from("companies")
       .select("id")
       .eq("employer_id", user.id)
+      .eq("is_system", false)
       .limit(1)
       .maybeSingle();
 

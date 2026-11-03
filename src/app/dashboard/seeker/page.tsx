@@ -19,7 +19,7 @@ import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/Badge";
 import { timeAgo } from "@/lib/utils/format";
-import type { ApplicationWithJob } from "@/types/job";
+import { publicCompanyName, type ApplicationWithJob } from "@/types/job";
 
 // ─── Stat tone palette ───────────────────────────────────────────────
 const STAT_TONES = {
@@ -104,7 +104,7 @@ export default async function SeekerOverview() {
   const { data: recentData } = await supabase
     .from("applications")
     .select(
-      "id, status, applied_at, jobs!inner(title, companies!inner(company_name))"
+      "id, status, applied_at, jobs!inner(title, source, external_company_name, claimed_at, companies!inner(company_name))"
     )
     .eq("seeker_id", user!.id)
     .order("applied_at", { ascending: false })
@@ -275,14 +275,16 @@ export default async function SeekerOverview() {
             </div>
           ) : (
             <ul className="divide-y divide-gray-100">
-              {recent.map((a) => (
+              {recent.map((a) => {
+                const companyName = publicCompanyName(a.jobs);
+                return (
                 <li
                   key={a.id}
                   className="flex items-center justify-between gap-2.5 px-3.5 py-3 transition hover:bg-gray-50/60 sm:gap-3 sm:px-6 sm:py-4"
                 >
                   <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-100 to-violet-100 text-xs font-semibold text-indigo-700 sm:h-10 sm:w-10 sm:rounded-xl sm:text-sm">
-                      {a.jobs.companies.company_name.charAt(0).toUpperCase()}
+                      {companyName.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium text-gray-900 sm:text-base">
@@ -290,7 +292,7 @@ export default async function SeekerOverview() {
                       </p>
                       <p className="mt-0.5 flex items-center gap-1 truncate text-[10px] text-gray-500 sm:gap-1.5 sm:text-xs">
                         <Building2 className="h-2.5 w-2.5 shrink-0 text-gray-400 sm:h-3 sm:w-3" />
-                        {a.jobs.companies.company_name}
+                        {companyName}
                         <span className="text-gray-300">·</span>
                         {timeAgo(a.applied_at)}
                       </p>
@@ -300,7 +302,8 @@ export default async function SeekerOverview() {
                     <StatusBadge status={a.status} />
                   </div>
                 </li>
-              ))}
+                );
+              })}
             </ul>
           )}
         </CardBody>

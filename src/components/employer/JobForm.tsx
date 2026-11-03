@@ -12,6 +12,9 @@ import {
   Save,
   RefreshCw,
   Sparkles,
+  Building2,
+  Link2,
+  Mail,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -169,11 +172,13 @@ export function JobForm({
   defaults = {},
   submitLabel,
   error,
+  isAdmin = false,
 }: {
   action: (formData: FormData) => void | Promise<void>;
   defaults?: DefaultValues;
   submitLabel: string;
   error?: string;
+  isAdmin?: boolean;
 }) {
   const selectedDuration = defaults.duration_days ?? 14;
   const selectedOption = DURATION_OPTIONS.find(
@@ -228,6 +233,48 @@ export function JobForm({
           hint="Minimum 30 characters. Include responsibilities, requirements, and what makes the role interesting."
         />
       </Section>
+
+      {isAdmin && (
+        <>
+          <div className="border-t border-gray-100" />
+          <Section
+            icon={Building2}
+            title="Sourced job"
+            description="This listing is posted on behalf of an employer who has not joined RealJobs."
+          >
+            <Input
+              label="External company name"
+              name="external_company_name"
+              id="external_company_name"
+              required
+              maxLength={160}
+              placeholder="Company name"
+              icon={<Building2 className="h-4 w-4" />}
+            />
+            <Input
+              label="Source URL"
+              name="source_url"
+              id="source_url"
+              type="url"
+              required
+              placeholder="https://example.com/job-post"
+              icon={<Link2 className="h-4 w-4" />}
+              hint="Link to the original public job posting."
+            />
+            <Input
+              label="Employer contact email"
+              name="contact_email"
+              id="contact_email"
+              type="email"
+              required
+              maxLength={254}
+              placeholder="hiring@example.com"
+              icon={<Mail className="h-4 w-4" />}
+              hint="Used only for applicant-count invitations and claim links."
+            />
+          </Section>
+        </>
+      )}
 
       {/* ─── Divider ─── */}
       <div className="border-t border-gray-100" />
@@ -316,7 +363,7 @@ export function JobForm({
       <div className="border-t border-gray-100" />
 
       {/* ─── Section 4: Posting duration + price ─── */}
-      <Section
+      {!isAdmin && <Section
         icon={Clock}
         title="Posting duration"
         description="How long the listing stays live before auto-archiving."
@@ -373,7 +420,7 @@ export function JobForm({
           Jobs auto-archive when the duration ends. You can mark a role as
           filled earlier from the job detail page.
         </p>
-      </Section>
+      </Section>}
 
       {/* ─── Submit row ─── */}
       {/* මොබයිල් එකේදී බටන් එක උඩට එන්න flex-col-reverse දැම්මා */}

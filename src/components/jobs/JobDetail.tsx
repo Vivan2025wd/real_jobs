@@ -13,7 +13,7 @@ import {
 import { Badge } from "@/components/ui/Badge";
 import { ResponseRateBadge } from "@/components/employer/ResponseRateBadge";
 import { formatSalary, formatDate, timeAgo } from "@/lib/utils/format";
-import type { PublicJobDetail } from "@/types/job";
+import { isExternalUnclaimed, publicCompanyName, type PublicJobDetail } from "@/types/job";
 
 // ---------------------------------------------------------------------------
 // ApplyButton is lazy-loaded.
@@ -50,6 +50,8 @@ type Props = {
 
 export function JobDetail({ job }: Props) {
   const company = job.companies;
+  const companyName = publicCompanyName(job);
+  const sourcedUnclaimed = isExternalUnclaimed(job);
 
   return (
     <div className="grid w-full gap-4 sm:gap-6 lg:grid-cols-[1fr_340px] lg:gap-8">
@@ -61,16 +63,16 @@ export function JobDetail({ job }: Props) {
 
           <div className="relative flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-5">
             {/* Company avatar - මොබයිල් එකේදී h-12 w-12 */}
-            {company.logo_url ? (
+            {company.logo_url && !sourcedUnclaimed ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={company.logo_url}
-                alt={company.company_name}
+                alt={companyName}
                 className="h-12 w-12 shrink-0 rounded-xl border border-gray-200 object-cover shadow-sm sm:h-14 sm:w-14 sm:rounded-2xl"
               />
             ) : (
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-lg font-bold text-white shadow-md sm:h-14 sm:w-14 sm:rounded-2xl sm:text-xl">
-                {company.company_name.charAt(0).toUpperCase()}
+                {companyName.charAt(0).toUpperCase()}
               </div>
             )}
 
@@ -82,22 +84,32 @@ export function JobDetail({ job }: Props) {
 
               <p className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-gray-700 sm:mt-1.5 sm:gap-2 sm:text-base">
                 <Building2 className="h-3.5 w-3.5 shrink-0 text-gray-400 sm:h-4 sm:w-4" />
-                <span className="font-medium">{company.company_name}</span>
-                {company.is_verified && (
+                <span className="font-medium">{companyName}</span>
+                {!sourcedUnclaimed && company.is_verified && (
                   <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 ring-1 ring-emerald-200 sm:gap-1 sm:px-2 sm:text-xs">
                     <CheckCircle2 className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                     Verified
                   </span>
                 )}
-                <ResponseRateBadge
-                  totalApplications90d={company.total_applications_90d}
-                  respondedApplications90d={
-                    company.responded_applications_90d
-                  }
-                  averageResponseHours={company.avg_response_hours}
-                  variant="full"
-                />
+                {!sourcedUnclaimed && (
+                  <ResponseRateBadge
+                    totalApplications90d={company.total_applications_90d}
+                    respondedApplications90d={company.responded_applications_90d}
+                    averageResponseHours={company.avg_response_hours}
+                    variant="full"
+                  />
+                )}
               </p>
+              {sourcedUnclaimed && (
+                <a
+                  href={job.source_url ?? undefined}
+                  target="_blank"
+                  rel="nofollow noopener"
+                  className="mt-2 inline-flex rounded-full bg-gray-100 px-2.5 py-1 text-[10px] font-medium text-gray-600 hover:bg-gray-200 sm:text-xs"
+                >
+                  Sourced listing · employer not yet verified
+                </a>
+              )}
             </div>
           </div>
 
@@ -151,7 +163,7 @@ export function JobDetail({ job }: Props) {
         </section>
 
         {/* ─── About company ─── */}
-        {company.description && (
+        {company.description && !sourcedUnclaimed && (
           <section className="w-full rounded-xl border border-gray-200 bg-white p-3.5 shadow-card sm:rounded-2xl sm:p-6 lg:p-8">
             <div className="flex items-center gap-2.5 sm:gap-3">
               {company.logo_url ? (
@@ -201,7 +213,10 @@ export function JobDetail({ job }: Props) {
               resume on file to apply.
             </p>
             <div className="mt-4 sm:mt-5">
-              <ApplyButton jobId={job.id} />
+              <ApplyButton
+                jobId={job.id}
+                externalUnclaimed={sourcedUnclaimed}
+              />
             </div>
           </div>
         </div>
@@ -253,17 +268,19 @@ export function JobDetail({ job }: Props) {
         </div>
 
         {/* ─── Trust signal ─── */}
-        <div className="w-full rounded-xl border border-emerald-200 bg-emerald-50/60 p-3.5 shadow-sm sm:rounded-2xl sm:p-4">
+        <div className={`w-full rounded-xl border p-3.5 shadow-sm sm:rounded-2xl sm:p-4 ${sourcedUnclaimed ? "border-gray-200 bg-gray-50" : "border-emerald-200 bg-emerald-50/60"}`}>
           <div className="flex items-start gap-2.5 sm:gap-3">
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white text-emerald-600 shadow-sm ring-1 ring-emerald-200 sm:h-8 sm:w-8">
+            <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white shadow-sm ring-1 sm:h-8 sm:w-8 ${sourcedUnclaimed ? "text-gray-500 ring-gray-200" : "text-emerald-600 ring-emerald-200"}`}>
               <ShieldCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </div>
             <div className="min-w-0">
-              <p className="text-[11px] font-semibold text-emerald-900 sm:text-xs">
-                Verified listing
+              <p className={`text-[11px] font-semibold sm:text-xs ${sourcedUnclaimed ? "text-gray-700" : "text-emerald-900"}`}>
+                {sourcedUnclaimed ? "Sourced listing" : "Verified listing"}
               </p>
-              <p className="mt-0.5 text-[10px] leading-relaxed text-emerald-800 sm:text-xs">
-                {job.last_verified_at
+              <p className={`mt-0.5 text-[10px] leading-relaxed sm:text-xs ${sourcedUnclaimed ? "text-gray-600" : "text-emerald-800"}`}>
+                {sourcedUnclaimed
+                  ? "The employer has not joined RealJobs or verified this listing yet."
+                  : job.last_verified_at
                   ? `Employer confirmed this role is still open ${timeAgo(
                       job.last_verified_at
                     )}.`

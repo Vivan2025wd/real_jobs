@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { timingSafeEqual } from "node:crypto";
 import {
   dispatchVerificationEmails,
+  deleteExpiredEmailUnsubscribeTokens,
   expireStaleJobs,
   notifyHotJobs,
   notifyStaleJobs,
@@ -26,6 +27,7 @@ export async function GET(req: NextRequest) {
   const errors: Record<string, string> = {};
 
   for (const [name, fn] of [
+    ["unsubscribeTokens", deleteExpiredEmailUnsubscribeTokens],
     ["expire", expireStaleJobs],
     ["verify", dispatchVerificationEmails],
     ["hot", notifyHotJobs],

@@ -196,6 +196,16 @@ export function ApplicationListManager({
                 <p className="text-[10px] text-gray-500 sm:text-xs">
                   Applied {timeAgo(application.applied_at)}
                 </p>
+                {application.cover_letter && (
+                  <details className="mt-1 max-w-xl text-xs text-gray-600">
+                    <summary className="cursor-pointer font-medium text-indigo-700">
+                      View cover letter
+                    </summary>
+                    <p className="mt-1 whitespace-pre-line leading-relaxed">
+                      {application.cover_letter}
+                    </p>
+                  </details>
+                )}
               </div>
             </div>
             <div className="flex w-full flex-wrap items-center gap-2 pl-10 sm:w-auto sm:shrink-0 sm:gap-3 sm:pl-0">

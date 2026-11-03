@@ -212,7 +212,7 @@ export default async function EmployerJobDetailPage({
 
   const { data: applications, error: applicationsError } = await supabase
     .from("applications")
-    .select("id, status, applied_at, resume_url, users!inner(email)")
+    .select("id, status, applied_at, resume_url, cover_letter, users!inner(email)")
     .eq("job_id", typedJob.id)
     .order("applied_at", { ascending: false });
 

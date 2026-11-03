@@ -3,7 +3,7 @@ import { MapPin, Banknote, Clock, ArrowUpRight } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { ResponseRateBadge } from "@/components/employer/ResponseRateBadge";
 import { formatSalary, timeAgo } from "@/lib/utils/format";
-import type { PublicJobCard } from "@/types/job";
+import { isExternalUnclaimed, publicCompanyName, type PublicJobCard } from "@/types/job";
 
 const WORK_TYPE_LABEL: Record<string, string> = {
   REMOTE: "Remote",
@@ -12,6 +12,8 @@ const WORK_TYPE_LABEL: Record<string, string> = {
 };
 
 export function JobCard({ job }: { job: PublicJobCard }) {
+  const companyName = publicCompanyName(job);
+  const sourcedUnclaimed = isExternalUnclaimed(job);
   const workTypeLabel = WORK_TYPE_LABEL[job.work_type] ?? job.work_type;
   const categoryLabel = job.category
     ? job.category.charAt(0) +
@@ -22,7 +24,7 @@ export function JobCard({ job }: { job: PublicJobCard }) {
     <article className="group relative w-full rounded-xl border border-gray-200 bg-white p-3.5 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-card-hover sm:p-5">
       <Link
         href={`/jobs/${job.id}`}
-        aria-label={`${job.title} at ${job.companies.company_name}`}
+        aria-label={`${job.title} at ${companyName}`}
         className="absolute inset-0 z-0 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500"
       />
       <div className="pointer-events-none relative z-10">
@@ -30,16 +32,16 @@ export function JobCard({ job }: { job: PublicJobCard }) {
         <div className="flex min-w-0 items-start gap-2.5 sm:gap-4">
           
           {/* ලෝගෝ එක මොබයිල් එකේදී h-10 w-10 */}
-          {job.companies.logo_url ? (
+          {job.companies.logo_url && !sourcedUnclaimed ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={job.companies.logo_url}
-              alt={job.companies.company_name}
+              alt={companyName}
               className="h-10 w-10 shrink-0 rounded-lg border border-gray-200 object-cover sm:h-12 sm:w-12 sm:rounded-xl"
             />
           ) : (
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-sm font-semibold text-white shadow-sm sm:h-12 sm:w-12 sm:rounded-xl sm:text-base">
-              {job.companies.company_name.charAt(0).toUpperCase()}
+              {companyName.charAt(0).toUpperCase()}
             </div>
           )}
           
@@ -50,16 +52,16 @@ export function JobCard({ job }: { job: PublicJobCard }) {
             </h3>
             <div className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-1 gap-y-0.5 sm:mt-0">
               <p className="truncate text-xs text-gray-500 sm:text-sm">
-                {job.companies.company_name}
+                {companyName}
               </p>
-              <ResponseRateBadge
-                totalApplications90d={job.companies.total_applications_90d}
-                respondedApplications90d={
-                  job.companies.responded_applications_90d
-                }
-                averageResponseHours={job.companies.avg_response_hours}
-                variant="compact"
-              />
+              {!sourcedUnclaimed && (
+                <ResponseRateBadge
+                  totalApplications90d={job.companies.total_applications_90d}
+                  respondedApplications90d={job.companies.responded_applications_90d}
+                  averageResponseHours={job.companies.avg_response_hours}
+                  variant="compact"
+                />
+              )}
             </div>
           </div>
         </div>
@@ -77,6 +79,17 @@ export function JobCard({ job }: { job: PublicJobCard }) {
           <Badge tone="blue">{workTypeLabel}</Badge>
         </span>
         {categoryLabel && <Badge tone="gray">{categoryLabel}</Badge>}
+        {sourcedUnclaimed && (
+          <a
+            href={job.source_url ?? undefined}
+            target="_blank"
+            rel="nofollow noopener"
+            aria-label="View original job source"
+            className="pointer-events-auto relative z-20 inline-flex rounded-full bg-gray-100 px-2 py-1 text-[10px] font-medium text-gray-600 hover:bg-gray-200 sm:text-xs"
+          >
+            Sourced listing · employer not yet verified
+          </a>
+        )}
       </div>
 
       {/* ─── Metadata (Location, Salary, Time) ─── */}

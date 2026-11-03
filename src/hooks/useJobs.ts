@@ -71,7 +71,7 @@ export function useJobs(filters: JobFilters = {}): UseJobsResult {
       let query = supabase
         .from("jobs")
         .select(
-          "id, title, location, work_type, category, salary_min, salary_max, created_at, companies!inner(company_name, logo_url, total_applications_90d, responded_applications_90d, avg_response_hours, response_rate_cached_at)"
+          "id, title, source, source_url, external_company_name, claimed_at, location, work_type, category, salary_min, salary_max, created_at, companies!inner(company_name, logo_url, total_applications_90d, responded_applications_90d, avg_response_hours, response_rate_cached_at)"
         )
         .eq("status", "ACTIVE");
 

@@ -6,11 +6,13 @@ import { User, Briefcase, AlertCircle, CheckCircle2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { SubmitButton } from "@/components/ui/SubmitButton";
+import { safeNextPath } from "@/lib/auth/redirect";
 
 type SearchParams = {
   error?: string;
   message?: string;
   role?: string;
+  next?: string;
 };
 
 async function register(formData: FormData) {
@@ -22,6 +24,7 @@ async function register(formData: FormData) {
   const roleRaw = String(formData.get("role") ?? "JOB_SEEKER").toUpperCase();
   const role: "EMPLOYER" | "JOB_SEEKER" =
     roleRaw === "EMPLOYER" ? "EMPLOYER" : "JOB_SEEKER";
+  const next = safeNextPath(String(formData.get("next") ?? ""));
 
   if (!email || !password) {
     redirect(
@@ -44,7 +47,9 @@ async function register(formData: FormData) {
     password,
     options: {
       data: { role },
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/callback`,
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/callback${
+        next ? `?next=${encodeURIComponent(next)}` : ""
+      }`,
     },
   });
 
@@ -55,7 +60,7 @@ async function register(formData: FormData) {
   if (data.session && data.user) {
     revalidatePath("/", "layout");
     redirect(
-      role === "EMPLOYER" ? "/dashboard/employer" : "/dashboard/seeker"
+      next || (role === "EMPLOYER" ? "/dashboard/employer" : "/dashboard/seeker")
     );
   }
 
@@ -70,7 +75,8 @@ export default async function RegisterPage({
 }: {
   searchParams: SearchParams;
 }) {
-  const { error, message, role: preselectedRole } = searchParams;
+  const { error, message, role: preselectedRole, next: nextValue } = searchParams;
+  const next = safeNextPath(nextValue ?? "");
   const initialRole =
     preselectedRole === "EMPLOYER" ? "EMPLOYER" : "JOB_SEEKER";
 
@@ -102,6 +108,7 @@ export default async function RegisterPage({
 
       {/* Form */}
       <form action={register} className="mt-5 space-y-3.5 sm:mt-6 sm:space-y-4">
+        {next && <input type="hidden" name="next" value={next} />}
         {/* Role selection */}
         <fieldset>
           <legend className="block text-sm font-medium text-gray-700">

@@ -9,6 +9,22 @@ const VERIFICATION_GRACE_HOURS = 48;
 const STALE_THRESHOLD_DAYS = 3;
 const HOT_THRESHOLD = 10;
 
+export async function deleteExpiredEmailUnsubscribeTokens(): Promise<{
+  deleted: number;
+}> {
+  const supabase = createAdminClient();
+  const { count, error } = await supabase
+    .from("email_unsubscribe_tokens")
+    .delete({ count: "exact" })
+    .lt("expires_at", new Date().toISOString());
+
+  if (error) {
+    throw new Error(`unsubscribe token cleanup failed: ${error.message}`);
+  }
+
+  return { deleted: count ?? 0 };
+}
+
 // ───────────────────────────────────────────────────────────────────────────
 // Verification emails (unchanged behavior, kept for long-duration jobs)
 // ───────────────────────────────────────────────────────────────────────────
@@ -40,6 +56,7 @@ export async function dispatchVerificationEmails(): Promise<{
       "id, title, created_at, last_verified_at, companies!inner(employer_id, company_name, users!inner(email))"
     )
     .eq("status", "ACTIVE")
+    .or("source.eq.NATIVE,claimed_at.not.is.null")
     .is("verification_token", null)
     // Only verify jobs that will still be live when the grace window ends
     .gt("expires_at", new Date(Date.now() + VERIFICATION_GRACE_HOURS * 3_600_000).toISOString())

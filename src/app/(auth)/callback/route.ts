@@ -2,6 +2,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { safeNextPath } from "@/lib/auth/redirect";
 
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
@@ -10,7 +11,7 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get("code");
   const token_hash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
-  const next = searchParams.get("next") ?? "/";
+  const next = safeNextPath(searchParams.get("next") ?? "") || "/";
   const error = searchParams.get("error");
   const errorDescription = searchParams.get("error_description");
 
@@ -89,8 +90,7 @@ export async function GET(request: NextRequest) {
   // ---- 3. Redirect to dashboard (or `next` if safe) ----
   const defaultDashboard =
     role === "EMPLOYER" ? "/dashboard/employer" : "/dashboard/seeker";
-  const target =
-    next.startsWith("/") && !next.startsWith("//") ? next : defaultDashboard;
+  const target = next === "/" ? defaultDashboard : next;
 
   return NextResponse.redirect(`${origin}${target}`);
 }

@@ -14,6 +14,9 @@ export const revalidate = 300;
 type JobDetailRow = PublicJobDetail & { status: string };
 
 type MetadataRow = {
+  source: string;
+  claimed_at: string | null;
+  external_company_name: string | null;
   title: string;
   description: string;
   location: string;
@@ -32,7 +35,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { data } = await supabase
     .from("jobs")
-    .select("title, description, location, companies!inner(company_name)")
+    .select("title, description, location, source, claimed_at, external_company_name, companies!inner(company_name)")
     .eq("id", params.jobId)
     .eq("status", "ACTIVE")
     .maybeSingle();
@@ -40,12 +43,17 @@ export async function generateMetadata({
   const job = data as unknown as MetadataRow | null;
   if (!job) return { title: "Job not found" };
 
+  const companyName =
+    job.source === "EXTERNAL" && !job.claimed_at
+      ? job.external_company_name ?? job.companies.company_name
+      : job.companies.company_name;
+
   return {
-    title: `${job.title} at ${job.companies.company_name}`,
+    title: `${job.title} at ${companyName}`,
     description: job.description.slice(0, 155).replace(/\s+/g, " ").trim(),
     openGraph: {
-      title: `${job.title} · ${job.companies.company_name}`,
-      description: `${job.location} · ${job.title} at ${job.companies.company_name}`,
+      title: `${job.title} · ${companyName}`,
+      description: `${job.location} · ${job.title} at ${companyName}`,
       type: "article",
     },
   };
@@ -59,7 +67,7 @@ export default async function JobDetailPage({
   const { data } = await supabase
     .from("jobs")
     .select(
-      "id, title, description, location, work_type, category, salary_min, salary_max, created_at, last_verified_at, status, companies!inner(company_name, logo_url, description, is_verified, total_applications_90d, responded_applications_90d, avg_response_hours, response_rate_cached_at)"
+      "id, title, description, location, work_type, category, salary_min, salary_max, created_at, last_verified_at, status, source, source_url, external_company_name, claimed_at, companies!inner(company_name, logo_url, description, is_verified, total_applications_90d, responded_applications_90d, avg_response_hours, response_rate_cached_at)"
     )
     .eq("id", params.jobId)
     .maybeSingle();
@@ -77,7 +85,10 @@ export default async function JobDetailPage({
     employmentType: "FULL_TIME",
     hiringOrganization: {
       "@type": "Organization",
-      name: job.companies.company_name,
+      name:
+        job.source === "EXTERNAL" && !job.claimed_at
+          ? job.external_company_name ?? job.companies.company_name
+          : job.companies.company_name,
       ...(job.companies.logo_url ? { logo: job.companies.logo_url } : {}),
     },
     jobLocation: {
