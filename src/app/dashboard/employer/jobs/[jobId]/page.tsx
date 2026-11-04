@@ -191,7 +191,7 @@ export default async function EmployerJobDetailPage({
   searchParams,
 }: {
   params: { jobId: string };
-  searchParams: { payment?: string; claimed?: string };
+  searchParams: { payment?: string; claimed?: string; posted?: string };
 }) {
   const supabase = await createClient();
   const {
@@ -251,6 +251,21 @@ export default async function EmployerJobDetailPage({
           {typedJob.status === "ACTIVE"
             ? "Listing claimed and activated using your free sourced-listing quota."
             : "Listing claimed. Complete payment below to publish it; its applicants are available in this dashboard."}
+        </div>
+      )}
+      {searchParams.posted === "free" && (
+        <div className="flex items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 p-3 shadow-sm sm:gap-3 sm:px-4 sm:py-3.5">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 sm:h-8 sm:w-8">
+            <CheckCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-emerald-900 sm:text-base">
+              Job published for free
+            </p>
+            <p className="mt-0.5 text-xs leading-snug text-emerald-800 sm:text-sm">
+              Your listing is live using your free job quota.
+            </p>
+          </div>
         </div>
       )}
       {/* ─── Payment banners ─── */}

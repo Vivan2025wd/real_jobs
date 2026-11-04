@@ -49,6 +49,7 @@ async function updateJob(jobId: string, formData: FormData) {
   // ─── Read the job to get its original created_at (for expires_at) ───
   type ExistingJob = {
     id: string;
+    company_id: string;
     created_at: string;
     status: "DRAFT" | "ACTIVE" | "FILLED" | "EXPIRED" | "ARCHIVED";
     companies: { employer_id: string };
@@ -56,20 +57,36 @@ async function updateJob(jobId: string, formData: FormData) {
 
   const { data: existing } = await supabase
     .from("jobs")
-    .select("id, created_at, status, companies!inner(employer_id)")
+    .select("id, company_id, created_at, status, companies!inner(employer_id)")
     .eq("id", jobId)
     .maybeSingle();
 
   const existingJob = existing as unknown as ExistingJob | null;
   if (!existingJob || existingJob.companies.employer_id !== user.id) notFound();
 
+  const isRepublishingExpired = existingJob.status === "EXPIRED";
+  let isFreeRepublish = false;
+
+  if (isRepublishingExpired && !isAdmin) {
+    const adminDb = createAdminClient();
+    const { data: consumed, error: consumeError } = await adminDb.rpc(
+      "consume_free_job",
+      { p_company_id: existingJob.company_id }
+    );
+    if (consumeError) {
+      console.error("[edit job] consume_free_job failed:", consumeError);
+    } else if (consumed === true) {
+      isFreeRepublish = true;
+    }
+  }
+
   // ─── Recompute price + expiry from the new duration ───
-  const newPriceLkr = isAdmin ? 0 : priceForDuration(parsed.data.duration_days);
+  const newPriceLkr = isAdmin || isFreeRepublish ? 0 : priceForDuration(parsed.data.duration_days);
   const publishImmediately =
-    isAdmin && formData.get("publish_immediately") === "on";
+    (isAdmin && formData.get("publish_immediately") === "on") || isFreeRepublish;
+  const baseTime = isRepublishingExpired ? Date.now() : new Date(existingJob.created_at).getTime();
   const newExpiresAt = new Date(
-    new Date(existingJob.created_at).getTime() +
-      parsed.data.duration_days * 86_400_000
+    baseTime + parsed.data.duration_days * 86_400_000
   );
 
   const jobValues = {
@@ -86,9 +103,11 @@ async function updateJob(jobId: string, formData: FormData) {
     expires_at: newExpiresAt.toISOString(),
     ...(isAdmin
       ? { status: publishImmediately ? "ACTIVE" : "DRAFT" }
-      : {}),
+      : isRepublishingExpired
+        ? { status: isFreeRepublish ? "ACTIVE" : "DRAFT" }
+        : {}),
   };
-  const updateResult = isAdmin
+  const updateResult = isAdmin || isFreeRepublish
     ? await createAdminClient()
         .from("jobs")
         .update(jobValues as never)
@@ -107,6 +126,9 @@ async function updateJob(jobId: string, formData: FormData) {
   revalidatePath(`/dashboard/employer/jobs/${jobId}`);
   revalidatePath("/dashboard/employer/jobs");
   revalidatePath(`/jobs/${jobId}`);
+  if (isFreeRepublish) {
+    redirect(`/dashboard/employer/jobs/${jobId}?posted=free`);
+  }
   redirect(`/dashboard/employer/jobs/${jobId}`);
 }
 

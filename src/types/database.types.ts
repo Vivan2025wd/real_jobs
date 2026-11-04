@@ -69,7 +69,7 @@ export type Database = {
           first_responded_at?: string | null
           id?: string
           job_id: string
-          resume_url: string
+          resume_url?: string | null
           seeker_id: string
           status?: string
         }

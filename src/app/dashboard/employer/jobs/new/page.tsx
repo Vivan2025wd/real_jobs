@@ -81,10 +81,24 @@ async function createJob(formData: FormData) {
   }
   if (!companyId) redirect("/dashboard/employer/company");
 
+  let isFreeJob = false;
+  if (!isAdmin) {
+    const adminDb = createAdminClient();
+    const { data: consumed, error: consumeError } = await adminDb.rpc(
+      "consume_free_job",
+      { p_company_id: companyId }
+    );
+    if (consumeError) {
+      console.error("[new job] consume_free_job failed:", consumeError);
+    } else if (consumed === true) {
+      isFreeJob = true;
+    }
+  }
+
   // ─── Lock the price at creation time ───
-  const priceLkr = isAdmin ? 0 : priceForDuration(parsed.data.duration_days);
+  const priceLkr = isAdmin || isFreeJob ? 0 : priceForDuration(parsed.data.duration_days);
   const publishImmediately =
-    isAdmin && formData.get("publish_immediately") === "on";
+    (isAdmin && formData.get("publish_immediately") === "on") || isFreeJob;
   const now = new Date();
   const expiresAt = new Date(
     now.getTime() + parsed.data.duration_days * 86_400_000
@@ -105,7 +119,7 @@ async function createJob(formData: FormData) {
     expires_at: expiresAt.toISOString(),
     status: publishImmediately ? "ACTIVE" : "DRAFT",
   };
-  const insertResult = isAdmin
+  const insertResult = isAdmin || isFreeJob
     ? await createAdminClient()
         .from("jobs")
         .insert(jobValues as never)
@@ -126,6 +140,9 @@ async function createJob(formData: FormData) {
   revalidatePath("/dashboard/employer/jobs");
   const jobId = insertResult.data.id;
   if (publishImmediately) revalidatePath(`/jobs/${jobId}`);
+  if (isFreeJob) {
+    redirect(`/dashboard/employer/jobs/${jobId}?posted=free`);
+  }
   redirect(`/dashboard/employer/jobs/${jobId}`);
 }
 

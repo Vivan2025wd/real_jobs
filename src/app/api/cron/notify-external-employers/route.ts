@@ -176,9 +176,8 @@ export async function GET(request: NextRequest) {
 
   const { data: milestoneContacts, error: milestoneLoadError } = await adminDb
     .from("job_external_contacts")
-    .select("job_id, contact_email, notify_count, milestone_notified_at")
-    .is("milestone_notified_at", null)
-    .lt("notify_count", 3);
+    .select("job_id, contact_email, notify_count, milestone_notified_at, claim_token_hash, claim_token_expires_at")
+    .is("milestone_notified_at", null);
 
   if (milestoneLoadError) {
     console.error("[cron:notify-external-employers] milestone load failed:", milestoneLoadError);
@@ -216,26 +215,50 @@ export async function GET(request: NextRequest) {
       if (suppressionError) throw new Error(`Milestone suppression check failed: ${suppressionError.message}`);
       if (suppression) continue;
 
-      const claimToken = randomBytes(32).toString("base64url");
+      const now = new Date();
+      const hasActiveClaimToken =
+        contact.claim_token_hash !== null &&
+        contact.claim_token_expires_at !== null &&
+        new Date(contact.claim_token_expires_at) > now;
+
+      let claimToken: string | null = null;
+      let claimTokenHash: string | null = null;
+
+      if (!hasActiveClaimToken) {
+        claimToken = randomBytes(32).toString("base64url");
+        claimTokenHash = hashToken(claimToken);
+      }
+
       const milestoneToken = randomBytes(32).toString("base64url");
       const unsubscribeToken = randomBytes(32).toString("base64url");
-      const claimTokenHash = hashToken(claimToken);
       const milestoneTokenHash = hashToken(milestoneToken);
       const unsubscribeTokenHash = hashToken(unsubscribeToken);
-      const claimUrl = new URL(`/claim/${claimToken}`, baseUrl).toString();
+      const claimUrl = claimToken
+        ? new URL(`/claim/${claimToken}`, baseUrl).toString()
+        : new URL(`/jobs/${job.id}`, baseUrl).toString();
       const stillHiringUrl = new URL(`/external-job/${milestoneToken}?action=still-hiring`, baseUrl).toString();
       const positionFilledUrl = new URL(`/external-job/${milestoneToken}?action=filled`, baseUrl).toString();
       const unsubscribePageUrl = new URL(`/email-preferences/unsubscribe/${unsubscribeToken}`, baseUrl).toString();
       const oneClickUnsubscribeUrl = new URL(`/api/email-unsubscribe/${unsubscribeToken}`, baseUrl).toString();
 
+      const tokenUpdates: {
+        milestone_token_hash: string;
+        milestone_token_expires_at: string;
+        claim_token_hash?: string;
+        claim_token_expires_at?: string;
+      } = {
+        milestone_token_hash: milestoneTokenHash,
+        milestone_token_expires_at: new Date(Date.now() + 30 * 86_400_000).toISOString(),
+      };
+
+      if (!hasActiveClaimToken && claimTokenHash) {
+        tokenUpdates.claim_token_hash = claimTokenHash;
+        tokenUpdates.claim_token_expires_at = new Date(Date.now() + 30 * 86_400_000).toISOString();
+      }
+
       const { error: tokenUpdateError } = await adminDb
         .from("job_external_contacts")
-        .update({
-          claim_token_hash: claimTokenHash,
-          claim_token_expires_at: new Date(Date.now() + 30 * 86_400_000).toISOString(),
-          milestone_token_hash: milestoneTokenHash,
-          milestone_token_expires_at: new Date(Date.now() + 30 * 86_400_000).toISOString(),
-        })
+        .update(tokenUpdates)
         .eq("job_id", job.id)
         .eq("contact_email", contact.contact_email);
       if (tokenUpdateError) throw new Error(`Milestone token update failed: ${tokenUpdateError.message}`);
