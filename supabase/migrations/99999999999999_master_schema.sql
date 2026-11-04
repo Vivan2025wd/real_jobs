@@ -1,5 +1,5 @@
+-- Fresh/empty Supabase project only. Do not run on a database with older versions of these tables.
 -- RealJobs.lk master schema, consolidated from the chronological migrations.
--- Intended for a fresh Supabase database; safe to re-run.
 
 -- 1. Extensions
 CREATE SCHEMA IF NOT EXISTS extensions;
@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS public.jobs (
   salary_max integer,
   status text NOT NULL DEFAULT 'DRAFT',
   duration_days integer NOT NULL DEFAULT 14,
-  expires_at timestamptz NOT NULL,
+  expires_at timestamptz NOT NULL DEFAULT (now() + interval '14 days'),
   price_lkr integer NOT NULL,
   job_image_url text,
   source text NOT NULL DEFAULT 'NATIVE',
@@ -240,8 +240,11 @@ ALTER TABLE public.users
   ADD CONSTRAINT users_role_check CHECK (role IN ('EMPLOYER', 'JOB_SEEKER'));
 
 ALTER TABLE public.companies DROP CONSTRAINT IF EXISTS companies_free_jobs_used_check;
+UPDATE public.companies
+SET free_jobs_used = least(greatest(free_jobs_used, 0), 2)
+WHERE free_jobs_used < 0 OR free_jobs_used > 2;
 ALTER TABLE public.companies
-  ADD CONSTRAINT companies_free_jobs_used_check CHECK (free_jobs_used >= 0);
+  ADD CONSTRAINT companies_free_jobs_used_check CHECK (free_jobs_used BETWEEN 0 AND 2);
 
 ALTER TABLE public.jobs DROP CONSTRAINT IF EXISTS jobs_work_type_check;
 ALTER TABLE public.jobs
@@ -299,11 +302,38 @@ ALTER TABLE public.saved_searches
   CHECK (alert_frequency IN ('DAILY', 'WEEKLY', 'NONE'));
 
 -- 6. Functions / RPCs
+CREATE OR REPLACE FUNCTION public.job_price_lkr(p_duration_days integer)
+RETURNS integer
+LANGUAGE sql
+IMMUTABLE
+SET search_path = ''
+AS $$
+  SELECT CASE p_duration_days
+    WHEN 7 THEN 2499
+    WHEN 14 THEN 4499
+    WHEN 30 THEN 8499
+    ELSE NULL
+  END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.free_jobs_per_employer()
+RETURNS integer
+LANGUAGE sql
+IMMUTABLE
+SET search_path = ''
+AS $$
+  -- Keep this value aligned with FREE_JOBS_PER_EMPLOYER in src/lib/utils/constants.ts.
+  SELECT 2;
+$$;
+
+ALTER TABLE public.jobs
+  ALTER COLUMN price_lkr SET DEFAULT public.job_price_lkr(14);
+
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = ''
 AS $$
 BEGIN
   INSERT INTO public.users (id, email, role, full_name)
@@ -325,7 +355,7 @@ CREATE OR REPLACE FUNCTION public.save_saved_search(
 RETURNS uuid
 LANGUAGE plpgsql
 SECURITY INVOKER
-SET search_path = public, pg_temp
+SET search_path = ''
 AS $$
 DECLARE
   current_user_id uuid := auth.uid();
@@ -392,7 +422,7 @@ CREATE OR REPLACE FUNCTION public.set_saved_search_alert(
 RETURNS boolean
 LANGUAGE plpgsql
 SECURITY INVOKER
-SET search_path = public, pg_temp
+SET search_path = ''
 AS $$
 DECLARE
   current_user_id uuid := auth.uid();
@@ -419,6 +449,7 @@ $$;
 CREATE OR REPLACE FUNCTION public.set_job_first_published_at()
 RETURNS trigger
 LANGUAGE plpgsql
+SET search_path = ''
 AS $$
 BEGIN
   IF TG_OP = 'INSERT' THEN
@@ -437,7 +468,7 @@ $$;
 CREATE OR REPLACE FUNCTION public.set_application_first_responded_at()
 RETURNS trigger
 LANGUAGE plpgsql
-SET search_path = public
+SET search_path = ''
 AS $$
 BEGIN
   IF OLD.status = 'PENDING'
@@ -455,7 +486,7 @@ CREATE OR REPLACE FUNCTION public.calculate_employer_response_rates()
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = ''
 AS $$
 BEGIN
   UPDATE public.companies AS company
@@ -515,7 +546,6 @@ AS $$
   JOIN public.companies AS c ON c.id = j.company_id
   JOIN public.users AS employer ON employer.id = c.employer_id
   WHERE a.id = p_application_id
-    AND a.seeker_id = (SELECT auth.uid())
     AND j.source <> 'EXTERNAL';
 $$;
 
@@ -657,15 +687,17 @@ BEGIN
         RAISE EXCEPTION 'Employers cannot publish jobs without payment'
           USING errcode = '42501';
       END IF;
-      IF NEW.price_lkr IS DISTINCT FROM (
-        CASE NEW.duration_days
-          WHEN 7 THEN 2499
-          WHEN 14 THEN 4499
-          WHEN 30 THEN 8499
-          ELSE NULL
-        END
-      ) THEN
-        RAISE EXCEPTION 'Employers must use the configured job price'
+      IF NEW.duration_days IS DISTINCT FROM 14
+        OR NEW.price_lkr IS DISTINCT FROM public.job_price_lkr(14)
+        OR NEW.expires_at IS DISTINCT FROM
+          transaction_timestamp() + interval '14 days'
+        OR NEW.published_at IS NOT NULL
+        OR NEW.last_verified_at IS NOT NULL
+        OR NEW.applications_purge_at IS NOT NULL
+        OR NEW.verification_token IS NOT NULL
+        OR NEW.verification_sent_at IS NOT NULL
+      THEN
+        RAISE EXCEPTION 'Lifecycle and pricing fields are server-managed'
           USING errcode = '42501';
       END IF;
     END IF;
@@ -676,6 +708,17 @@ BEGIN
       END IF;
       IF NEW.price_lkr IS DISTINCT FROM OLD.price_lkr THEN
         RAISE EXCEPTION 'Employers cannot change a job price'
+          USING errcode = '42501';
+      END IF;
+      IF NEW.expires_at IS DISTINCT FROM OLD.expires_at
+        OR NEW.duration_days IS DISTINCT FROM OLD.duration_days
+        OR NEW.published_at IS DISTINCT FROM OLD.published_at
+        OR NEW.last_verified_at IS DISTINCT FROM OLD.last_verified_at
+        OR NEW.applications_purge_at IS DISTINCT FROM OLD.applications_purge_at
+        OR NEW.verification_token IS DISTINCT FROM OLD.verification_token
+        OR NEW.verification_sent_at IS DISTINCT FROM OLD.verification_sent_at
+      THEN
+        RAISE EXCEPTION 'Job lifecycle fields are server-managed'
           USING errcode = '42501';
       END IF;
     END IF;
@@ -691,7 +734,12 @@ SET search_path = ''
 AS $$
 BEGIN
   IF auth.role() = 'authenticated' THEN
-    IF TG_OP = 'INSERT' AND NEW.source <> 'NATIVE' THEN
+    IF TG_OP = 'INSERT' AND (
+      NEW.source IS DISTINCT FROM 'NATIVE'
+      OR NEW.source_url IS NOT NULL
+      OR NEW.external_company_name IS NOT NULL
+      OR NEW.claimed_at IS NOT NULL
+    ) THEN
       RAISE EXCEPTION 'Only administrators can create sourced listings'
         USING ERRCODE = '42501';
     END IF;
@@ -802,7 +850,7 @@ BEGIN
   IF NOT FOUND THEN
     RAISE EXCEPTION 'Employer company not found';
   END IF;
-  IF v_used >= 2 THEN
+  IF v_used >= public.free_jobs_per_employer() THEN
     RETURN false;
   END IF;
   UPDATE public.companies
@@ -826,6 +874,7 @@ DECLARE
   v_external_company_name text;
   v_company_id uuid;
   v_duration_days integer;
+  v_job_status text;
   v_free_claim boolean;
   v_claimed_at timestamptz := now();
   v_price_lkr integer;
@@ -846,13 +895,13 @@ BEGIN
     RAISE EXCEPTION 'This claim link is invalid, expired, or already used';
   END IF;
 
-  SELECT job.external_company_name, job.duration_days
-    INTO v_external_company_name, v_duration_days
+  SELECT job.external_company_name, job.duration_days, job.status
+    INTO v_external_company_name, v_duration_days, v_job_status
   FROM public.jobs AS job
   WHERE job.id = v_job_id
     AND job.source = 'EXTERNAL'
     AND job.claimed_at IS NULL
-    AND job.status = 'ACTIVE'
+    AND job.status IN ('ACTIVE', 'EXPIRED')
   FOR UPDATE OF job;
   IF NOT FOUND THEN
     RAISE EXCEPTION 'This claim link is invalid, expired, or already used';
@@ -879,27 +928,51 @@ BEGIN
     RAISE EXCEPTION 'Could not load the employer company';
   END IF;
 
-  v_free_claim := public.consume_free_job(v_company_id);
-  v_price_lkr := CASE v_duration_days
-    WHEN 7 THEN 2499
-    WHEN 14 THEN 4499
-    WHEN 30 THEN 8499
-    ELSE NULL
-  END;
+  v_price_lkr := public.job_price_lkr(v_duration_days);
   IF v_price_lkr IS NULL THEN
     RAISE EXCEPTION 'Unsupported job duration';
+  END IF;
+
+  IF v_job_status = 'ACTIVE' THEN
+    v_free_claim := public.consume_free_job(v_company_id);
+  ELSE
+    v_free_claim := false;
   END IF;
 
   UPDATE public.jobs
   SET company_id = v_company_id,
       claimed_at = v_claimed_at,
-      last_verified_at = v_claimed_at,
-      expires_at = v_claimed_at + make_interval(days => v_duration_days),
-      status = CASE WHEN v_free_claim THEN 'ACTIVE' ELSE 'DRAFT' END,
-      price_lkr = CASE WHEN v_free_claim THEN 0 ELSE v_price_lkr END,
+      last_verified_at = CASE
+        WHEN v_job_status = 'ACTIVE' THEN v_claimed_at
+        ELSE last_verified_at
+      END,
+      expires_at = CASE
+        WHEN v_job_status = 'ACTIVE'
+          THEN v_claimed_at + make_interval(days => v_duration_days)
+        ELSE expires_at
+      END,
+      applications_purge_at = CASE
+        WHEN v_job_status = 'EXPIRED' THEN greatest(
+          coalesce(applications_purge_at, '-infinity'::timestamptz),
+          v_claimed_at + make_interval(days => v_duration_days)
+        )
+        ELSE applications_purge_at
+      END,
+      status = CASE
+        WHEN v_job_status = 'EXPIRED' THEN 'EXPIRED'
+        WHEN v_free_claim THEN 'ACTIVE'
+        ELSE 'DRAFT'
+      END,
+      price_lkr = CASE
+        WHEN v_job_status = 'EXPIRED' THEN price_lkr
+        WHEN v_free_claim THEN 0
+        ELSE v_price_lkr
+      END,
       verification_token = NULL,
       verification_sent_at = NULL
-  WHERE id = v_job_id AND claimed_at IS NULL AND status = 'ACTIVE';
+  WHERE id = v_job_id
+    AND claimed_at IS NULL
+    AND status = v_job_status;
   IF NOT FOUND THEN
     RAISE EXCEPTION 'This listing has already been claimed';
   END IF;
@@ -943,14 +1016,12 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
 AS $$
-DECLARE
-  v_job record;
-  v_updated_count integer;
 BEGIN
   IF p_limit IS NULL OR p_limit < 1 THEN
     RAISE EXCEPTION 'Batch limit must be a positive integer';
   END IF;
-  FOR v_job IN
+  RETURN QUERY
+  WITH batch AS MATERIALIZED (
     SELECT job.id, job.source, job.claimed_at
     FROM public.jobs AS job
     WHERE job.applications_purge_at IS NOT NULL
@@ -958,25 +1029,36 @@ BEGIN
     ORDER BY job.applications_purge_at, job.id
     LIMIT p_limit
     FOR UPDATE OF job SKIP LOCKED
-  LOOP
+  ),
+  anonymized_rows AS (
     UPDATE public.applications AS application
     SET cover_letter = NULL,
         resume_url = NULL,
         anonymized_at = now()
-    WHERE application.job_id = v_job.id
-      AND application.anonymized_at IS NULL;
-    GET DIAGNOSTICS v_updated_count = ROW_COUNT;
+    WHERE application.anonymized_at IS NULL
+      AND application.job_id IN (SELECT batch.id FROM batch)
+    RETURNING application.job_id
+  ),
+  cleared_jobs AS (
     UPDATE public.jobs AS job
     SET applications_purge_at = NULL
-    WHERE job.id = v_job.id;
-    IF v_job.source = 'EXTERNAL' AND v_job.claimed_at IS NULL THEN
-      DELETE FROM public.job_external_contacts AS contact
-      WHERE contact.job_id = v_job.id;
-    END IF;
-    job_id := v_job.id;
-    anonymized := v_updated_count;
-    RETURN NEXT;
-  END LOOP;
+    FROM batch
+    WHERE job.id = batch.id
+    RETURNING job.id
+  ),
+  removed_contacts AS (
+    DELETE FROM public.job_external_contacts AS contact
+    USING batch
+    WHERE contact.job_id = batch.id
+      AND batch.source = 'EXTERNAL'
+      AND batch.claimed_at IS NULL
+    RETURNING contact.job_id
+  )
+  SELECT batch.id, count(anonymized_rows.job_id)::integer
+  FROM batch
+  LEFT JOIN anonymized_rows ON anonymized_rows.job_id = batch.id
+  GROUP BY batch.id
+  ORDER BY batch.id;
 END;
 $$;
 
@@ -987,11 +1069,105 @@ SET search_path = ''
 AS $$
 BEGIN
   IF auth.role() = 'authenticated'
+    AND NEW.status IS NOT DISTINCT FROM OLD.status
     AND NEW.applications_purge_at IS DISTINCT FROM OLD.applications_purge_at
   THEN
     RAISE EXCEPTION 'Unauthorized to modify retention settings';
   END IF;
+  -- Status transitions may legitimately receive applications_purge_at from
+  -- set_application_purge_at; direct same-status employer edits remain blocked.
   RETURN NEW;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.cleanup_expired_tokens()
+RETURNS TABLE (
+  deleted_unsubscribe_tokens integer,
+  cleared_claim_tokens integer,
+  cleared_milestone_tokens integer
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+  DELETE FROM public.email_unsubscribe_tokens
+  WHERE expires_at <= now();
+  GET DIAGNOSTICS deleted_unsubscribe_tokens = ROW_COUNT;
+
+  UPDATE public.job_external_contacts
+  SET claim_token_hash = NULL,
+      claim_token_expires_at = NULL
+  WHERE claim_token_expires_at <= now();
+  GET DIAGNOSTICS cleared_claim_tokens = ROW_COUNT;
+
+  UPDATE public.job_external_contacts
+  SET milestone_token_hash = NULL,
+      milestone_token_expires_at = NULL
+  WHERE milestone_token_expires_at <= now();
+  GET DIAGNOSTICS cleared_milestone_tokens = ROW_COUNT;
+
+  RETURN NEXT;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.consume_milestone_action(
+  p_token_hash text,
+  p_action text
+)
+RETURNS text
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_job_id uuid;
+BEGIN
+  IF p_action IS NULL OR p_action NOT IN ('still-hiring', 'filled') THEN
+    RAISE EXCEPTION 'Invalid milestone action';
+  END IF;
+
+  SELECT contact.job_id INTO v_job_id
+  FROM public.job_external_contacts AS contact
+  WHERE contact.milestone_token_hash = p_token_hash
+    AND contact.milestone_token_expires_at > now()
+  FOR UPDATE OF contact;
+  IF v_job_id IS NULL THEN
+    RAISE EXCEPTION 'This response link is invalid, expired, or already used';
+  END IF;
+
+  PERFORM 1
+  FROM public.jobs AS job
+  WHERE job.id = v_job_id
+    AND job.source = 'EXTERNAL'
+    AND job.claimed_at IS NULL
+    AND job.status = 'ACTIVE'
+  FOR UPDATE;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'This listing is no longer available for a response';
+  END IF;
+
+  IF p_action = 'still-hiring' THEN
+    UPDATE public.jobs
+    SET last_verified_at = now()
+    WHERE id = v_job_id;
+
+    UPDATE public.job_external_contacts
+    SET milestone_token_hash = NULL,
+        milestone_token_expires_at = NULL
+    WHERE job_id = v_job_id
+      AND milestone_token_hash = p_token_hash;
+  ELSE
+    UPDATE public.jobs
+    SET status = 'FILLED'
+    WHERE id = v_job_id;
+
+    DELETE FROM public.job_external_contacts
+    WHERE job_id = v_job_id
+      AND milestone_token_hash = p_token_hash;
+  END IF;
+
+  RETURN p_action;
 END;
 $$;
 
@@ -1012,7 +1188,8 @@ CREATE TRIGGER applications_first_responded_at
   FOR EACH ROW EXECUTE FUNCTION public.set_application_first_responded_at();
 
 DROP TRIGGER IF EXISTS prevent_employer_job_publish_or_reprice ON public.jobs;
-CREATE TRIGGER prevent_employer_job_publish_or_reprice
+DROP TRIGGER IF EXISTS a_prevent_employer_job_publish_or_reprice ON public.jobs;
+CREATE TRIGGER a_prevent_employer_job_publish_or_reprice
   BEFORE INSERT OR UPDATE ON public.jobs
   FOR EACH ROW EXECUTE FUNCTION public.prevent_employer_job_publish_or_reprice();
 
@@ -1065,6 +1242,7 @@ CREATE POLICY "users_employer_read_applicants" ON public.users
       JOIN public.companies AS c ON c.id = j.company_id
       WHERE a.seeker_id = users.id
         AND c.employer_id = auth.uid()
+        -- Intentionally hide applicants after their personal data is anonymized.
         AND a.anonymized_at IS NULL
     )
   );
@@ -1139,6 +1317,7 @@ CREATE POLICY "applications_employer_read" ON public.applications
       SELECT 1
       FROM public.jobs AS j
       JOIN public.companies AS c ON c.id = j.company_id
+      -- No status filter: employers retain access to applicants after claiming an expired listing.
       WHERE j.id = applications.job_id AND c.employer_id = auth.uid()
     )
   );
@@ -1201,6 +1380,54 @@ REVOKE ALL ON FUNCTION public.calculate_employer_response_rates()
   FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.calculate_employer_response_rates()
   TO service_role;
+REVOKE ALL ON FUNCTION public.handle_new_user()
+  FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.handle_new_user()
+  TO service_role;
+REVOKE ALL ON FUNCTION public.save_saved_search(jsonb, text)
+  FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.save_saved_search(jsonb, text)
+  TO authenticated;
+REVOKE ALL ON FUNCTION public.set_saved_search_alert(uuid, text)
+  FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.set_saved_search_alert(uuid, text)
+  TO authenticated;
+REVOKE ALL ON FUNCTION public.job_price_lkr(integer)
+  FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.job_price_lkr(integer)
+  TO authenticated, service_role;
+REVOKE ALL ON FUNCTION public.free_jobs_per_employer()
+  FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.free_jobs_per_employer()
+  TO service_role;
+REVOKE ALL ON FUNCTION public.set_job_first_published_at()
+  FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.set_job_first_published_at()
+  TO service_role;
+REVOKE ALL ON FUNCTION public.set_application_first_responded_at()
+  FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.set_application_first_responded_at()
+  TO service_role;
+REVOKE ALL ON FUNCTION public.prevent_employer_job_publish_or_reprice()
+  FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.prevent_employer_job_publish_or_reprice()
+  TO service_role;
+REVOKE ALL ON FUNCTION public.prevent_employer_sourced_job_changes()
+  FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.prevent_employer_sourced_job_changes()
+  TO service_role;
+REVOKE ALL ON FUNCTION public.prevent_employer_system_company_changes()
+  FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.prevent_employer_system_company_changes()
+  TO service_role;
+REVOKE ALL ON FUNCTION public.set_application_purge_at()
+  FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.set_application_purge_at()
+  TO service_role;
+REVOKE ALL ON FUNCTION public.protect_applications_purge_at()
+  FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.protect_applications_purge_at()
+  TO service_role;
 REVOKE ALL ON FUNCTION public.create_sourced_job(
   uuid, text, text, text, text, text, integer, integer, text, text, text, text, integer
 ) FROM PUBLIC, anon, authenticated;
@@ -1228,6 +1455,14 @@ REVOKE ALL ON FUNCTION public.anonymize_expired_applications(integer)
 GRANT EXECUTE ON FUNCTION public.anonymize_expired_applications(integer)
   TO service_role;
 REVOKE ALL ON FUNCTION public.get_application_notification_details(uuid)
-  FROM PUBLIC, anon;
+  FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.get_application_notification_details(uuid)
-  TO authenticated;
+  TO service_role;
+REVOKE ALL ON FUNCTION public.cleanup_expired_tokens()
+  FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.cleanup_expired_tokens()
+  TO service_role;
+REVOKE ALL ON FUNCTION public.consume_milestone_action(text, text)
+  FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.consume_milestone_action(text, text)
+  TO service_role;

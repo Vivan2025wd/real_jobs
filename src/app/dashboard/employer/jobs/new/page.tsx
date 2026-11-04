@@ -119,17 +119,13 @@ async function createJob(formData: FormData) {
     expires_at: expiresAt.toISOString(),
     status: publishImmediately ? "ACTIVE" : "DRAFT",
   };
-  const insertResult = isAdmin || isFreeJob
-    ? await createAdminClient()
-        .from("jobs")
-        .insert(jobValues as never)
-        .select("id")
-        .single()
-    : await supabase
-        .from("jobs")
-        .insert(jobValues as never)
-        .select("id")
-        .single();
+  // Expiry, duration, and price are server-managed. Direct authenticated job
+  // inserts are limited to database defaults by the jobs guard trigger.
+  const insertResult = await createAdminClient()
+    .from("jobs")
+    .insert(jobValues as never)
+    .select("id")
+    .single();
 
   if (insertResult.error || !insertResult.data) {
     redirect(
@@ -207,7 +203,7 @@ export default async function NewJobPage({
               {isAdmin
                 ? "Create a job listing and choose whether to publish it immediately."
                 : <>Save as a draft first — then pay to publish. Plans start at{" "}
-                  <strong className="text-gray-700">LKR 2,499</strong> for 7 days.</>}
+                  <strong className="text-gray-700">LKR {priceForDuration(7).toLocaleString("en-LK")}</strong> for 7 days.</>}
             </p>
           </div>
         </div>

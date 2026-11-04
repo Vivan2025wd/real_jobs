@@ -17,59 +17,13 @@ async function handleExternalJobDecision(formData: FormData) {
 
   const tokenHash = createHash("sha256").update(token).digest("hex");
   const adminDb = createAdminClient();
-  const { data: contact, error: contactError } = await adminDb
-    .from("job_external_contacts")
-    .select("job_id, milestone_token_expires_at")
-    .eq("milestone_token_hash", tokenHash)
-    .gt("milestone_token_expires_at", new Date().toISOString())
-    .maybeSingle();
-
-  if (contactError || !contact) {
+  const { data: consumedAction, error: consumeError } = await adminDb.rpc(
+    "consume_milestone_action",
+    { p_token_hash: tokenHash, p_action: action }
+  );
+  if (consumeError || consumedAction !== action) {
+    console.error("[external-job] milestone action failed:", consumeError);
     redirect(`/external-job/${token}?result=invalid`);
-  }
-
-  const { data: job, error: jobError } = await adminDb
-    .from("jobs")
-    .select("id, status, source, claimed_at")
-    .eq("id", contact.job_id)
-    .maybeSingle();
-
-  if (jobError || !job || job.source !== "EXTERNAL" || job.claimed_at || job.status !== "ACTIVE") {
-    redirect(`/external-job/${token}?result=invalid`);
-  }
-
-  const updates =
-    action === "still-hiring"
-      ? {
-          last_verified_at: new Date().toISOString(),
-        }
-      : {
-          status: "FILLED",
-        };
-
-  const { error: updateError } = await adminDb
-    .from("jobs")
-    .update(updates as never)
-    .eq("id", job.id)
-    .eq("source", "EXTERNAL")
-    .is("claimed_at", null)
-    .eq("status", "ACTIVE");
-
-  if (updateError) {
-    redirect(`/external-job/${token}?result=invalid`);
-  }
-
-  const { error: clearTokenError } = await adminDb
-    .from("job_external_contacts")
-    .update({
-      milestone_token_hash: null,
-      milestone_token_expires_at: null,
-    })
-    .eq("job_id", job.id)
-    .eq("milestone_token_hash", tokenHash);
-
-  if (clearTokenError) {
-    console.error("[external-job] token cleanup failed:", clearTokenError);
   }
 
   redirect(`/external-job/${token}?result=${action === "still-hiring" ? "confirmed" : "filled"}`);
@@ -95,7 +49,7 @@ export default async function ExternalJobResponsePage({
       <Shell>
         <h1 className="text-2xl font-bold text-gray-900">Thanks — your listing is still active</h1>
         <p className="mt-3 text-sm text-gray-600">
-          We&apos;ve updated the listing to show that this role is still open. It remains on the public board until it expires naturally.
+          We&apos;ve updated the verification date only. This does not extend the listing&apos;s scheduled expiry.
         </p>
         <div className="mt-6">
           <Link href="/dashboard/employer/jobs" className="inline-block">
@@ -152,6 +106,10 @@ export default async function ExternalJobResponsePage({
 
   if (jobError || !job || job.source !== "EXTERNAL" || job.claimed_at || job.status !== "ACTIVE") {
     return <ErrorState title="This listing is no longer active" description="The sourced listing has moved on or been claimed by an employer." />;
+  }
+
+  if (searchParams.action !== "still-hiring" && searchParams.action !== "filled") {
+    return <ErrorState title="Invalid response action" description="This response link is invalid or expired." />;
   }
 
   const isStillHiring = searchParams.action === "still-hiring";

@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test:job-prices": "tsx scripts/check-job-prices.ts",
     "db:types": "tsx scripts/generate-db-types.ts",
     "db:push": "supabase db push && tsx scripts/generate-db-types.ts"
   },

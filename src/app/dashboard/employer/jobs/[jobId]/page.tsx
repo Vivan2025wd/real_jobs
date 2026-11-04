@@ -16,6 +16,7 @@ import {
   Timer,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { sendApplicationStatusEmails } from "@/lib/email/application-status";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -83,10 +84,23 @@ async function confirmHiring(formData: FormData) {
   const jobId = String(formData.get("jobId") ?? "");
   if (!jobId) return;
 
-  await supabase
+  const { data: ownedJob, error: ownerCheckError } = await supabase
+    .from("jobs")
+    .select("id")
+    .eq("id", jobId)
+    .maybeSingle();
+  if (ownerCheckError) throw new Error(`Could not verify job ownership: ${ownerCheckError.message}`);
+  if (!ownedJob) throw new Error("Job not found or access denied.");
+
+  const { data: updatedJob, error: updateError } = await createAdminClient()
     .from("jobs")
     .update({ last_verified_at: new Date().toISOString() } as never)
-    .eq("id", jobId);
+    .eq("id", jobId)
+    .eq("status", "ACTIVE")
+    .select("id")
+    .maybeSingle();
+  if (updateError) throw new Error(`Could not confirm hiring status: ${updateError.message}`);
+  if (!updatedJob) throw new Error("Only an active job can be verified.");
 
   revalidatePath(`/dashboard/employer/jobs/${jobId}`);
   revalidatePath("/dashboard/employer/jobs");
@@ -104,10 +118,14 @@ async function markFilled(formData: FormData) {
   const jobId = String(formData.get("jobId") ?? "");
   if (!jobId) return;
 
-  await supabase
+  const { data: updatedJob, error: updateError } = await supabase
     .from("jobs")
     .update({ status: "FILLED" } as never)
-    .eq("id", jobId);
+    .eq("id", jobId)
+    .select("id")
+    .maybeSingle();
+  if (updateError) throw new Error(`Could not mark the job as filled: ${updateError.message}`);
+  if (!updatedJob) throw new Error("Job not found or access denied.");
 
   revalidatePath(`/dashboard/employer/jobs/${jobId}`);
   revalidatePath("/dashboard/employer/jobs");
@@ -251,6 +269,18 @@ export default async function EmployerJobDetailPage({
           {typedJob.status === "ACTIVE"
             ? "Listing claimed and activated using your free sourced-listing quota."
             : "Listing claimed. Complete payment below to publish it; its applicants are available in this dashboard."}
+        </div>
+      )}
+      {searchParams.claimed === "expired" && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+          This listing has closed. You can review applicants;{" "}
+          <Link
+            href={`/dashboard/employer/jobs/${typedJob.id}/edit`}
+            className="font-semibold underline"
+          >
+            republish to reopen it
+          </Link>
+          .
         </div>
       )}
       {searchParams.posted === "free" && (

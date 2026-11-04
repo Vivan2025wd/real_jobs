@@ -196,7 +196,7 @@ export type Database = {
           description: string
           duration_days?: number
           external_company_name?: string | null
-          expires_at: string
+          expires_at?: string
           id?: string
           applications_purge_at?: string | null
           job_image_url?: string | null
@@ -206,7 +206,7 @@ export type Database = {
           notified_expiring_at?: string | null
           notified_stale_at?: string | null
           published_at?: string | null
-          price_lkr: number
+          price_lkr?: number
           source?: string
           source_url?: string | null
           salary_max?: number | null
@@ -488,6 +488,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_expired_tokens: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          cleared_claim_tokens: number
+          cleared_milestone_tokens: number
+          deleted_unsubscribe_tokens: number
+        }[]
+      }
       anonymize_expired_applications: {
         Args: {
           p_limit: number
@@ -513,6 +521,13 @@ export type Database = {
           p_company_id: string
         }
         Returns: boolean
+      }
+      consume_milestone_action: {
+        Args: {
+          p_action: string
+          p_token_hash: string
+        }
+        Returns: string
       }
       create_sourced_job: {
         Args: {
@@ -555,6 +570,16 @@ export type Database = {
           job_title: string
           seeker_email: string | null
         }[]
+      }
+      free_jobs_per_employer: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      job_price_lkr: {
+        Args: {
+          p_duration_days: number
+        }
+        Returns: number
       }
       save_saved_search: {
         Args: {

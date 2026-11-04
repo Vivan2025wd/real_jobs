@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { JobImageUploader } from "@/components/employer/JobImageUploader";
+import { JOB_POSTING_PRICES } from "@/lib/utils/constants";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -61,9 +62,9 @@ const CATEGORY_OPTIONS = [
 ];
 
 const DURATION_OPTIONS = [
-  { value: 7, label: "7 days", hint: "Fast hire", price: 2499 },
-  { value: 14, label: "14 days", hint: "Standard", price: 4499 },
-  { value: 30, label: "30 days", hint: "Long-term", price: 8499 },
+  { value: 7, label: "7 days", hint: "Fast hire", price: JOB_POSTING_PRICES[7] },
+  { value: 14, label: "14 days", hint: "Standard", price: JOB_POSTING_PRICES[14] },
+  { value: 30, label: "30 days", hint: "Long-term", price: JOB_POSTING_PRICES[30] },
 ] as const;
 
 // ---------------------------------------------------------------------------
@@ -180,6 +181,7 @@ export function JobForm({
   isAdmin = false,
   isSourcedJob = false,
   freeJobsRemaining,
+  allowDurationChange = true,
 }: {
   action: (formData: FormData) => void | Promise<void>;
   defaults?: DefaultValues;
@@ -188,6 +190,7 @@ export function JobForm({
   isAdmin?: boolean;
   isSourcedJob?: boolean;
   freeJobsRemaining?: number;
+  allowDurationChange?: boolean;
 }) {
   const [jobImageUrl, setJobImageUrl] = useState<string | null>(
     defaults.job_image_url ?? null
@@ -403,61 +406,77 @@ export function JobForm({
         title="Posting duration"
         description="How long the listing stays live before auto-archiving."
       >
-        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3 sm:gap-3">
-          {DURATION_OPTIONS.map((opt) => {
-            const isSelected = selectedDuration === opt.value;
-            return (
-              <label
-                key={opt.value}
-                className="group relative flex cursor-pointer flex-col gap-1 rounded-xl border border-gray-200 bg-white p-2.5 transition has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50/50 has-[:checked]:ring-1 has-[:checked]:ring-indigo-200 hover:border-gray-300 sm:p-3"
-              >
-                <input
-                  type="radio"
-                  name="duration_days"
-                  value={opt.value}
-                  defaultChecked={isSelected}
-                  className="sr-only"
-                />
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-gray-900">
-                      {opt.label}
-                    </p>
-                    <p className="text-[11px] text-gray-500 sm:text-xs">{opt.hint}</p>
+        {allowDurationChange ? (
+          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3 sm:gap-3">
+            {DURATION_OPTIONS.map((opt) => {
+              const isSelected = selectedDuration === opt.value;
+              return (
+                <label
+                  key={opt.value}
+                  className="group relative flex cursor-pointer flex-col gap-1 rounded-xl border border-gray-200 bg-white p-2.5 transition has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50/50 has-[:checked]:ring-1 has-[:checked]:ring-indigo-200 hover:border-gray-300 sm:p-3"
+                >
+                  <input
+                    type="radio"
+                    name="duration_days"
+                    value={opt.value}
+                    defaultChecked={isSelected}
+                    className="sr-only"
+                  />
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-gray-900">
+                        {opt.label}
+                      </p>
+                      <p className="text-[11px] text-gray-500 sm:text-xs">{opt.hint}</p>
+                    </div>
+                    {opt.value === 14 && (
+                      <span className="shrink-0 rounded-full bg-emerald-50 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-emerald-700 ring-1 ring-emerald-200">
+                        Popular
+                      </span>
+                    )}
                   </div>
-                  {opt.value === 14 && (
-                    <span className="shrink-0 rounded-full bg-emerald-50 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-emerald-700 ring-1 ring-emerald-200">
-                      Popular
-                    </span>
-                  )}
-                </div>
-                <p className="mt-1 text-xs font-semibold text-indigo-600 sm:text-sm">
-                  {isSourcedJob
-                    ? "Free sourced listing"
-                    : `LKR ${opt.price.toLocaleString("en-LK")}`}
-                </p>
-              </label>
-            );
-          })}
-        </div>
+                  <p className="mt-1 text-xs font-semibold text-indigo-600 sm:text-sm">
+                    {isSourcedJob
+                      ? "Free sourced listing"
+                      : `LKR ${opt.price.toLocaleString("en-LK")}`}
+                  </p>
+                </label>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700">
+            {selectedDuration} days ·{" "}
+            {isSourcedJob
+              ? "Free sourced listing"
+              : `LKR ${(selectedOption?.price ?? JOB_POSTING_PRICES[14]).toLocaleString("en-LK")}`}
+            <p className="mt-1 text-xs text-gray-500">
+              Duration and price are locked for this listing.
+            </p>
+          </div>
+        )}
 
         {isSourcedJob ? (
           <div className="flex items-start gap-2 rounded-lg border border-emerald-100 bg-emerald-50/60 p-2.5 text-[11px] leading-relaxed text-emerald-900 sm:px-3 sm:py-2.5 sm:text-xs">
             <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600" />
             <p>Sourced listings are free. The selected duration controls when the listing expires.</p>
           </div>
-        ) : (
+        ) : allowDurationChange ? (
           <div className="flex items-start gap-2 rounded-lg border border-indigo-100 bg-indigo-50/60 p-2.5 text-[11px] leading-relaxed text-indigo-900 sm:px-3 sm:py-2.5 sm:text-xs">
             <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-indigo-600" />
             <p>
               You&apos;ll be charged{" "}
               <strong>
-                LKR {(selectedOption?.price ?? 4499).toLocaleString("en-LK")}
+                LKR {(selectedOption?.price ?? JOB_POSTING_PRICES[14]).toLocaleString("en-LK")}
               </strong>{" "}
               when you publish. Drafts are free — pay only when you&apos;re ready
               to go live.
             </p>
           </div>
+        ) : (
+          <p className="text-xs text-gray-600">
+            Edit the listing details below. The job&apos;s duration and price remain unchanged.
+          </p>
         )}
 
         <p className="-mt-1.5 text-[11px] leading-relaxed text-gray-500 sm:-mt-2 sm:text-xs">

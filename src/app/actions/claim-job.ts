@@ -48,9 +48,21 @@ export async function claimJob(formData: FormData): Promise<void> {
     redirect(`${claimPath}?error=${encodeURIComponent(message)}`);
   }
 
+  const { data: claimedJob, error: claimedJobError } = await adminDb
+    .from("jobs")
+    .select("status")
+    .eq("id", jobId)
+    .maybeSingle();
+  if (claimedJobError || !claimedJob) {
+    console.error("[claim job] post-claim status lookup failed:", claimedJobError);
+    throw new Error("The listing was claimed, but its status could not be loaded.");
+  }
+
   revalidatePath("/dashboard/employer");
   revalidatePath("/dashboard/employer/jobs");
   revalidatePath(`/dashboard/employer/jobs/${jobId}`);
   revalidatePath("/jobs");
-  redirect(`/dashboard/employer/jobs/${jobId}?claimed=1`);
+  redirect(
+    `/dashboard/employer/jobs/${jobId}?claimed=${claimedJob.status === "EXPIRED" ? "expired" : "1"}`
+  );
 }

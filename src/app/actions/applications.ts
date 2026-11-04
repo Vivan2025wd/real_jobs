@@ -99,21 +99,7 @@ export async function submitApplication(
 
   // The notification RPC intentionally returns no details for unclaimed sourced
   // listings. Applicant data is never sent to those external contacts.
-  const notificationRpc = supabase as unknown as {
-    rpc: (
-      functionName: "get_application_notification_details",
-      args: { p_application_id: string }
-    ) => PromiseLike<{
-      data: {
-        company_name: string;
-        employer_email: string;
-        job_title: string;
-        seeker_email: string | null;
-      }[] | null;
-      error: { message: string } | null;
-    }>;
-  };
-  const { data: notification, error: notificationError } = await notificationRpc.rpc(
+  const { data: notification, error: notificationError } = await adminDb.rpc(
     "get_application_notification_details",
     { p_application_id: applicationId }
   );

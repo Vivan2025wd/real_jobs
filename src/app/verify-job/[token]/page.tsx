@@ -124,7 +124,7 @@ export default async function VerifyJobPage({
           icon={<CheckCircle2 className="h-6 w-6 sm:h-7 sm:w-7" />}
           eyebrow="Listing confirmed"
           title="Thanks — your listing is still active"
-          description="We've re-verified this job. It will stay live on RealJobs for another 14 days before we check in again."
+          description="We've re-verified this job. Its scheduled expiry is unchanged; we'll check in again in about 14 days."
         >
           <div className="flex w-full flex-col gap-2.5 sm:flex-row sm:justify-center sm:gap-3">
             <Link href="/dashboard/employer/jobs" className="w-full sm:w-auto">

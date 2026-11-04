@@ -80,15 +80,6 @@ async function updateJob(jobId: string, formData: FormData) {
     }
   }
 
-  // ─── Recompute price + expiry from the new duration ───
-  const newPriceLkr = isAdmin || isFreeRepublish ? 0 : priceForDuration(parsed.data.duration_days);
-  const publishImmediately =
-    (isAdmin && formData.get("publish_immediately") === "on") || isFreeRepublish;
-  const baseTime = isRepublishingExpired ? Date.now() : new Date(existingJob.created_at).getTime();
-  const newExpiresAt = new Date(
-    baseTime + parsed.data.duration_days * 86_400_000
-  );
-
   const jobValues = {
     title: parsed.data.title,
     description: parsed.data.description,
@@ -98,24 +89,45 @@ async function updateJob(jobId: string, formData: FormData) {
     salary_min: parsed.data.salary_min ?? null,
     salary_max: parsed.data.salary_max ?? null,
     job_image_url: parsed.data.job_image_url ?? null,
-    duration_days: parsed.data.duration_days,
-    price_lkr: newPriceLkr,
-    expires_at: newExpiresAt.toISOString(),
-    ...(isAdmin
-      ? { status: publishImmediately ? "ACTIVE" : "DRAFT" }
-      : isRepublishingExpired
-        ? { status: isFreeRepublish ? "ACTIVE" : "DRAFT" }
-        : {}),
   };
-  const updateResult = isAdmin || isFreeRepublish
-    ? await createAdminClient()
+  let updateResult;
+  if (isAdmin || isRepublishingExpired) {
+    const newPriceLkr =
+      isAdmin || isFreeRepublish
+        ? 0
+        : priceForDuration(parsed.data.duration_days);
+    const publishImmediately =
+      (isAdmin && formData.get("publish_immediately") === "on") ||
+      isFreeRepublish;
+    const baseTime = isRepublishingExpired
+      ? Date.now()
+      : new Date(existingJob.created_at).getTime();
+    const newExpiresAt = new Date(
+      baseTime + parsed.data.duration_days * 86_400_000
+    );
+    const adminValues = {
+      ...jobValues,
+      duration_days: parsed.data.duration_days,
+      price_lkr: newPriceLkr,
+      expires_at: newExpiresAt.toISOString(),
+      status: isAdmin
+        ? publishImmediately
+          ? "ACTIVE"
+          : "DRAFT"
+        : isFreeRepublish
+          ? "ACTIVE"
+          : "DRAFT",
+    };
+    updateResult = await createAdminClient()
         .from("jobs")
-        .update(jobValues as never)
-        .eq("id", jobId)
-    : await supabase
+        .update(adminValues as never)
+        .eq("id", jobId);
+  } else {
+    updateResult = await supabase
         .from("jobs")
         .update(jobValues as never)
         .eq("id", jobId);
+  }
 
   if (updateResult.error) {
     redirect(
@@ -237,19 +249,22 @@ export default async function EditJobPage({
             ) : (
               <>This job is <strong>live</strong>. Changes appear on the public board shortly.</>
             )
+          ) : job.status === "EXPIRED" ? (
+            <>
+              This listing has closed. You can update its details and choose a
+              new duration when republishing it.
+            </>
           ) : job.status === "DRAFT" ? (
             <>
-              This job is still a <strong>draft</strong>. Changes save
-              immediately, but the listing won&apos;t appear publicly until you
-              pay and publish. Changing the duration recomputes the price —
-              LKR {job.price_lkr.toLocaleString("en-LK")} for{" "}
-              {job.duration_days} days.
+              This job is still a <strong>draft</strong>. Changes to its details
+              save immediately, but the listing won&apos;t appear publicly
+              until you pay and publish. Its duration and price are locked.
             </>
           ) : (
             <>
               This job is <strong>live</strong>. Changes appear on the public
-              board within a few minutes. Extending the duration will not
-              refund or charge extra — the original price stays locked.
+              board within a few minutes. Its original duration, expiry, and
+              price stay locked.
             </>
           )}
         </p>
@@ -287,6 +302,7 @@ export default async function EditJobPage({
               publish_immediately: job.status === "ACTIVE",
             }}
             isAdmin={isAdmin}
+            allowDurationChange={job.status === "EXPIRED"}
           />
         </div>
       </div>

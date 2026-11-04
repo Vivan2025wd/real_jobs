@@ -1,14 +1,8 @@
 // src/app/api/applications/notify/route.ts
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail } from "@/lib/email/send";
-
-type NotificationDetails = {
-  company_name: string;
-  employer_email: string;
-  job_title: string;
-  seeker_email: string | null;
-};
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
@@ -29,16 +23,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "applicationId required" }, { status: 400 });
   }
 
-  const notificationRpc = supabase as unknown as {
-    rpc: (
-      functionName: "get_application_notification_details",
-      args: { p_application_id: string }
-    ) => PromiseLike<{
-      data: NotificationDetails[] | null;
-      error: { message: string } | null;
-    }>;
-  };
-  const { data, error } = await notificationRpc.rpc(
+  const { data: ownedApplication, error: ownershipError } = await supabase
+    .from("applications")
+    .select("id")
+    .eq("id", body.applicationId)
+    .eq("seeker_id", user.id)
+    .maybeSingle();
+  if (ownershipError) {
+    console.error("[applications/notify] ownership check failed:", ownershipError);
+    return NextResponse.json({ error: "Could not verify application" }, { status: 500 });
+  }
+  if (!ownedApplication) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  const { data, error } = await createAdminClient().rpc(
     "get_application_notification_details",
     { p_application_id: body.applicationId }
   );

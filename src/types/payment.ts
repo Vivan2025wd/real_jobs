@@ -63,7 +63,7 @@ export type PayHereInitResponse = {
 // ---------------------------------------------------------------------------
 /**
  * The webhook posts `application/x-www-form-urlencoded`. Every field arrives
- * as a string; `payhere_amount` uses 2-decimal formatting ("2500.00").
+ * as a string; `payhere_amount` uses two-decimal formatting.
  */
 export type PayHereNotifyPayload = {
   merchant_id: string;

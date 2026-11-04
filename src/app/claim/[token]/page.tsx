@@ -42,7 +42,12 @@ export default async function ClaimPage({
     console.error("[claim page] job lookup failed:", jobError);
     return <ClaimError />;
   }
-  if (!job || job.source !== "EXTERNAL" || job.claimed_at || job.status !== "ACTIVE") {
+  if (
+    !job ||
+    job.source !== "EXTERNAL" ||
+    job.claimed_at ||
+    !["ACTIVE", "EXPIRED"].includes(job.status)
+  ) {
     return <ClaimError />;
   }
 
@@ -75,9 +80,15 @@ export default async function ClaimPage({
         <p className="mt-3 text-gray-600">
           There are <strong>{count ?? 0}</strong> applicant{count === 1 ? "" : "s"} for this listing.
         </p>
-        <p className="mt-3 text-sm leading-relaxed text-gray-600">
-          Claim this listing to verify it and review applicants. Applicant CVs and details have not been emailed.
-        </p>
+        {job.status === "EXPIRED" ? (
+          <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm leading-relaxed text-amber-900">
+            This listing has closed. You can review applicants; republish to reopen it.
+          </p>
+        ) : (
+          <p className="mt-3 text-sm leading-relaxed text-gray-600">
+            Claim this listing to verify it and review applicants. Applicant CVs and details have not been emailed.
+          </p>
+        )}
 
         {searchParams.error && (
           <p role="alert" className="mt-4 rounded-lg bg-rose-50 p-3 text-sm text-rose-800">
@@ -92,7 +103,7 @@ export default async function ClaimPage({
               type="submit"
               className="min-h-11 w-full rounded-lg bg-indigo-600 px-4 py-2.5 font-semibold text-white hover:bg-indigo-700"
             >
-              Claim this listing
+              {job.status === "EXPIRED" ? "Claim and review applicants" : "Claim this listing"}
             </button>
           </form>
         ) : user ? (

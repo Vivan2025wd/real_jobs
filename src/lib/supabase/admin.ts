@@ -5,10 +5,8 @@ import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database.types";
 
 /**
- * DANGER: bypasses RLS. Only use in:
- *   - /api/payment/notify  (PayHere webhook)
- *   - /api/cron/*          (cron jobs)
- * Never import this in a Client Component or a page that renders user content.
+ * DANGER: bypasses RLS. Use only in server-side code after authorization checks
+ * where a privileged database operation is required. Never import in client code.
  */
 export function createAdminClient() {
   return createClient<Database>(
@@ -34,4 +32,20 @@ export async function anonymizeExpiredApplications(
     throw new Error(`Could not anonymize expired applications: ${error.message}`);
   }
   return data ?? [];
+}
+
+export async function cleanupExpiredTokens(): Promise<{
+  deleted_unsubscribe_tokens: number;
+  cleared_claim_tokens: number;
+  cleared_milestone_tokens: number;
+}> {
+  const { data, error } = await createAdminClient().rpc("cleanup_expired_tokens");
+  if (error) {
+    throw new Error(`Could not clean up expired tokens: ${error.message}`);
+  }
+  const result = data?.[0];
+  if (!result) {
+    throw new Error("Expired-token cleanup returned no count summary.");
+  }
+  return result;
 }

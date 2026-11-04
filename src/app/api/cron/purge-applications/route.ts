@@ -1,6 +1,9 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
-import { anonymizeExpiredApplications } from "@/lib/supabase/admin";
+import {
+  anonymizeExpiredApplications,
+  cleanupExpiredTokens,
+} from "@/lib/supabase/admin";
 
 export const maxDuration = 60;
 
@@ -24,22 +27,36 @@ export async function GET(request: NextRequest) {
 
   const startedAt = Date.now();
   const details: Array<{ job_id: string; anonymized: number }> = [];
+  let tokenCleanup:
+    | Awaited<ReturnType<typeof cleanupExpiredTokens>>
+    | undefined;
 
   try {
+    tokenCleanup = await cleanupExpiredTokens();
     while (Date.now() - startedAt < STOP_BEFORE_TIMEOUT_MS) {
       const batch = await anonymizeExpiredApplications(BATCH_SIZE);
       if (batch.length === 0) {
         console.info(
           `[cron:purge-applications] anonymized ${details.reduce((total, item) => total + item.anonymized, 0)} applications across ${details.length} jobs`
         );
-        return NextResponse.json({ ok: true, processed: details.length, details });
+        return NextResponse.json({
+          ok: true,
+          processed: details.length,
+          details,
+          token_cleanup: tokenCleanup,
+        });
       }
       details.push(...batch);
     }
 
     console.error("[cron:purge-applications] stopped before draining all batches");
     return NextResponse.json(
-      { ok: false, error: "Batch processing incomplete; run the cron again", processed: details.length },
+      {
+        ok: false,
+        error: "Batch processing incomplete; run the cron again",
+        processed: details.length,
+        token_cleanup: tokenCleanup,
+      },
       { status: 500 }
     );
   } catch (error) {
@@ -49,6 +66,7 @@ export async function GET(request: NextRequest) {
         ok: false,
         error: error instanceof Error ? error.message : "Unknown error",
         processed: details.length,
+        token_cleanup: tokenCleanup,
       },
       { status: 500 }
     );
