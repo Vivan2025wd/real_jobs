@@ -452,6 +452,7 @@ export type Database = {
           p_claim_token_hash: string
           p_contact_email: string
           p_description: string
+          p_duration_days: number
           p_external_company_name: string
           p_location: string
           p_salary_max: number | null

@@ -45,7 +45,7 @@ export async function createSourcedJob(formData: FormData): Promise<void> {
     category: formValue(formData, "category"),
     salary_min: formValue(formData, "salary_min"),
     salary_max: formValue(formData, "salary_max"),
-    duration_days: 14,
+    duration_days: formValue(formData, "duration_days") ?? 14,
   });
   const parsedSourcedFields = sourcedFieldsSchema.safeParse({
     external_company_name: formValue(formData, "external_company_name"),
@@ -76,6 +76,7 @@ export async function createSourcedJob(formData: FormData): Promise<void> {
     p_source_url: parsedSourcedFields.data.source_url,
     p_contact_email: parsedSourcedFields.data.contact_email,
     p_claim_token_hash: claimTokenHash,
+    p_duration_days: parsedJob.data.duration_days,
   });
 
   if (error || !jobId) {

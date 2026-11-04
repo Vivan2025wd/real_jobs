@@ -36,7 +36,7 @@ export default async function NewSourcedJobPage({
           <div>
             <h1 className="text-xl font-bold text-gray-900">Post a sourced job</h1>
             <p className="mt-1 text-sm text-gray-600">
-              The listing will be live for 14 days. The employer receives only applicant counts and a claim link.
+              Each sourced listing can run for 7, 14, or 30 days. The employer receives only applicant counts and a claim link.
             </p>
           </div>
         </div>
