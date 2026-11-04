@@ -191,7 +191,7 @@ export default async function EmployerJobDetailPage({
   searchParams,
 }: {
   params: { jobId: string };
-  searchParams: { payment?: string };
+  searchParams: { payment?: string; claimed?: string };
 }) {
   const supabase = await createClient();
   const {
@@ -215,7 +215,7 @@ export default async function EmployerJobDetailPage({
 
   const { data: applications, error: applicationsError } = await supabase
     .from("applications")
-    .select("id, status, applied_at, resume_url, cover_letter, users!inner(email, full_name)")
+    .select("id, status, applied_at, resume_url, cover_letter, anonymized_at, users!inner(email, full_name)")
     .eq("job_id", typedJob.id)
     .order("applied_at", { ascending: false });
 
@@ -226,7 +226,17 @@ export default async function EmployerJobDetailPage({
     );
   }
 
-  const typedApplications = (applications ?? []) as ApplicationWithSeeker[];
+  const typedApplications = ((applications ?? []) as ApplicationWithSeeker[]).map(
+    (application) =>
+      application.anonymized_at
+        ? {
+            ...application,
+            resume_url: null,
+            cover_letter: null,
+            users: { email: "", full_name: null },
+          }
+        : application
+  );
   const stalePendingCount = typedApplications.filter(
     (application) =>
       application.status === "PENDING" &&
@@ -236,6 +246,13 @@ export default async function EmployerJobDetailPage({
 
   return (
     <div className="w-full space-y-4 sm:space-y-6">
+      {searchParams.claimed === "1" && (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
+          {typedJob.status === "ACTIVE"
+            ? "Listing claimed and activated using your free sourced-listing quota."
+            : "Listing claimed. Complete payment below to publish it; its applicants are available in this dashboard."}
+        </div>
+      )}
       {/* ─── Payment banners ─── */}
       {searchParams.payment === "success" && (
         <div className="flex items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 p-3 shadow-sm sm:gap-3 sm:px-4 sm:py-3.5">
@@ -267,6 +284,20 @@ export default async function EmployerJobDetailPage({
               You can try again below whenever you&apos;re ready.
             </p>
           </div>
+        </div>
+      )}
+      {typedJob.applications_purge_at && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+          Application documents are scheduled to be anonymized on{" "}
+          <strong>
+            {new Date(typedJob.applications_purge_at).toLocaleDateString("en-LK", {
+              timeZone: "Asia/Colombo",
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+            })}
+          </strong>
+          . Please review any applications you need before then.
         </div>
       )}
 

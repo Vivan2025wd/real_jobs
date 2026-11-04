@@ -22,3 +22,16 @@ export function createAdminClient() {
     }
   );
 }
+
+export async function anonymizeExpiredApplications(
+  limit: number
+): Promise<Array<{ job_id: string; anonymized: number }>> {
+  const { data, error } = await createAdminClient().rpc(
+    "anonymize_expired_applications",
+    { p_limit: limit }
+  );
+  if (error) {
+    throw new Error(`Could not anonymize expired applications: ${error.message}`);
+  }
+  return data ?? [];
+}

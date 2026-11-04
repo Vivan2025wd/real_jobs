@@ -51,17 +51,19 @@ export type Database = {
       applications: {
         Row: {
           applied_at: string
+          anonymized_at: string | null
           consent_at: string | null
           cover_letter: string | null
           first_responded_at: string | null
           id: string
           job_id: string
-          resume_url: string
+          resume_url: string | null
           seeker_id: string
           status: string
         }
         Insert: {
           applied_at?: string
+          anonymized_at?: string | null
           consent_at?: string | null
           cover_letter?: string | null
           first_responded_at?: string | null
@@ -73,12 +75,13 @@ export type Database = {
         }
         Update: {
           applied_at?: string
+          anonymized_at?: string | null
           consent_at?: string | null
           cover_letter?: string | null
           first_responded_at?: string | null
           id?: string
           job_id?: string
-          resume_url?: string
+          resume_url?: string | null
           seeker_id?: string
           status?: string
         }
@@ -105,6 +108,7 @@ export type Database = {
           created_at: string
           description: string | null
           employer_id: string
+          free_jobs_used: number
           id: string
           is_verified: boolean
           is_system: boolean
@@ -119,6 +123,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           employer_id: string
+          free_jobs_used?: number
           id?: string
           is_verified?: boolean
           is_system?: boolean
@@ -133,6 +138,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           employer_id?: string
+          free_jobs_used?: number
           id?: string
           is_verified?: boolean
           is_system?: boolean
@@ -163,6 +169,7 @@ export type Database = {
           external_company_name: string | null
           expires_at: string
           id: string
+          applications_purge_at: string | null
           job_image_url: string | null
           last_verified_at: string | null
           location: string
@@ -191,6 +198,7 @@ export type Database = {
           external_company_name?: string | null
           expires_at: string
           id?: string
+          applications_purge_at?: string | null
           job_image_url?: string | null
           last_verified_at?: string | null
           location: string
@@ -219,6 +227,7 @@ export type Database = {
           external_company_name?: string | null
           expires_at?: string
           id?: string
+          applications_purge_at?: string | null
           job_image_url?: string | null
           last_verified_at?: string | null
           location?: string
@@ -243,6 +252,42 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      claim_log: {
+        Row: {
+          claimed_at: string
+          employer_id: string
+          id: string
+          job_id: string
+        }
+        Insert: {
+          claimed_at?: string
+          employer_id: string
+          id?: string
+          job_id: string
+        }
+        Update: {
+          claimed_at?: string
+          employer_id?: string
+          id?: string
+          job_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "claim_log_employer_id_fkey"
+            columns: ["employer_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "claim_log_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
             referencedColumns: ["id"]
           },
         ]
@@ -305,6 +350,9 @@ export type Database = {
           contact_email: string
           job_id: string
           last_notified_at: string | null
+          milestone_notified_at: string | null
+          milestone_token_expires_at: string | null
+          milestone_token_hash: string | null
           notify_count: number
         }
         Insert: {
@@ -313,6 +361,9 @@ export type Database = {
           contact_email: string
           job_id: string
           last_notified_at?: string | null
+          milestone_notified_at?: string | null
+          milestone_token_expires_at?: string | null
+          milestone_token_hash?: string | null
           notify_count?: number
         }
         Update: {
@@ -321,6 +372,9 @@ export type Database = {
           contact_email?: string
           job_id?: string
           last_notified_at?: string | null
+          milestone_notified_at?: string | null
+          milestone_token_expires_at?: string | null
+          milestone_token_hash?: string | null
           notify_count?: number
         }
         Relationships: [
@@ -434,6 +488,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      anonymize_expired_applications: {
+        Args: {
+          p_limit: number
+        }
+        Returns: {
+          anonymized: number
+          job_id: string
+        }[]
+      }
       calculate_employer_response_rates: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -444,6 +507,12 @@ export type Database = {
           p_token_hash: string
         }
         Returns: string
+      }
+      consume_free_job: {
+        Args: {
+          p_company_id: string
+        }
+        Returns: boolean
       }
       create_sourced_job: {
         Args: {

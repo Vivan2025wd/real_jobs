@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 type Props = {
   jobId: string;
   externalUnclaimed: boolean;
+  durationDays: number;
 };
 
 type State =
@@ -20,7 +21,7 @@ type State =
   | { kind: "error"; message: string }
   | { kind: "ready" };
 
-export function ApplyButton({ jobId, externalUnclaimed }: Props) {
+export function ApplyButton({ jobId, externalUnclaimed, durationDays }: Props) {
   const [state, setState] = useState<State>({ kind: "loading" });
   const [modalOpen, setModalOpen] = useState(false);
   const [coverLetter, setCoverLetter] = useState("");
@@ -195,6 +196,13 @@ export function ApplyButton({ jobId, externalUnclaimed }: Props) {
                   This employer has not joined RealJobs yet. Your application is saved here and the employer will be invited to join and view it. Your CV and details are not sent by email.
                 </p>
               )}
+              <p className="mt-2 text-xs leading-relaxed text-gray-500">
+                Your CV and cover letter will remain available to the employer for up to{" "}
+                <strong>
+                  {externalUnclaimed ? 30 : durationDays} days
+                </strong>{" "}
+                after this listing closes, then they will be anonymized.
+              </p>
             </div>
 
             <div>

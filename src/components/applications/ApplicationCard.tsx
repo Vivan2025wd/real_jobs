@@ -8,11 +8,13 @@ export function ApplicationCard({
   companyName,
   status,
   appliedAt,
+  anonymizedAt,
 }: {
   jobTitle: string;
   companyName: string;
   status: string;
   appliedAt: string;
+  anonymizedAt: string | null;
 }) {
   return (
     <div className="group relative flex flex-col gap-3 overflow-hidden rounded-xl border border-gray-200 bg-white p-3.5 shadow-card transition-all duration-200 hover:border-indigo-200 hover:shadow-card-hover sm:flex-row sm:items-center sm:gap-4 sm:px-5 sm:py-4">
@@ -38,6 +40,11 @@ export function ApplicationCard({
             <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
             Applied {timeAgo(appliedAt)}
           </p>
+          {anonymizedAt && (
+            <p className="mt-1 text-[10px] text-gray-500 sm:text-xs">
+              Resume and cover letter archived
+            </p>
+          )}
         </div>
       </div>
 

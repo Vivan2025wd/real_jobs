@@ -79,6 +79,7 @@ export function publicCompanyName(job: {
 // ---------------------------------------------------------------------------
 export type PublicJobDetail = PublicJobCard & {
   description: string;
+  duration_days: number;
   job_image_url: string | null;
   last_verified_at: string | null;
   companies: {
@@ -122,6 +123,7 @@ export type JobRow = {
   notified_10_applicants_at: string | null;
   notified_stale_at: string | null;
   notified_expiring_at: string | null;
+  applications_purge_at: string | null;
 
   // Pricing (added by 20261028100000_job_pricing.sql)
   price_lkr: number;
@@ -148,7 +150,8 @@ export type ApplicationRow = {
   id: string;
   job_id: string;
   seeker_id: string;
-  resume_url: string;
+  resume_url: string | null;
+  anonymized_at: string | null;
   status: ApplicationStatus;
   applied_at: string;
   cover_letter: string | null;
@@ -160,7 +163,8 @@ export type ApplicationWithSeeker = {
   id: string;
   status: ApplicationStatus;
   applied_at: string;
-  resume_url: string;
+  resume_url: string | null;
+  anonymized_at: string | null;
   cover_letter: string | null;
   users: {
     email: string;
@@ -173,6 +177,7 @@ export type ApplicationWithJob = {
   id: string;
   status: ApplicationStatus;
   applied_at: string;
+  anonymized_at: string | null;
   jobs: {
     title: string;
     source: "NATIVE" | "EXTERNAL";

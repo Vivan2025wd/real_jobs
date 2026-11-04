@@ -7,8 +7,10 @@ export const maxDuration = 60;
 
 function isAuthorized(request: NextRequest): boolean {
   const secret = process.env.CRON_SECRET;
+  const authorization = request.headers.get("authorization") ?? "";
   if (!secret) return false;
-  const actual = Buffer.from(request.headers.get("authorization") ?? "");
+
+  const actual = Buffer.from(authorization);
   const expected = Buffer.from(`Bearer ${secret}`);
   return actual.length === expected.length && timingSafeEqual(actual, expected);
 }
@@ -169,6 +171,124 @@ export async function GET(request: NextRequest) {
           console.error(`[cron:notify-external-employers] ${job.job_id} unsubscribe cleanup failed:`, cleanupError);
         }
       }
+    }
+  }
+
+  const { data: milestoneContacts, error: milestoneLoadError } = await adminDb
+    .from("job_external_contacts")
+    .select("job_id, contact_email, notify_count, milestone_notified_at")
+    .is("milestone_notified_at", null)
+    .lt("notify_count", 3);
+
+  if (milestoneLoadError) {
+    console.error("[cron:notify-external-employers] milestone load failed:", milestoneLoadError);
+    return NextResponse.json({ ok: true, processed, sent, failed, skipped, milestone: { error: milestoneLoadError.message } });
+  }
+
+  for (const contact of milestoneContacts ?? []) {
+    if (Date.now() >= stopAt) break;
+
+    try {
+      const { data: job, error: jobError } = await adminDb
+        .from("jobs")
+        .select("id, title, source, claimed_at, status, external_company_name")
+        .eq("id", contact.job_id)
+        .maybeSingle();
+      if (jobError) throw new Error(`Job lookup failed: ${jobError.message}`);
+      if (!job || job.source !== "EXTERNAL" || job.claimed_at || job.status !== "ACTIVE") continue;
+
+      const { count, error: countError } = await adminDb
+        .from("applications")
+        .select("id", { count: "exact", head: true })
+        .eq("job_id", job.id)
+        .neq("status", "WITHDRAWN");
+      if (countError) throw new Error(`Milestone applicant count failed: ${countError.message}`);
+      if (!count || count < 10) continue;
+
+      if (!contact.contact_email) continue;
+
+      const email = contact.contact_email.toLowerCase();
+      const { data: suppression, error: suppressionError } = await adminDb
+        .from("email_suppressions")
+        .select("email")
+        .eq("email", email)
+        .maybeSingle();
+      if (suppressionError) throw new Error(`Milestone suppression check failed: ${suppressionError.message}`);
+      if (suppression) continue;
+
+      const claimToken = randomBytes(32).toString("base64url");
+      const milestoneToken = randomBytes(32).toString("base64url");
+      const unsubscribeToken = randomBytes(32).toString("base64url");
+      const claimTokenHash = hashToken(claimToken);
+      const milestoneTokenHash = hashToken(milestoneToken);
+      const unsubscribeTokenHash = hashToken(unsubscribeToken);
+      const claimUrl = new URL(`/claim/${claimToken}`, baseUrl).toString();
+      const stillHiringUrl = new URL(`/external-job/${milestoneToken}?action=still-hiring`, baseUrl).toString();
+      const positionFilledUrl = new URL(`/external-job/${milestoneToken}?action=filled`, baseUrl).toString();
+      const unsubscribePageUrl = new URL(`/email-preferences/unsubscribe/${unsubscribeToken}`, baseUrl).toString();
+      const oneClickUnsubscribeUrl = new URL(`/api/email-unsubscribe/${unsubscribeToken}`, baseUrl).toString();
+
+      const { error: tokenUpdateError } = await adminDb
+        .from("job_external_contacts")
+        .update({
+          claim_token_hash: claimTokenHash,
+          claim_token_expires_at: new Date(Date.now() + 30 * 86_400_000).toISOString(),
+          milestone_token_hash: milestoneTokenHash,
+          milestone_token_expires_at: new Date(Date.now() + 30 * 86_400_000).toISOString(),
+        })
+        .eq("job_id", job.id)
+        .eq("contact_email", contact.contact_email);
+      if (tokenUpdateError) throw new Error(`Milestone token update failed: ${tokenUpdateError.message}`);
+
+      const { error: saveUnsubscribeError } = await adminDb
+        .from("email_unsubscribe_tokens")
+        .insert({
+          token_hash: unsubscribeTokenHash,
+          email,
+          expires_at: new Date(Date.now() + 365 * 86_400_000).toISOString(),
+        });
+      if (saveUnsubscribeError) throw new Error(`Milestone unsubscribe save failed: ${saveUnsubscribeError.message}`);
+
+      const subjectTitle = job.title.replace(/[\r\n]+/g, " ").slice(0, 120);
+      const title = escapeHtml(job.title);
+      const companyName = escapeHtml(job.external_company_name ?? "your company");
+
+      await sendEmail({
+        to: email,
+        subject: `Your listing for "${subjectTitle}" has ${count} applicants`,
+        headers: {
+          "List-Unsubscribe": `<${oneClickUnsubscribeUrl}>`,
+          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        },
+        html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:32px 16px;color:#111827">
+          <h1 style="font-size:22px">Your listing has ${count} applicants</h1>
+          <p style="line-height:1.6">We emailed because <strong>${companyName}</strong> is still live on RealJobs.lk and this listing now has <strong>${count} applicants</strong>. No applicant names, CVs or cover letters are included in this email.</p>
+          <p style="line-height:1.6">You can review the current applicants, confirm that you are still hiring, or mark the role as filled.</p>
+          <p style="text-align:center;margin:18px 0 8px">
+            <a href="${escapeHtml(claimUrl)}" style="display:inline-block;background:#4f46e5;color:#fff;padding:12px 24px;text-decoration:none;border-radius:8px;font-weight:600;margin:0 8px 12px 0">View applicants</a>
+            <a href="${escapeHtml(stillHiringUrl)}" style="display:inline-block;background:#0f766e;color:#fff;padding:12px 24px;text-decoration:none;border-radius:8px;font-weight:600;margin:0 8px 12px 0">Yes, still hiring</a>
+            <a href="${escapeHtml(positionFilledUrl)}" style="display:inline-block;background:#374151;color:#fff;padding:12px 24px;text-decoration:none;border-radius:8px;font-weight:600">Position filled</a>
+          </p>
+          <p style="font-size:12px;color:#6b7280"><a href="${escapeHtml(unsubscribePageUrl)}">Don't contact me again</a></p>
+        </div>`,
+      });
+
+      const { error: updateMilestoneError } = await adminDb
+        .from("job_external_contacts")
+        .update({
+          milestone_notified_at: new Date().toISOString(),
+          notify_count: contact.notify_count + 1,
+          last_notified_at: new Date().toISOString(),
+        })
+        .eq("job_id", job.id)
+        .eq("contact_email", contact.contact_email)
+        .is("milestone_notified_at", null);
+      if (updateMilestoneError) throw new Error(`Milestone notification update failed: ${updateMilestoneError.message}`);
+
+      sent++;
+    } catch (milestoneError) {
+      failed++;
+      console.error(`[cron:notify-external-employers] milestone ${contact.job_id} failed:`, milestoneError);
     }
   }
 

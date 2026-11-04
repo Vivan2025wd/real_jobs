@@ -30,7 +30,7 @@ function isAuthorized(request: NextRequest): boolean {
   if (!secret) return false;
 
   const actual = Buffer.from(authorization);
-  const expected = Buffer.from(`Bearer ${secret}`);
+    const expected = Buffer.from(`Bearer ${secret}`);
   return actual.length === expected.length && timingSafeEqual(actual, expected);
 }
 

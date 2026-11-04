@@ -67,7 +67,7 @@ export default async function JobDetailPage({
   const { data } = await supabase
     .from("jobs")
     .select(
-      "id, title, description, job_image_url, location, work_type, category, salary_min, salary_max, created_at, last_verified_at, status, source, source_url, external_company_name, claimed_at, companies!inner(company_name, logo_url, description, is_verified, total_applications_90d, responded_applications_90d, avg_response_hours, response_rate_cached_at)"
+      "id, title, description, job_image_url, location, work_type, category, salary_min, salary_max, created_at, last_verified_at, duration_days, status, source, source_url, external_company_name, claimed_at, companies!inner(company_name, logo_url, description, is_verified, total_applications_90d, responded_applications_90d, avg_response_hours, response_rate_cached_at)"
     )
     .eq("id", params.jobId)
     .maybeSingle();

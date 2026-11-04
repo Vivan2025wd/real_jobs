@@ -12,7 +12,10 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { JobForm } from "@/components/employer/JobForm";
 import { jobSchema } from "@/lib/validators/job";
-import { priceForDuration } from "@/lib/utils/constants";
+import {
+  FREE_JOBS_PER_EMPLOYER,
+  priceForDuration,
+} from "@/lib/utils/constants";
 
 async function createJob(formData: FormData) {
   "use server";
@@ -139,6 +142,27 @@ export default async function NewJobPage({
   const isAdmin =
     !!process.env.ADMIN_EMAIL &&
     user.email?.toLowerCase() === process.env.ADMIN_EMAIL.toLowerCase();
+  let freeJobsRemaining: number | undefined;
+  if (!isAdmin) {
+    const { data: companyData, error } = await supabase
+      .from("companies")
+      .select("free_jobs_used")
+      .eq("employer_id", user.id)
+      .eq("is_system", false)
+      .returns<{ free_jobs_used: number }>()
+      .maybeSingle();
+    if (error) {
+      console.error("[new job page] free-claim quota lookup failed:", error);
+      throw new Error("Could not load your free sourced-listing quota.");
+    }
+    const company = companyData as unknown as { free_jobs_used: number } | null;
+    if (company) {
+      freeJobsRemaining = Math.max(
+        0,
+        FREE_JOBS_PER_EMPLOYER - company.free_jobs_used
+      );
+    }
+  }
 
   return (
     <div className="mx-auto w-full max-w-3xl space-y-4 sm:space-y-6">
@@ -219,6 +243,7 @@ export default async function NewJobPage({
             submitLabel={isAdmin ? "Save job" : "Save as draft"}
             error={undefined}
             isAdmin={isAdmin}
+            freeJobsRemaining={freeJobsRemaining}
           />
         </div>
       </div>

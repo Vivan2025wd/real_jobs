@@ -104,7 +104,7 @@ export default async function SeekerOverview() {
   const { data: recentData } = await supabase
     .from("applications")
     .select(
-      "id, status, applied_at, jobs!inner(title, source, external_company_name, claimed_at, companies!inner(company_name))"
+      "id, status, applied_at, anonymized_at, jobs!inner(title, source, external_company_name, claimed_at, companies!inner(company_name))"
     )
     .eq("seeker_id", user!.id)
     .order("applied_at", { ascending: false })
@@ -296,6 +296,11 @@ export default async function SeekerOverview() {
                         <span className="text-gray-300">·</span>
                         {timeAgo(a.applied_at)}
                       </p>
+                      {a.anonymized_at && (
+                        <p className="mt-1 text-[10px] text-gray-500 sm:text-xs">
+                          Resume and cover letter archived
+                        </p>
+                      )}
                     </div>
                   </div>
                   <div className="shrink-0">

@@ -5,10 +5,12 @@ import { notifyStaleJobs } from "@/lib/cron/job-lifecycle";
 export const maxDuration = 60;
 
 function unauthorized(req: NextRequest): boolean {
+  const secret = process.env.CRON_SECRET;
   const header = req.headers.get("authorization") ?? "";
-  const expected = `Bearer ${process.env.CRON_SECRET ?? ""}`;
+  if (!secret) return true;
+
   const a = Buffer.from(header);
-  const b = Buffer.from(expected);
+  const b = Buffer.from(`Bearer ${secret}`);
   return a.length !== b.length || !timingSafeEqual(a, b);
 }
 

@@ -16,7 +16,8 @@ type ApplicationRow = {
   id: string;
   status: string;
   applied_at: string;
-  resume_url: string;
+  resume_url: string | null;
+  anonymized_at: string | null;
   users: {
     email: string;
   } | null;
@@ -55,7 +56,7 @@ export default async function JobApplications({
   // 2. Fetch Applications
   const { data: applications } = await adminDb
     .from("applications")
-    .select("id, status, applied_at, resume_url, users!inner(email)")
+    .select("id, status, applied_at, resume_url, anonymized_at, users!inner(email)")
     .eq("job_id", params.jobId)
     .order("applied_at", { ascending: false })
     .returns<ApplicationRow[]>();
@@ -113,12 +114,12 @@ export default async function JobApplications({
               <div className="flex min-w-0 items-center gap-3 sm:gap-4">
                 {/* Avatar */}
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-100 to-violet-100 text-xs font-bold text-indigo-700 sm:h-12 sm:w-12 sm:text-sm">
-                  {app.users?.email?.charAt(0).toUpperCase() || "U"}
+                  {app.anonymized_at ? "A" : app.users?.email?.charAt(0).toUpperCase() || "U"}
                 </div>
                 
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold text-gray-900 sm:text-base">
-                    {app.users?.email || "Unknown Email"}
+                    {app.anonymized_at ? "Resume and cover letter archived" : app.users?.email || "Unknown Email"}
                   </p>
                   <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-gray-500 sm:mt-1 sm:text-xs">
                     <Calendar className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
@@ -139,15 +140,19 @@ export default async function JobApplications({
                 </span>
 
                 {/* Resume Action */}
-                <a
-                  href={app.resume_url} // In production, use a presigned URL generator for admin
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-[11px] font-medium text-gray-700 shadow-sm transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 sm:gap-1.5 sm:rounded-lg sm:px-3 sm:text-xs"
-                >
-                  <FileText className="h-3 w-3 text-gray-400 group-hover:text-indigo-500 sm:h-3.5 sm:w-3.5" />
-                  View Resume
-                </a>
+                {app.resume_url ? (
+                  <a
+                    href={app.resume_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-[11px] font-medium text-gray-700 shadow-sm transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 sm:gap-1.5 sm:rounded-lg sm:px-3 sm:text-xs"
+                  >
+                    <FileText className="h-3 w-3 text-gray-400 group-hover:text-indigo-500 sm:h-3.5 sm:w-3.5" />
+                    View Resume
+                  </a>
+                ) : (
+                  <span className="text-xs text-gray-500">Resume unavailable (archived)</span>
+                )}
               </div>
 
             </div>

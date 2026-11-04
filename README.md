@@ -33,6 +33,8 @@ Job seekers routinely encounter listings for roles that have already been filled
 
 Every 14 days, a scheduled job asks the employer to confirm that the role is still open. If the employer confirms, the listing stays active. If they say the role has been filled—or do not respond—the listing expires and is removed from the public job board. Verification emails and automatic expiration make freshness an operational rule rather than a promise.
 
+Sourced listings support 7-, 14-, or 30-day durations. Employers can claim one using a single-use link; the claim transaction consumes one of up to two free claims or leaves the listing as a paid draft. Application resumes and cover letters are anonymized after the job-specific retention period. Vercel runs the protected `purge-applications` route daily at 02:00 UTC. The scripts in `scripts/` are one-time, manual backfills and should only be run after applying their migrations.
+
 ## Screenshots
 
 > Screenshot placeholders — add current product captures at the paths below.
@@ -187,6 +189,14 @@ Copy the values from your providers into `.env.local`. Do not commit this file o
 | `RESEND_API_KEY` | Resend API key for transactional email. |
 | `EMAIL_FROM` | Verified sender address for outgoing email. |
 | `CRON_SECRET` | Secret used to authenticate scheduled cron requests. |
+| `ADMIN_EMAIL` | Email address authorized to access the admin panel and create sourced listings. |
+
+Run the one-time backfills only after applying their migrations:
+
+```powershell
+npx tsx scripts/backfill_free_jobs.ts
+npx tsx scripts/backfill_purge_at.ts
+```
 
 The repository's [.env.local.example](.env.local.example) documents the expected formats and includes safe placeholders.
 

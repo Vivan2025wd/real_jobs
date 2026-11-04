@@ -46,7 +46,7 @@ export default async function SeekerApplicationsPage() {
   const { data: applications } = await supabase
     .from("applications")
     .select(
-      "id, status, applied_at, jobs!inner(title, source, external_company_name, claimed_at, companies!inner(company_name))"
+      "id, status, applied_at, anonymized_at, jobs!inner(title, source, external_company_name, claimed_at, companies!inner(company_name))"
     )
     .eq("seeker_id", user!.id)
     .order("applied_at", { ascending: false });
@@ -178,6 +178,7 @@ export default async function SeekerApplicationsPage() {
                 companyName={publicCompanyName(job)}
                 status={a.status}
                 appliedAt={a.applied_at}
+                anonymizedAt={a.anonymized_at}
               />
             );
           })}

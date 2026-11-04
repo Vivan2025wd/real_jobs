@@ -227,6 +227,7 @@ export function JobDetail({ job }: Props) {
               <ApplyButton
                 jobId={job.id}
                 externalUnclaimed={sourcedUnclaimed}
+                durationDays={job.duration_days}
               />
             </div>
           </div>

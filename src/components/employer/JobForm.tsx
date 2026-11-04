@@ -179,6 +179,7 @@ export function JobForm({
   error,
   isAdmin = false,
   isSourcedJob = false,
+  freeJobsRemaining,
 }: {
   action: (formData: FormData) => void | Promise<void>;
   defaults?: DefaultValues;
@@ -186,6 +187,7 @@ export function JobForm({
   error?: string;
   isAdmin?: boolean;
   isSourcedJob?: boolean;
+  freeJobsRemaining?: number;
 }) {
   const [jobImageUrl, setJobImageUrl] = useState<string | null>(
     defaults.job_image_url ?? null
@@ -197,6 +199,11 @@ export function JobForm({
 
   return (
     <form action={action} className="w-full space-y-6 sm:space-y-8">
+      {freeJobsRemaining !== undefined && !isAdmin && (
+        <p className="rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs text-emerald-800 sm:text-sm">
+          Free sourced listing claims remaining: <strong>{freeJobsRemaining}</strong>
+        </p>
+      )}
       {/* ─── Error banner ─── */}
       {error && (
         <div className="flex w-full items-start gap-2.5 rounded-xl border border-rose-200 bg-rose-50 p-3 sm:gap-3 sm:px-4 sm:py-3.5">
@@ -391,7 +398,7 @@ export function JobForm({
       <div className="border-t border-gray-100" />
 
       {/* ─── Section 4: Posting duration + price ─── */}
-      {!isAdmin && <Section
+      {(!isAdmin || isSourcedJob) && <Section
         icon={Clock}
         title="Posting duration"
         description="How long the listing stays live before auto-archiving."
@@ -425,24 +432,33 @@ export function JobForm({
                   )}
                 </div>
                 <p className="mt-1 text-xs font-semibold text-indigo-600 sm:text-sm">
-                  LKR {opt.price.toLocaleString("en-LK")}
+                  {isSourcedJob
+                    ? "Free sourced listing"
+                    : `LKR ${opt.price.toLocaleString("en-LK")}`}
                 </p>
               </label>
             );
           })}
         </div>
 
-        <div className="flex items-start gap-2 rounded-lg border border-indigo-100 bg-indigo-50/60 p-2.5 text-[11px] leading-relaxed text-indigo-900 sm:px-3 sm:py-2.5 sm:text-xs">
-          <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-indigo-600" />
-          <p>
-            You&apos;ll be charged{" "}
-            <strong>
-              LKR {(selectedOption?.price ?? 4499).toLocaleString("en-LK")}
-            </strong>{" "}
-            when you publish. Drafts are free — pay only when you&apos;re ready
-            to go live.
-          </p>
-        </div>
+        {isSourcedJob ? (
+          <div className="flex items-start gap-2 rounded-lg border border-emerald-100 bg-emerald-50/60 p-2.5 text-[11px] leading-relaxed text-emerald-900 sm:px-3 sm:py-2.5 sm:text-xs">
+            <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600" />
+            <p>Sourced listings are free. The selected duration controls when the listing expires.</p>
+          </div>
+        ) : (
+          <div className="flex items-start gap-2 rounded-lg border border-indigo-100 bg-indigo-50/60 p-2.5 text-[11px] leading-relaxed text-indigo-900 sm:px-3 sm:py-2.5 sm:text-xs">
+            <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-indigo-600" />
+            <p>
+              You&apos;ll be charged{" "}
+              <strong>
+                LKR {(selectedOption?.price ?? 4499).toLocaleString("en-LK")}
+              </strong>{" "}
+              when you publish. Drafts are free — pay only when you&apos;re ready
+              to go live.
+            </p>
+          </div>
+        )}
 
         <p className="-mt-1.5 text-[11px] leading-relaxed text-gray-500 sm:-mt-2 sm:text-xs">
           Jobs auto-archive when the duration ends. You can mark a role as

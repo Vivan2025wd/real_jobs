@@ -16,7 +16,7 @@ import { s3, BUCKETS } from "@/lib/s3/client";
 type AppRow = {
   id: string;
   job_id: string;
-  resume_url: string;
+  resume_url: string | null;
 };
 
 type JobRow = {
@@ -63,6 +63,12 @@ export async function POST(req: NextRequest) {
       `[api/s3/download-url] application ${body.applicationId} not found`
     );
     return NextResponse.json({ error: "Application not found" }, { status: 404 });
+  }
+  if (!app.resume_url) {
+    return NextResponse.json(
+      { error: "Resume unavailable because application data was archived" },
+      { status: 410 }
+    );
   }
 
   // ─── 2. Load the job + verify employer ownership (single-level embed) ───

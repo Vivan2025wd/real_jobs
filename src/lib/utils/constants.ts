@@ -2,6 +2,7 @@
 
 // ─── Pricing ─────────────────────────────────────────────────────────────
 export const PAYMENT_CURRENCY = "LKR";
+export const FREE_JOBS_PER_EMPLOYER = 2;
 
 export const JOB_POSTING_PRICES: Record<7 | 14 | 30, number> = {
   7: 2499,
