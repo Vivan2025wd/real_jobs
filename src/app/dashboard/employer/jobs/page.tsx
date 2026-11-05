@@ -7,7 +7,6 @@ import {
   Clock,
   Plus,
   Edit3,
-  Trash2,
   CheckCircle2,
   Rocket,
   Briefcase,
@@ -17,6 +16,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/Badge";
+import { DeleteJobButton } from "@/components/ui/DeleteJobButton";
 import { formatSalary, timeAgo } from "@/lib/utils/format";
 import type { JobListRow } from "@/types/job";
 
@@ -252,17 +252,13 @@ export default async function EmployerJobsPage() {
                         </Button>
                       </Link>
 
-                      <form action={deleteJob} className="w-full sm:w-auto">
-                        <input type="hidden" name="jobId" value={job.id} />
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          icon={<Trash2 className="h-3.5 w-3.5" />}
-                          className="w-full justify-center text-rose-600 hover:bg-rose-50 sm:w-auto"
-                        >
-                          Delete
-                        </Button>
-                      </form>
+                      {/* ✅ Replaced bare <form> submit with confirmed delete button */}
+                      <DeleteJobButton
+                        deleteAction={deleteJob}
+                        jobId={job.id}
+                        jobTitle={job.title}
+                        variant="button"
+                      />
                     </div>
                   </div>
                 </li>

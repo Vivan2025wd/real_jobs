@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { submitApplication } from "@/app/actions/applications";
 import { Button } from "@/components/ui/Button";
@@ -96,12 +97,18 @@ export function ApplyButton({ jobId, externalUnclaimed, durationDays }: Props) {
       if (result.ok) {
         setModalOpen(false);
         setState({ kind: "already-applied" });
+        // ✅ Success toast
+        toast.success("Application submitted successfully!");
       } else {
         setError(result.error);
+        // ❌ Error toast
+        toast.error(result.error);
       }
     } catch (submitError) {
       console.error("[ApplyButton] application submit failed:", submitError);
-      setError("Could not submit your application. Please try again.");
+      const msg = "Could not submit your application. Please try again.";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setPending(false);
     }

@@ -14,6 +14,7 @@ import {
   Users,
   Inbox,
   Timer,
+  Zap,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -415,7 +416,7 @@ export default async function EmployerJobDetailPage({
         />
       )}
 
-      {/* ─── DRAFT payment banner ─── */}
+      {/* ─── DRAFT payment banner (only for DRAFT status) ─── */}
       {typedJob.status === "DRAFT" && (
         <div className="relative w-full overflow-hidden rounded-xl border border-indigo-200 bg-gradient-to-br from-indigo-50 via-white to-violet-50 p-4 shadow-card sm:rounded-2xl sm:p-6">
           <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-indigo-200/30 blur-2xl" />
@@ -441,6 +442,7 @@ export default async function EmployerJobDetailPage({
                 </p>
               </div>
             </div>
+            {/* PayHereButton only shown for DRAFT jobs (this whole block is guarded) */}
             {!isAdmin && (
               <div className="w-full sm:w-auto sm:shrink-0">
                 <PayHereButton
@@ -450,6 +452,26 @@ export default async function EmployerJobDetailPage({
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* ─── ACTIVE "Job is live" banner ─── */}
+      {typedJob.status === "ACTIVE" && (
+        <div className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 shadow-sm sm:rounded-2xl sm:px-5 sm:py-4">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 sm:h-9 sm:w-9">
+            <Zap className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-emerald-900 sm:text-base">
+              Job is already published
+            </p>
+            <p className="mt-0.5 text-xs leading-snug text-emerald-700 sm:text-sm">
+              This listing is live and visible to job seekers. No further payment is needed.
+            </p>
+          </div>
+          <span className="hidden shrink-0 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-emerald-700 ring-1 ring-emerald-200 sm:inline-flex">
+            Live
+          </span>
         </div>
       )}
 

@@ -4,6 +4,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Inter } from "next/font/google";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const inter = Inter({
@@ -118,6 +119,18 @@ export default function RootLayout({
       */}
       <body className="min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-white pb-[env(safe-area-inset-bottom)] font-sans text-gray-900 antialiased selection:bg-indigo-100 selection:text-indigo-900">
         {children}
+        {/* Global toast notifications — position top-center works on both mobile & desktop */}
+        <Toaster
+          position="top-center"
+          richColors
+          closeButton
+          toastOptions={{
+            duration: 4000,
+            classNames: {
+              toast: "font-sans text-sm",
+            },
+          }}
+        />
         <Analytics />
         <SpeedInsights />
       </body>

@@ -1,7 +1,8 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { Trash2, User, Briefcase, Calendar, Inbox } from "lucide-react";
+import { User, Briefcase, Calendar, Inbox } from "lucide-react";
+import { DeleteUserButton } from "@/components/ui/DeleteUserButton";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -42,12 +43,14 @@ function UserList({
   title, 
   description, 
   icon: Icon, 
-  data 
+  data,
+  onDelete,
 }: { 
   title: string; 
   description: string;
   icon: React.ElementType;
-  data: UserRow[]; 
+  data: UserRow[];
+  onDelete: (formData: FormData) => Promise<void>;
 }) {
   return (
     <div className="space-y-3 sm:space-y-4">
@@ -120,17 +123,12 @@ function UserList({
                     {isEmployer ? "Employer" : "Seeker"}
                   </span>
 
-                  {/* Delete Action */}
-                  <form action={deleteUser} className="flex items-center">
-                    <input type="hidden" name="userId" value={u.id} />
-                    <button
-                      type="submit"
-                      className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-gray-400 transition hover:bg-rose-50 hover:text-rose-600 md:min-h-0 md:min-w-0 md:h-8 md:w-8"
-                      title="Delete User"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </form>
+                  {/* ✅ Replaced bare <form> submit with confirmed delete button */}
+                  <DeleteUserButton
+                    deleteAction={onDelete}
+                    userId={u.id}
+                    userEmail={u.email}
+                  />
                 </div>
               </div>
             );
@@ -183,6 +181,7 @@ export default async function AdminUsers() {
             description="Companies and recruiters posting jobs."
             icon={Briefcase}
             data={employers}
+            onDelete={deleteUser}
           />
 
           {/* ─── Seekers Section ─── */}
@@ -191,6 +190,7 @@ export default async function AdminUsers() {
             description="Candidates applying for jobs."
             icon={User}
             data={seekers}
+            onDelete={deleteUser}
           />
         </>
       )}

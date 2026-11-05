@@ -1,8 +1,9 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { Trash2, ArrowRight, Briefcase, Building2, Users, Inbox, Plus } from "lucide-react";
+import { ArrowRight, Briefcase, Building2, Users, Inbox, Plus } from "lucide-react";
 import Link from "next/link";
+import { DeleteJobButton } from "@/components/ui/DeleteJobButton";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -73,7 +74,7 @@ export default async function AdminJobs() {
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-gray-900 sm:text-2xl">
-            Jobs & Applications
+            Jobs &amp; Applications
           </h1>
           <p className="mt-0.5 text-xs text-gray-500 sm:mt-0 sm:text-sm">
             Manage all job listings across the platform.
@@ -168,16 +169,13 @@ export default async function AdminJobs() {
                     <ArrowRight className="h-3 w-3 text-gray-400 sm:h-3.5 sm:w-3.5" />
                   </Link>
 
-                  <form action={deleteJob} className="flex items-center">
-                    <input type="hidden" name="jobId" value={job.id} />
-                    <button
-                      type="submit"
-                      className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-gray-400 transition hover:bg-rose-50 hover:text-rose-600 md:min-h-0 md:min-w-0 md:h-8 md:w-8"
-                      title="Delete Job"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </form>
+                  {/* ✅ Replaced bare <form> submit with confirmed delete button */}
+                  <DeleteJobButton
+                    deleteAction={deleteJob}
+                    jobId={job.id}
+                    jobTitle={job.title}
+                    variant="icon"
+                  />
                 </div>
               </div>
             );

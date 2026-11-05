@@ -60,6 +60,21 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // ─── Guard: reject if a COMPLETED payment already exists for this job ───
+  const { data: completedPayment } = await supabase
+    .from("payments")
+    .select("order_id")
+    .eq("job_id", job.id)
+    .eq("status", "COMPLETED")
+    .maybeSingle();
+
+  if (completedPayment) {
+    return NextResponse.json(
+      { error: "This job has already been paid for." },
+      { status: 400 }
+    );
+  }
+
   // ─── Use the price locked at creation time ───
   const amount = formatPriceForGateway(job.price_lkr);
 

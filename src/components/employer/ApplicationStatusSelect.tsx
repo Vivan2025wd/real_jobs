@@ -2,6 +2,7 @@
 
 import { useTransition } from "react";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 const STATUS_OPTIONS = [
   { value: "PENDING", label: "Pending" },
@@ -26,7 +27,12 @@ export function ApplicationStatusSelect({
       action={(fd) => {
         fd.set("applicationId", applicationId);
         startTransition(async () => {
-          await onUpdate(fd);
+          try {
+            await onUpdate(fd);
+            toast.success("Status updated");
+          } catch {
+            toast.error("Failed to update status. Please try again.");
+          }
         });
       }}
       className="flex w-full items-center gap-2 sm:w-auto sm:gap-1.5"
