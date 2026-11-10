@@ -131,28 +131,25 @@ export async function expireStaleJobs(): Promise<{ expired: number }> {
     Date.now() - VERIFICATION_GRACE_HOURS * 3_600_000
   ).toISOString();
 
-  const { data: jobs, error } = await supabase
-    .from("jobs")
-    .select("id, title")
-    .eq("status", "ACTIVE")
-    .or(`expires_at.lte.${now},and(verification_token.not.is.null,verification_sent_at.lt.${graceCutoff})`)
-    .returns<{ id: string; title: string }[]>();
-
-  if (error) throw new Error(`expire load failed: ${error.message}`);
-  if (!jobs?.length) return { expired: 0 };
-
-  const ids = jobs.map((j) => j.id);
-  const { error: updateError } = await supabase
+  // FIX 5 (FLAW-4): Collapse the previous two-step load-then-update into a
+  // single atomic UPDATE so there is no window where a job's verification_token
+  // can be cleared between our SELECT and our UPDATE, causing a stale-read
+  // race condition that would incorrectly expire a job that was just verified.
+  const { data: updatedJobs, error: updateError } = await supabase
     .from("jobs")
     .update({
       status: "EXPIRED",
       verification_token: null,
       verification_sent_at: null,
     } as never)
-    .in("id", ids);
+    .eq("status", "ACTIVE")
+    .or(
+      `expires_at.lte.${now},and(verification_token.not.is.null,verification_sent_at.lt.${graceCutoff})`
+    )
+    .select("id");
 
   if (updateError) throw new Error(`expire update failed: ${updateError.message}`);
-  return { expired: ids.length };
+  return { expired: updatedJobs?.length ?? 0 };
 }
 
 // ───────────────────────────────────────────────────────────────────────────

@@ -119,6 +119,16 @@ async function markFilled(formData: FormData) {
   const jobId = String(formData.get("jobId") ?? "");
   if (!jobId) return;
 
+  // FIX 6 (FLAW-5): Explicit ownership check before update — mirrors the
+  // pattern already used in confirmHiring() above.
+  const { data: ownedJob, error: ownerCheckError } = await supabase
+    .from("jobs")
+    .select("id")
+    .eq("id", jobId)
+    .maybeSingle();
+  if (ownerCheckError) throw new Error(`Could not verify job ownership: ${ownerCheckError.message}`);
+  if (!ownedJob) throw new Error("Job not found or access denied.");
+
   const { data: updatedJob, error: updateError } = await supabase
     .from("jobs")
     .update({ status: "FILLED" } as never)
@@ -134,15 +144,21 @@ async function markFilled(formData: FormData) {
 }
 
 // ─── Update application status + notify seeker ───
+// FIX 1 (BREAK-6): Only REVIEWED/SHORTLISTED/REJECTED are allowed; PENDING is
+//   blocked server-side so an employer can never revert an application backwards.
+// FIX 2 (BREAK-2): Fetch the existing status before updating so we only send
+//   notification emails when the status has actually changed.
+const ALLOWED_APPLICATION_STATUSES = ["REVIEWED", "SHORTLISTED", "REJECTED"] as const;
+type AllowedApplicationStatus = (typeof ALLOWED_APPLICATION_STATUSES)[number];
+
 async function updateApplicationStatus(jobId: string, formData: FormData) {
   "use server";
 
   const applicationId = String(formData.get("applicationId") ?? "");
-  const newStatus = String(formData.get("status") ?? "") as
-    | "PENDING"
-    | "REVIEWED"
-    | "SHORTLISTED"
-    | "REJECTED";
+  const rawStatus = String(formData.get("status") ?? "");
+  const newStatus = ALLOWED_APPLICATION_STATUSES.find(
+    (status) => status === rawStatus
+  );
 
   if (!applicationId || !newStatus) return;
 
@@ -151,6 +167,24 @@ async function updateApplicationStatus(jobId: string, formData: FormData) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return;
+
+  // FIX 2: Read the current status before updating so we can diff
+  const { data: existingApp, error: existingAppError } = await supabase
+    .from("applications")
+    .select("status")
+    .eq("id", applicationId)
+    .returns<{ status: string }[]>()
+    .maybeSingle();
+
+  if (existingAppError) {
+    console.error(
+      "[updateApplicationStatus] could not fetch existing status:",
+      existingAppError
+    );
+    return;
+  }
+
+  const statusChanged = existingApp?.status !== newStatus;
 
   const { data: updatedApp, error } = await supabase
     .from("applications")
@@ -182,10 +216,12 @@ async function updateApplicationStatus(jobId: string, formData: FormData) {
     jobs: { title: string; companies: { company_name: string } };
   };
 
+  // FIX 2: Only email if the status actually changed
   if (
-    newStatus === "REVIEWED" ||
-    newStatus === "SHORTLISTED" ||
-    newStatus === "REJECTED"
+    statusChanged &&
+    (newStatus === "REVIEWED" ||
+      newStatus === "SHORTLISTED" ||
+      newStatus === "REJECTED")
   ) {
     await sendApplicationStatusEmails(
       [

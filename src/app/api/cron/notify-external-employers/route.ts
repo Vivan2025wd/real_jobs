@@ -296,11 +296,31 @@ export async function GET(request: NextRequest) {
         </div>`,
       });
 
+      // FIX 4 (BREAK-7): Re-fetch notify_count from the DB immediately before
+      // incrementing so that if the first loop already ran for this same job
+      // in this cron invocation we don't under-count by 1.
+      const { data: freshContact, error: freshContactError } = await adminDb
+        .from("job_external_contacts")
+        .select("notify_count")
+        .eq("job_id", job.id)
+        .eq("contact_email", contact.contact_email)
+        .maybeSingle();
+
+      if (freshContactError) {
+        throw new Error(
+          `Could not load the current notification count: ${freshContactError.message}`
+        );
+      }
+
+      const currentCount =
+        (freshContact as { notify_count: number } | null)?.notify_count ??
+        contact.notify_count;
+
       const { error: updateMilestoneError } = await adminDb
         .from("job_external_contacts")
         .update({
           milestone_notified_at: new Date().toISOString(),
-          notify_count: contact.notify_count + 1,
+          notify_count: currentCount + 1,
           last_notified_at: new Date().toISOString(),
         })
         .eq("job_id", job.id)

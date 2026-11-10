@@ -4,8 +4,9 @@ import { useTransition } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
+// PENDING is intentionally excluded — employers cannot revert an application
+// back to PENDING once it has been actioned.
 const STATUS_OPTIONS = [
-  { value: "PENDING", label: "Pending" },
   { value: "REVIEWED", label: "Reviewed" },
   { value: "SHORTLISTED", label: "Shortlisted" },
   { value: "REJECTED", label: "Rejected" },
@@ -57,6 +58,12 @@ export function ApplicationStatusSelect({
         {currentStatus === "WITHDRAWN" && (
           <option value="WITHDRAWN" disabled>
             Withdrawn
+          </option>
+        )}
+        {/* Display-only: employers cannot revert to PENDING */}
+        {currentStatus === "PENDING" && (
+          <option value="PENDING" disabled>
+            Pending
           </option>
         )}
         {STATUS_OPTIONS.map((opt) => (
